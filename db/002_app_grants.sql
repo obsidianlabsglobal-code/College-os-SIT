@@ -1,0 +1,10 @@
+REVOKE CREATE ON SCHEMA public FROM PUBLIC;
+GRANT USAGE ON SCHEMA public TO nexus_app;
+GRANT SELECT, INSERT, UPDATE, DELETE ON "user", session, account, verification TO nexus_app;
+GRANT SELECT ON institution, department, membership, academic_scheme, academic_term TO nexus_app;
+GRANT SELECT, INSERT ON course, section, offering, assignment, submission, attachment, audit_event TO nexus_app;
+GRANT UPDATE (published_at) ON assignment TO nexus_app;
+GRANT SELECT, INSERT, UPDATE ON roster TO nexus_app;
+GRANT SELECT, INSERT, DELETE ON grade TO nexus_app;
+GRANT UPDATE (published_at) ON grade TO nexus_app;
+GRANT USAGE ON SEQUENCE audit_event_id_seq TO nexus_app;

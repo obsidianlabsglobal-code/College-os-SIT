@@ -1,0 +1,54 @@
+name: CI
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: ci-db-only
+          POSTGRES_DB: nexus
+        ports: ['5432:5432']
+        options: --health-cmd 'pg_isready -U postgres -d nexus' --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://nexus_app:ci-app-only@127.0.0.1:5432/nexus
+      MIGRATION_DATABASE_URL: postgresql://postgres:ci-db-only@127.0.0.1:5432/nexus
+      BETTER_AUTH_URL: http://127.0.0.1:3000
+      BETTER_AUTH_SECRET: ci-only-not-used-for-a-deployed-application
+      NEXUS_DEMO_SEED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm audit --omit=dev --audit-level=high
+      - name: Create restricted runtime role
+        run: |
+          node --input-type=module <<'JS'
+          import pg from "pg";
+          const client = new pg.Client({ connectionString: process.env.MIGRATION_DATABASE_URL });
+          await client.connect();
+          try {
+            await client.query("CREATE ROLE nexus_app LOGIN PASSWORD 'ci-app-only'");
+          } finally {
+            await client.end();
+          }
+          JS
+      - run: npm run db:migrate && npm run db:migrate && npm run db:seed
+      - run: npm run lint && npm run typecheck && npm run build
+      - run: npm test
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-results
+          path: test-results/
+          if-no-files-found: ignore

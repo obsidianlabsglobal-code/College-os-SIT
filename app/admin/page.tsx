@@ -1,0 +1,87 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { account, scope, workspaceQuery } from "../../lib/scope";
+import { adminCatalog } from "../../lib/academics";
+import { Chrome } from "../chrome";
+import { ActionForm } from "../forms";
+import { catalog } from "../actions/catalog";
+import { institution } from "../actions/institution";
+import { delegatedRoles, institutionCatalog } from "../../lib/institution";
+
+type Option = { id: string; name: string };
+
+function Choices({ label, field, options, required = true }: { label: string; field: string; options: Option[]; required?: boolean }) {
+  return <label>{label}<select name={field} required={required} defaultValue=""><option value="" disabled={required}>{required ? `Select ${label.toLowerCase()}` : "None"}</option>
+    {options.map(option => <option key={option.id} value={option.id}>{option.name}</option>)}</select></label>;
+}
+
+export default async function Admin({ searchParams }: { searchParams: Promise<{ institution?: string; role?: string }> }) {
+  const [selection,user] = await Promise.all([searchParams,account()]);
+  const current = await scope(selection.institution,selection.role);
+  if (current.role !== "admin") notFound();
+  const [data, setup] = await Promise.all([adminCatalog(current),institutionCatalog(current)]);
+  return <Chrome name={user.name}>
+    <div className="hero"><Link href={`/?${workspaceQuery(current)}`}>Workspace</Link><h1>Academic setup</h1></div>
+    <div className="grid">
+      <section className="panel stack">
+        <h2>Courses and sections</h2>
+        <ActionForm action={catalog} context={current} operation="course" label="Add course">
+          <Choices label="Department" field="department" options={data.departments} />
+          <label>Course name<input name="name" maxLength={120} required /></label>
+        </ActionForm>
+        <ActionForm action={catalog} context={current} operation="section" label="Add section">
+          <label>Section name<input name="name" maxLength={120} required /></label>
+        </ActionForm>
+        <ActionForm action={catalog} context={current} operation="offering" label="Add offering">
+          <Choices label="Course" field="course" options={data.courses} />
+          <Choices label="Section" field="section" options={data.sections} />
+          <Choices label="Term" field="term" options={data.terms} />
+        </ActionForm>
+      </section>
+      <section className="panel stack">
+        <h2>Course rosters</h2>
+        <ActionForm action={catalog} context={current} operation="add-roster" label="Add to roster">
+          <Choices label="Offering" field="offering" options={data.offerings} />
+          <Choices label="Person" field="account" options={Array.from(new Map(data.people.map(person => [person.id,person])).values())} />
+          <Choices label="Roster role" field="roster-role" options={[{ id: "student", name: "Student" }, { id: "faculty", name: "Faculty" }]} />
+        </ActionForm>
+        {!data.roster.length && <p>No roster entries yet.</p>}
+        <ul className="items">{data.roster.map(entry => <li key={`${entry.offering_id}-${entry.account_id}-${entry.role}`}>
+          <strong>{entry.person}</strong> · {entry.role}<p className="meta">{entry.offering}</p>
+          {entry.ended_at ? <span className="tag">Ended</span> : <ActionForm action={catalog} context={current} operation="end-roster" label="End access" secondary>
+            <input type="hidden" name="offering" value={entry.offering_id} />
+            <input type="hidden" name="account" value={entry.account_id} />
+            <input type="hidden" name="roster-role" value={entry.role} />
+          </ActionForm>}
+        </li>)}</ul>
+      </section>
+      <section className="panel stack">
+        <h2>Departments, schemes and terms</h2>
+        <ActionForm action={institution} context={current} operation="department" label="Add department">
+          <label>Department name<input name="name" maxLength={120} required /></label>
+        </ActionForm>
+        <ActionForm action={institution} context={current} operation="scheme" label="Add academic scheme">
+          <label>Scheme name<input name="name" maxLength={120} required /></label>
+        </ActionForm>
+        <ActionForm action={institution} context={current} operation="term" label="Add term">
+          <Choices label="Academic scheme" field="scheme" options={setup.schemes} />
+          <label>Term name<input name="name" maxLength={120} required /></label>
+        </ActionForm>
+      </section>
+      <section className="panel stack">
+        <h2>Role assignments</h2>
+        <ActionForm action={institution} context={current} operation="grant" label="Assign role">
+          <Choices label="Person" field="account" options={Array.from(new Map(setup.grants.map(grant => [grant.account_id,{ id: grant.account_id, name: grant.account_name }])).values())} />
+          <Choices label="Role" field="grant-role" options={delegatedRoles.map(role => ({ id: role, name: role === "hod" ? "Department head" : role[0].toUpperCase() + role.slice(1) }))} />
+          <Choices label="Department (HOD only)" field="department" options={data.departments} required={false} />
+        </ActionForm>
+        <ul className="items">{setup.grants.map(grant => <li key={grant.id}>
+          <strong>{grant.account_name}</strong> · {grant.role}{grant.department && ` · ${grant.department}`}
+          {grant.ended_at ? <span className="tag">Ended</span> : grant.role !== "admin" && <ActionForm action={institution} context={current} operation="end" label="End role" secondary>
+            <input type="hidden" name="membership" value={grant.id} />
+          </ActionForm>}
+        </li>)}</ul>
+      </section>
+    </div>
+  </Chrome>;
+}
