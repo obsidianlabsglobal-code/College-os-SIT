@@ -32,7 +32,7 @@ jobs:
           gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs" \
             --jq '.check_runs[] | select(.name == "verify" and .app.slug == "github-actions" and .conclusion == "success") | .id' | grep -q .
           test -n "$VERCEL_TOKEN" && test -n "$VERCEL_ORG_ID" && test -n "$VERCEL_PROJECT_ID"
-          test -n "$MIGRATION_DATABASE_URL" && test -n "$HEALTH_BYPASS"
+          test -n "$MIGRATION_DATABASE_URL"
           case "$RELEASE_URL" in https://*) ;; *) exit 1 ;; esac
       - run: npm ci
       - name: Build the Vercel release artifact
@@ -43,7 +43,9 @@ jobs:
       - name: Deploy and verify the staging URL
         run: |
           npx --yes vercel@66.6.0 deploy --prebuilt --prod --token="$VERCEL_TOKEN"
-          curl --fail --silent --show-error --retry 5 --retry-all-errors \
-            -H "x-vercel-protection-bypass: $HEALTH_BYPASS" "${RELEASE_URL%/}/api/health" | jq -e '.status == "ok"'
-          curl --fail --silent --show-error --retry 2 \
-            -H "x-vercel-protection-bypass: $HEALTH_BYPASS" "${RELEASE_URL%/}/login" | grep -q 'Sign in'
+          curl_flags=(--fail --silent --show-error)
+          if [ -n "$HEALTH_BYPASS" ]; then
+            curl_flags+=(-H "x-vercel-protection-bypass: $HEALTH_BYPASS")
+          fi
+          curl "${curl_flags[@]}" --retry 5 --retry-all-errors "${RELEASE_URL%/}/api/health" | jq -e '.status == "ok"'
+          curl "${curl_flags[@]}" --retry 2 "${RELEASE_URL%/}/login" | grep -q 'Sign in'

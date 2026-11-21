@@ -5,4 +5,4 @@
 - Keep small release-candidate attachments in PostgreSQL behind a storage boundary. File and audit writes roll back together. Bound payload size to 4 MiB for the Vercel Functions request limit and prepare private object storage and scanning before institutional rollout.
 - Reject late submissions and permit one final submission in Release 1. Verify extension and resubmission requirements with the pilot before adding policy.
 - Preserve published grade versions while corrections are drafted and retain superseded draft revisions. Lock grade writes by submission and reject stale revision numbers.
-- Target Vercel with managed PostgreSQL per the product owner's selection. Require protected staging and separate migration credentials.
+- Target Vercel with managed PostgreSQL per the product owner's selection. Use a dedicated staging project and separate migration credentials.
