@@ -1,6 +1,5 @@
 "use server";
 
-import { APIError } from "better-auth/api";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "../../lib/auth";
@@ -23,11 +22,18 @@ export async function signIn(_state: ActionState, form: FormData): Promise<Actio
     return { error: "Enter a valid email and password." };
   }
   try {
-    const response = await auth.api.signInEmail({ headers: await headers(), body: { email, password }, asResponse: true });
+    const url = new URL("/api/auth/sign-in/email", process.env.BETTER_AUTH_URL);
+    const requestHeaders = new Headers(await headers());
+    requestHeaders.set("content-type", "application/json");
+    requestHeaders.delete("content-length");
+    const response = await auth.handler(new Request(url, {
+      method: "POST",
+      headers: requestHeaders,
+      body: JSON.stringify({ email, password }),
+    }));
     if (!response.ok) return { error: response.status === 429 ? "Too many attempts. Try again shortly." : "Sign-in failed. Check your email and password." };
     await forwardCookies(response);
-  } catch (error) {
-    if (error instanceof APIError) return { error: "Sign-in failed. Check your email and password." };
+  } catch {
     return { error: "Sign-in is temporarily unavailable." };
   }
   redirect("/");

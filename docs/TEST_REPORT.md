@@ -6,9 +6,9 @@
 | --- | --- |
 | Lint and type check | `npm run lint` and `npm run typecheck` |
 | Production build | `npm run build` compiled all workspaces and routes |
-| PostgreSQL migrations | Applied all six migrations to a clean database and reran without pending changes |
+| PostgreSQL migrations | Applied all seven migrations to a clean database and reran without pending changes |
 | Restricted-role integration | Four tests via `npm test` exercised assignment state, cross-tenant and section permissions, duplicate and late submissions, unpublished feedback, grade revisions, concurrent writes, revoked access, notice scope, service requests, and transactional rollback |
-| Chromium end to end | Three journeys passed against the production build with fictional accounts. Covered assignments and feedback, a disconnected submission response, scoped notices, an enrollment-letter request, principal reporting, administration, keyboard navigation, and a mobile viewport |
+| Chromium end to end | Four journeys passed against the production build with fictional accounts. Covered assignments and feedback, a disconnected submission response, scoped notices, an enrollment-letter request, principal reporting, administration, keyboard navigation, a mobile viewport, and sign-in throttling shared by the API and browser form |
 | Persistence | Stopped and started PostgreSQL against the same local data directory. Assignment, submission, published grade revision, and audit counts matched |
 | Dependencies | `npm audit --omit=dev --audit-level=high` reported zero vulnerabilities at the time of the run |
 

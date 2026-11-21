@@ -2,6 +2,15 @@ import { expect, test, type Page } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { demoEmail, demoPassword } from "../scripts/fixtures";
 
+function testClientHeaders() {
+  const bytes = Buffer.from(randomUUID().replaceAll("-", ""), "hex");
+  return { "x-forwarded-for": `198.${18 + bytes[0] % 2}.${bytes[1]}.${bytes[2]}` };
+}
+
+test.beforeEach(async ({ page }) => {
+  await page.setExtraHTTPHeaders(testClientHeaders());
+});
+
 async function signIn(page: Page, persona: string) {
   await page.goto("/login");
   await page.getByLabel("Email").fill(demoEmail(persona));
@@ -200,4 +209,25 @@ test("administrators configure academic records and manage delegated roles", asy
   await expect(grant.getByText("Asha Sen",{ exact:true })).toBeVisible();
   await grant.getByRole("button",{ name:"End role" }).click();
   await expect(grant.getByText("Ended",{ exact:true })).toBeVisible();
+});
+
+test("the sign-in form observes PostgreSQL-backed throttling", async ({ page, playwright, baseURL }) => {
+  const extraHTTPHeaders = testClientHeaders();
+  const api = await playwright.request.newContext({ baseURL, extraHTTPHeaders });
+  try {
+    for (let attempt = 0; attempt < 20; attempt++) {
+      const response = await api.post("/api/auth/sign-in/email", {
+        data: { email: demoEmail("student"), password: "wrong-for-test" },
+      });
+      expect(response.status()).toBe(401);
+    }
+    await page.setExtraHTTPHeaders(extraHTTPHeaders);
+    await page.goto("/login");
+    await page.getByLabel("Email").fill(demoEmail("student"));
+    await page.getByLabel("Password").fill(demoPassword);
+    await page.getByRole("button", { name:"Sign in" }).click();
+    await expect(page.getByText("Too many attempts. Try again shortly.")).toBeVisible();
+  } finally {
+    await api.dispose();
+  }
 });
