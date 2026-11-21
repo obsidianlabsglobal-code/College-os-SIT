@@ -14,7 +14,11 @@ jobs:
           POSTGRES_PASSWORD: ci-db-only
           POSTGRES_DB: nexus
         ports: ['5432:5432']
-        options: --health-cmd 'pg_isready -U postgres -d nexus' --health-interval 5s --health-timeout 5s --health-retries 10
+        options: >-
+          --health-cmd "pg_isready -U postgres -d nexus"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     env:
       DATABASE_URL: postgresql://nexus_app:ci-app-only@127.0.0.1:5432/nexus
       MIGRATION_DATABASE_URL: postgresql://postgres:ci-db-only@127.0.0.1:5432/nexus
