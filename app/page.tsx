@@ -50,6 +50,12 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ i
         <tbody>{summary.map(row => <tr key={row.name}><th scope="row">{row.name}</th><td>{row.assignments}</td><td>{row.submissions}</td><td>{row.results}</td><td>{row.hours === null ? "—" : `${row.hours.toFixed(1)} h`}</td></tr>)}</tbody>
       </table></div> : <p>No departments are assigned to this workspace.</p>}
     </section>}
+    {(current?.role === "student" || current?.role === "faculty") && <section className="panel">
+      <h2>My courses</h2>
+      {courses.length ? <ul className="items">{courses.map(course => <li key={course.id}>
+        <Link href={`/courses/${course.id}?${query}`}>{course.label}</Link>
+      </li>)}</ul> : <p>No active course assignments are available for this workspace.</p>}
+    </section>}
     {(current?.role === "faculty" || current?.role === "student") && <div className={current.role === "faculty" ? "grid" : "stack"}>
       <section className="panel">
         <h2>Assignments</h2>

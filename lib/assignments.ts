@@ -31,7 +31,7 @@ export async function audit(client: PoolClient, scope: Scope, entity: string, ac
 
 type Assignment = { id: string; offering_id: string; title: string; description: string; deadline: Date; max_marks: number; rubric: string | null; published_at: Date | null; accepting: boolean; course: string; section: string; timezone: string };
 
-export async function assignments(scope: Scope, id?: string) {
+export async function assignments(scope: Scope, id?: string, offering?: string) {
   if (scope.role !== "student" && scope.role !== "faculty") return [];
   const { rows } = await db.query<Assignment>(
     `SELECT a.*,a.deadline >= clock_timestamp() AS accepting,c.name AS course,s.name AS section,i.timezone FROM assignment a
@@ -40,23 +40,24 @@ export async function assignments(scope: Scope, id?: string) {
      JOIN section s ON (s.institution_id,s.id)=(o.institution_id,o.section_id)
      JOIN institution i ON i.id=a.institution_id
      WHERE a.institution_id=$1 AND ${activeRoster} AND ($3='faculty' OR a.published_at IS NOT NULL)
-     AND ($4::uuid IS NULL OR a.id=$4) ORDER BY a.deadline,a.id`,
-    [scope.institution, scope.account, scope.role, id ?? null],
+     AND ($4::uuid IS NULL OR a.id=$4) AND ($5::uuid IS NULL OR a.offering_id=$5) ORDER BY a.deadline,a.id`,
+    [scope.institution, scope.account, scope.role, id ?? null, offering ?? null],
   );
   return rows;
 }
 
-export async function offerings(scope: Scope) {
-  if (scope.role !== "faculty") return [];
-  return (await db.query<{ id: string; label: string; timezone: string }>(
-    `SELECT a.id,c.name || ' · ' || s.name || ' · ' || t.name AS label,i.timezone
+export async function offerings(scope: Scope, id?: string) {
+  if (scope.role !== "faculty" && scope.role !== "student") return [];
+  return (await db.query<{ id: string; label: string; course: string; section: string; term: string; scheme: string; timezone: string }>(
+    `SELECT a.id,c.name || ' · ' || s.name || ' · ' || t.name AS label,c.name AS course,s.name AS section,t.name AS term,sc.name AS scheme,i.timezone
      FROM (SELECT id AS offering_id,id,institution_id,course_id,section_id,term_id FROM offering) a
      JOIN course c ON (c.institution_id,c.id)=(a.institution_id,a.course_id)
      JOIN section s ON (s.institution_id,s.id)=(a.institution_id,a.section_id)
      JOIN academic_term t ON (t.institution_id,t.id)=(a.institution_id,a.term_id)
+     JOIN academic_scheme sc ON (sc.institution_id,sc.id)=(t.institution_id,t.scheme_id)
      JOIN institution i ON i.id=a.institution_id
-     WHERE a.institution_id=$1 AND ${activeRoster} ORDER BY label`,
-    [scope.institution, scope.account, scope.role],
+     WHERE a.institution_id=$1 AND ${activeRoster} AND ($4::uuid IS NULL OR a.id=$4) ORDER BY label,a.id`,
+    [scope.institution, scope.account, scope.role,id ?? null],
   )).rows;
 }
 

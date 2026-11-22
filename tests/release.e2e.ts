@@ -49,6 +49,9 @@ test("faculty, student and HOD use the persisted assignment workflow", async ({ 
   await signOut(page);
 
   await signIn(page,"student");
+  await page.getByRole("link",{name:"Introduction to Programming · Section A · Term 1"}).click();
+  await expect(page.getByRole("heading",{name:"Course assignments"})).toBeVisible();
+  await expect(page.getByText(/Fictional Engineering Scheme/)).toBeVisible();
   await page.getByRole("link",{ name:title }).click();
   await expect(page.getByRole("heading",{ name:title, exact:true })).toBeVisible();
   const studentUrl = page.url();
@@ -458,4 +461,18 @@ test("AURA event planning confirms a private persisted draft", async ({ page }) 
   } finally {
     await Promise.all([connection.end(),runtime.end()]);
   }
+});
+
+
+test("course workspaces require the current offering roster", async ({page}) => {
+  const {fixtures} = await import("../scripts/fixtures");
+  await signIn(page,"outsider");
+  await page.setViewportSize({width:390,height:844});
+  const course = page.getByRole("link",{name:"Introduction to Programming · Section B · Term 1"});
+  await course.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("heading",{name:"Course assignments"})).toBeVisible();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(390);
+  const forged = await page.goto(`/courses/${fixtures.offering}?institution=${fixtures.institution}&role=student`);
+  expect(forged?.status()).toBe(404);
 });
