@@ -40,29 +40,41 @@ const work = `work AS (
 export type AssignmentProgress = {
   id: string; title: string; offering_id: string; course: string; section: string; term: string;
   deadline: Date; published_at: Date | null; accepting: boolean; max_marks: number; timezone: string;
-  enrolled: number; submitted: number; pending: number; awaiting: number; published: number;
-  oldest_pending: Date | null;
+  enrolled: number; submitted: number; submitted_enrolled: number; withdrawn: number;
+  pending: number; awaiting: number; published: number; oldest_pending: Date | null;
 };
 
-type ProgressFilter = { assignment?: string; offering?: string; activeOnly?: boolean; limit?: number };
+/**
+ * `active`: unpublished, open for submissions, or with evaluation outstanding (outstanding work first).
+ * `unpublished`: never published. `open`: published and accepting submissions (earliest deadline first).
+ */
+export type ProgressView = "all" | "active" | "unpublished" | "open";
+type ProgressFilter = { assignment?: string; offering?: string; view?: ProgressView; limit?: number };
+
+const enrolled = `enrolled AS (
+  SELECT r.institution_id,r.offering_id,r.account_id FROM roster r
+  JOIN taught t ON t.institution_id=r.institution_id AND t.offering_id=r.offering_id
+  JOIN membership m ON m.institution_id=r.institution_id AND m.account_id=r.account_id
+    AND m.role='student' AND m.ended_at IS NULL
+  WHERE r.role='student' AND r.ended_at IS NULL)`;
 
 /**
  * Per-assignment evaluation progress for offerings the caller currently teaches.
- * `activeOnly` keeps assignments that still need something: unpublished, open for submissions,
- * or with evaluation work outstanding. Totals are computed before the row limit is applied.
+ * `submitted_enrolled` counts only currently enrolled students so it can be compared with `enrolled`;
+ * `withdrawn` counts submissions from students no longer enrolled. `truncated` reports a row limit.
  */
 export async function assignmentProgress(scope: Scope, filter: ProgressFilter = {}) {
-  if (scope.role !== "faculty") return { rows: [] as AssignmentProgress[], totals: emptyTotals(), truncated: false };
+  if (scope.role !== "faculty") return { rows: [] as AssignmentProgress[], total: 0, truncated: false };
   const limit = Math.min(Math.max(filter.limit ?? 100, 1), 200);
-  const { rows } = await db.query<AssignmentProgress & { total_rows: number; total_pending: number; total_awaiting: number; total_oldest: Date | null }>(
-    `WITH ${taught}, ${work},
+  const { rows } = await db.query<AssignmentProgress & { total_rows: number }>(
+    `WITH ${taught}, ${work}, ${enrolled},
      progress AS (
        SELECT a.id,a.title,a.offering_id,c.name AS course,sec.name AS section,te.name AS term,a.deadline,a.published_at,
          a.deadline >= clock_timestamp() AS accepting,a.max_marks,i.timezone,
-         (SELECT count(*)::int FROM roster r JOIN membership m ON m.institution_id=r.institution_id
-            AND m.account_id=r.account_id AND m.role='student' AND m.ended_at IS NULL
-          WHERE r.institution_id=a.institution_id AND r.offering_id=a.offering_id AND r.role='student' AND r.ended_at IS NULL) AS enrolled,
+         (SELECT count(*)::int FROM enrolled e WHERE e.institution_id=a.institution_id AND e.offering_id=a.offering_id) AS enrolled,
          count(w.id)::int AS submitted,
+         count(w.id) FILTER (WHERE e.account_id IS NOT NULL)::int AS submitted_enrolled,
+         count(w.id) FILTER (WHERE e.account_id IS NULL)::int AS withdrawn,
          count(w.id) FILTER (WHERE w.state='pending')::int AS pending,
          count(w.id) FILTER (WHERE w.state IN ('draft','correction'))::int AS awaiting,
          count(w.id) FILTER (WHERE w.state IN ('published','correction'))::int AS published,
@@ -75,41 +87,47 @@ export async function assignmentProgress(scope: Scope, filter: ProgressFilter = 
        JOIN academic_term te ON te.institution_id=o.institution_id AND te.id=o.term_id
        JOIN institution i ON i.id=a.institution_id
        LEFT JOIN work w ON w.institution_id=a.institution_id AND w.assignment_id=a.id
+       LEFT JOIN enrolled e ON e.institution_id=a.institution_id AND e.offering_id=a.offering_id AND e.account_id=w.student_id
        WHERE ($3::uuid IS NULL OR a.id=$3) AND ($4::uuid IS NULL OR a.offering_id=$4)
        GROUP BY a.institution_id,a.id,c.name,sec.name,te.name,i.timezone)
-     SELECT *,count(*) OVER ()::int AS total_rows,
-       (sum(pending) OVER ())::int AS total_pending,(sum(awaiting) OVER ())::int AS total_awaiting,
-       min(oldest_pending) OVER () AS total_oldest
-     FROM progress
-     WHERE NOT $5::boolean OR published_at IS NULL OR accepting OR pending > 0 OR awaiting > 0
-     ORDER BY (pending + awaiting) = 0,published_at IS NOT NULL,deadline,id
+     SELECT *,count(*) OVER ()::int AS total_rows FROM progress
+     WHERE CASE $5::text
+       WHEN 'active' THEN published_at IS NULL OR accepting OR pending > 0 OR awaiting > 0
+       WHEN 'unpublished' THEN published_at IS NULL
+       WHEN 'open' THEN published_at IS NOT NULL AND accepting
+       ELSE true END
+     ORDER BY CASE WHEN $5='open' THEN false ELSE (pending + awaiting) = 0 END,
+       CASE WHEN $5='open' THEN false ELSE published_at IS NOT NULL END,deadline,id
      LIMIT $6`,
-    [scope.institution, scope.account, filter.assignment ?? null, filter.offering ?? null, filter.activeOnly ?? false, limit],
+    [scope.institution, scope.account, filter.assignment ?? null, filter.offering ?? null, filter.view ?? "all", limit],
   );
-  const [first] = rows;
-  return {
-    rows: rows as AssignmentProgress[],
-    totals: first ? { pending: first.total_pending, awaiting: first.total_awaiting, oldestPending: first.total_oldest } : emptyTotals(),
-    truncated: (first?.total_rows ?? 0) > rows.length,
-  };
+  const total = rows[0]?.total_rows ?? 0;
+  return { rows: rows as AssignmentProgress[], total, truncated: total > rows.length };
 }
 
-function emptyTotals() {
-  return { pending: 0, awaiting: 0, oldestPending: null as Date | null };
-}
+export type EvaluationTotals = { offering_id: string | null; pending: number; awaiting: number; published: number; oldest_pending: Date | null };
 
-/** Total evaluation work across every assignment the caller teaches, independent of row limits. */
-export async function evaluationTotals(scope: Scope) {
-  if (scope.role !== "faculty") return { pending: 0, awaiting: 0, published: 0, oldestPending: null as Date | null };
-  const { rows: [totals] } = await db.query<{ pending: number; awaiting: number; published: number; oldest_pending: Date | null }>(
+/**
+ * Evaluation counts independent of row limits: one overall row (`offering_id` null) plus one row per taught offering.
+ * Optional assignment and offering filters narrow both.
+ */
+export async function evaluationTotals(scope: Scope, filter: { assignment?: string; offering?: string } = {}) {
+  const empty: EvaluationTotals = { offering_id: null, pending: 0, awaiting: 0, published: 0, oldest_pending: null };
+  if (scope.role !== "faculty") return { ...empty, byOffering: new Map<string, EvaluationTotals>() };
+  const { rows } = await db.query<EvaluationTotals>(
     `WITH ${taught}, ${work}
-     SELECT count(*) FILTER (WHERE state='pending')::int AS pending,
-       count(*) FILTER (WHERE state IN ('draft','correction'))::int AS awaiting,
-       count(*) FILTER (WHERE state IN ('published','correction'))::int AS published,
-       min(submitted_at) FILTER (WHERE state='pending') AS oldest_pending
-     FROM work`, [scope.institution, scope.account],
+     SELECT a.offering_id,
+       count(*) FILTER (WHERE w.state='pending')::int AS pending,
+       count(*) FILTER (WHERE w.state IN ('draft','correction'))::int AS awaiting,
+       count(*) FILTER (WHERE w.state IN ('published','correction'))::int AS published,
+       min(w.submitted_at) FILTER (WHERE w.state='pending') AS oldest_pending
+     FROM work w JOIN assignment a ON a.institution_id=w.institution_id AND a.id=w.assignment_id
+     WHERE ($3::uuid IS NULL OR a.id=$3) AND ($4::uuid IS NULL OR a.offering_id=$4)
+     GROUP BY GROUPING SETS ((), (a.offering_id))`,
+    [scope.institution, scope.account, filter.assignment ?? null, filter.offering ?? null],
   );
-  return { pending: totals.pending, awaiting: totals.awaiting, published: totals.published, oldestPending: totals.oldest_pending };
+  const overall = rows.find(row => row.offering_id === null) ?? empty;
+  return { ...overall, byOffering: new Map(rows.filter(row => row.offering_id).map(row => [row.offering_id as string, row])) };
 }
 
 export const queueStatuses = ["pending", "awaiting", "published", "all"] as const;
@@ -152,7 +170,7 @@ export const queueFilters = z.object({
   sort: z.enum(queueSorts).catch("oldest"),
   assignment: z.uuid().optional().catch(undefined),
   offering: z.uuid().optional().catch(undefined),
-  page: z.coerce.number().int().min(1).max(10000).catch(1),
+  page: z.coerce.number().int().min(1).max(1000).catch(1),
   pageSize: z.coerce.number().int().min(1).max(100).catch(25),
 });
 export type QueueFilters = z.infer<typeof queueFilters>;

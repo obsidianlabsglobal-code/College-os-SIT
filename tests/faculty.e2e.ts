@@ -92,6 +92,9 @@ test("faculty mission control leads from pending work through the evaluation que
   await page.getByRole("link", { name: "Open in evaluation queue" }).click();
   await page.getByRole("navigation", { name: "Queue status" }).getByRole("link", { name: /^Published/ }).click();
   await expect(page.getByRole("listitem").filter({ hasText: "Asha Sen" }).getByText("Published 8/10")).toBeVisible();
+  expect(page.url()).toContain("assignment=");
+  await page.goto(`${page.url()}&offering=${fixtures.otherOffering}`);
+  await expect(page).not.toHaveURL(/assignment=/);
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload();

@@ -6,7 +6,8 @@ import { account, scope, workspaceQuery } from "../../../lib/scope";
 import { Chrome } from "../../chrome";
 import { PageHeader } from "../../page-header";
 import { assignmentProgress } from "../../../lib/faculty";
-import { assignmentStatus, href, plural } from "../../faculty/format";
+import { assignmentStatus, href } from "../../faculty/format";
+import { ProgressLine } from "../../faculty/progress-line";
 
 export default async function CourseWorkspace({params, searchParams}: {
   params: Promise<{id: string}>;
@@ -38,11 +39,10 @@ export default async function CourseWorkspace({params, searchParams}: {
           const row = stats.get(item.id);
           if (!row) return null;
           if (!row.published_at) return <p className="meta">{assignmentStatus(row).detail}</p>;
-          return <p className="progress-line"><span>{row.submitted} of {plural(row.enrolled, "enrolled student")} submitted</span>
-            {row.pending > 0 && <Link href={href("/grading", query, { status: "pending", assignment: row.id })}>{row.pending} awaiting evaluation</Link>}
-            {row.awaiting > 0 && <Link href={href("/grading", query, { status: "awaiting", assignment: row.id })}>{row.awaiting} awaiting publication</Link>}</p>;
+          return <ProgressLine row={row} query={query} />;
         })()}
       </li>)}</ul> : <p>No assignments are available for this course.</p>}
+      {progress?.truncated && <p className="meta">Evaluation progress is shown for the first {progress.rows.length} assignments. Use the evaluation queue for the rest.</p>}
     </section>
   </Chrome>;
 }

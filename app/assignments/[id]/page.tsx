@@ -10,6 +10,7 @@ import { workflow } from "../../actions/workflow";
 import Link from "next/link";
 import { assignmentProgress, evaluationLabels, evaluationState, nextAwaitingEvaluation } from "../../../lib/faculty";
 import { actionLabels, href, plural } from "../../faculty/format";
+import { ProgressLine } from "../../faculty/progress-line";
 
 // Above this many submissions the faculty view lists submissions and grades one at a time.
 const inlineGradingLimit = 20;
@@ -51,12 +52,8 @@ export default async function Detail({ params, searchParams }: { params: Promise
       <section className="panel stack">
         <h2>{isFaculty ? "Submissions" : "Your submission"}</h2>
         {summary && <div className="stack">
-          <p className="progress-line">
-            <span>{summary.submitted} of {plural(summary.enrolled, "enrolled student")} submitted</span>
-            <span>{summary.pending} awaiting evaluation</span>
-            <span>{summary.awaiting} awaiting publication</span>
-            <span>{summary.published} published</span>
-          </p>
+          <ProgressLine row={summary} query={query} links={false} />
+          {summary.published > 0 && <p className="meta">{summary.published} published</p>}
           {summary.submitted > 0 && <p className="submission-nav">
             {focus && <Link href={href(`/assignments/${id}`, query)}>All submissions for this assignment</Link>}
             <Link href={href("/grading", query, { status: "all", assignment: id })}>Open in evaluation queue</Link>

@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { account, scope, workspaceQuery } from "../../lib/scope";
 import { offerings } from "../../lib/assignments";
 import {
-  assignmentProgress, evaluationLabels, evaluationQueue, evaluationTotals,
+  assignmentProgress, evaluationLabels, queueFilters, evaluationQueue, evaluationTotals,
   queueSortLabels, queueSorts, queueStatusLabels, queueStatuses, type QueueStatus,
 } from "../../lib/faculty";
 import { Chrome } from "../chrome";
@@ -18,13 +18,19 @@ export default async function EvaluationQueue({ searchParams }: { searchParams: 
   const current = await scope(first(params.institution), first(params.role));
   if (current.role !== "faculty") notFound();
   const query = workspaceQuery(current);
+  const requested = queueFilters.parse({
+    status: first(params.status), sort: first(params.sort), assignment: first(params.assignment),
+    offering: first(params.offering), page: first(params.page),
+  });
+  const [selected] = requested.assignment ? (await assignmentProgress(current, { assignment: requested.assignment })).rows : [];
+  if (requested.assignment && requested.offering && selected && selected.offering_id !== requested.offering) {
+    // A course change keeps the previous assignment in the form; prefer the course the user just chose.
+    redirect(href("/grading", query, { status: requested.status, sort: requested.sort, offering: requested.offering }));
+  }
   const [queue, totals, progress, courses] = await Promise.all([
-    evaluationQueue(current, {
-      status: first(params.status), sort: first(params.sort), assignment: first(params.assignment),
-      offering: first(params.offering), page: first(params.page),
-    }),
-    evaluationTotals(current),
-    assignmentProgress(current, { limit: 200 }),
+    evaluationQueue(current, requested),
+    evaluationTotals(current, { assignment: requested.assignment, offering: requested.offering }),
+    assignmentProgress(current, { offering: requested.offering, limit: 200 }),
     offerings(current),
   ]);
   const filters = { status: queue.status, sort: queue.sort, assignment: queue.assignment, offering: queue.offering };
@@ -32,8 +38,7 @@ export default async function EvaluationQueue({ searchParams }: { searchParams: 
   const start = (queue.page - 1) * queue.pageSize;
   const counts: Partial<Record<QueueStatus, number>> = { pending: totals.pending, awaiting: totals.awaiting, published: totals.published };
   const course = courses.find(row => row.id === queue.offering);
-  const assignmentOptions = progress.rows.filter(row => row.submitted > 0 && (!queue.offering || row.offering_id === queue.offering));
-  const selected = progress.rows.find(row => row.id === queue.assignment);
+  const assignmentOptions = progress.rows.filter(row => row.submitted > 0 || row.id === selected?.id);
 
   return <Chrome user={user} current={current} section="/grading">
     <PageHeader title="Evaluation queue" context="Submitted work in the courses you currently teach. Students see marks and feedback only after you publish them."
@@ -60,7 +65,7 @@ export default async function EvaluationQueue({ searchParams }: { searchParams: 
           <select name="assignment" defaultValue={queue.assignment ?? ""}>
             <option value="">All assignments</option>
             {assignmentOptions.map(row => <option key={row.id} value={row.id}>{row.title} · {row.section}</option>)}
-            {selected && !assignmentOptions.includes(selected) && <option value={selected.id}>{selected.title} · {selected.section}</option>}
+            {selected && !assignmentOptions.some(row => row.id === selected.id) && <option value={selected.id}>{selected.title} · {selected.section}</option>}
           </select>
         </label>
         <label>Sort

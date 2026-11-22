@@ -104,8 +104,8 @@ test("evaluation states follow the existing grading engine from submission to co
 
   const { rows: [progress] } = await assignmentProgress(teacher, { assignment });
   assert.deepEqual(
-    { enrolled: progress.enrolled, submitted: progress.submitted, pending: progress.pending, awaiting: progress.awaiting, published: progress.published },
-    { enrolled: 5, submitted: 3, pending: 2, awaiting: 1, published: 1 },
+    { enrolled: progress.enrolled, submitted: progress.submitted_enrolled, withdrawn: progress.withdrawn, pending: progress.pending, awaiting: progress.awaiting, published: progress.published },
+    { enrolled: 5, submitted: 3, withdrawn: 0, pending: 2, awaiting: 1, published: 1 },
   );
   assert.ok(progress.oldest_pending);
 });
@@ -182,7 +182,7 @@ test("mission control keeps unfinished work and exposes unpublishable drafts", a
   await updateGrade(teacher, { assignment: finished, submission: only, expected: 1, expectedDraft: true, publish: true });
   await owner.query("UPDATE assignment SET deadline=clock_timestamp()-interval '1 hour' WHERE institution_id=$1 AND id=$2", [f.institution, finished]);
 
-  const active = await assignmentProgress(teacher, { offering, activeOnly: true });
+  const active = await assignmentProgress(teacher, { offering, view: "active" });
   const expired = active.rows.find(row => row.id === unpublished);
   assert.ok(expired, "An unpublished draft remains visible");
   assert.equal(expired.accepting, false);
@@ -206,4 +206,36 @@ test("focused grading reads one authorized submission and finds the next one", a
   await updateGrade(teacher, { assignment, submission: second, expected: 0, expectedDraft: false, marks: 5, feedback: "Draft.", publish: false });
   assert.equal(await nextAwaitingEvaluation(teacher, assignment, first), null, "Drafted work leaves the evaluation queue");
   assert.equal(await nextAwaitingEvaluation(viewer("replacement", "faculty"), assignment), null);
+});
+
+test("progress separates withdrawn students and totals follow filters without row limits", async () => {
+  const teacher = viewer("faculty", "faculty");
+  const assignment = await publishedAssignment();
+  await submitAll(assignment, 3);
+  const leaving = students[0].account;
+  await owner.query("UPDATE roster SET ended_at=clock_timestamp() WHERE institution_id=$1 AND offering_id=$2 AND account_id=$3", [f.institution, offering, leaving]);
+  try {
+    const { rows: [row] } = await assignmentProgress(teacher, { assignment });
+    assert.deepEqual({ enrolled: row.enrolled, submitted: row.submitted_enrolled, withdrawn: row.withdrawn, all: row.submitted },
+      { enrolled: 4, submitted: 2, withdrawn: 1, all: 3 }, "Submitted never exceeds enrolled; withdrawn work is reported separately");
+    assert.equal((await evaluationQueue(teacher, { assignment })).total, 3, "Withdrawn students' work still needs evaluation");
+  } finally {
+    await owner.query("UPDATE roster SET ended_at=NULL WHERE institution_id=$1 AND offering_id=$2 AND account_id=$3", [f.institution, offering, leaving]);
+  }
+
+  const filtered = await evaluationTotals(teacher, { assignment });
+  assert.equal(filtered.pending, 3);
+  assert.equal(filtered.byOffering.get(offering)?.pending, 3);
+  const course = await evaluationTotals(teacher, { offering });
+  assert.equal(course.pending, (await evaluationQueue(teacher, { offering, pageSize: 1 })).total, "Tab counts and the filtered list agree");
+  assert.equal((await evaluationTotals(viewer("replacement", "faculty"), { assignment })).pending, 0);
+
+  const first = await createAssignment(teacher, { offering, title: `Unpublished A ${run}`, description: "Synthetic.", deadline: future(), marks: 5, file: null });
+  await createAssignment(teacher, { offering, title: `Unpublished B ${run}`, description: "Synthetic.", deadline: future(), marks: 5, file: null });
+  const limited = await assignmentProgress(teacher, { offering, view: "unpublished", limit: 1 });
+  assert.equal(limited.rows.length, 1);
+  assert.ok(limited.total >= 2 && limited.truncated, "The unpublished count is not reduced by the display limit");
+  assert.ok((await assignmentProgress(teacher, { offering, view: "open" })).rows.every(row => row.published_at && row.accepting));
+  assert.ok(!(await assignmentProgress(teacher, { offering, view: "open" })).rows.some(row => row.id === first));
+  assert.equal((await evaluationQueue(teacher, { page: 5000 })).page, 1, "Pages beyond the cap fall back to the first page");
 });
