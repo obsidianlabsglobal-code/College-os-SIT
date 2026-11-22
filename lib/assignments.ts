@@ -128,7 +128,7 @@ export async function submitAssignment(scope: Scope, id: string, request: string
 type Grade = { revision: number; marks: number; feedback: string; reason: string | null; published_at: Date | null };
 type Submission = { id: string; name: string; body: string | null; submitted_at: Date; draft: Grade | null; published: Grade | null };
 
-export async function submissions(scope: Scope, assignment: string) {
+export async function submissions(scope: Scope, assignment: string, only?: string) {
   if (scope.role !== "student" && scope.role !== "faculty") return [];
   return (await db.query<Submission>(
     `SELECT s.id,u.name,s.body,s.submitted_at,
@@ -140,7 +140,8 @@ export async function submissions(scope: Scope, assignment: string) {
      JOIN assignment a ON (a.institution_id,a.id)=(s.institution_id,s.assignment_id)
      WHERE a.institution_id=$1 AND a.id=$4 AND ${activeRoster}
        AND ($3='faculty' OR (s.student_id=$2 AND a.published_at IS NOT NULL))
-     ORDER BY s.submitted_at,s.id`, [scope.institution, scope.account, scope.role, assignment],
+       AND ($5::uuid IS NULL OR s.id=$5)
+     ORDER BY s.submitted_at,s.id`, [scope.institution, scope.account, scope.role, assignment, only ?? null],
   )).rows;
 }
 
