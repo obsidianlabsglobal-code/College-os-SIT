@@ -12,3 +12,11 @@
 November 22 delivery integration fast-forwarded experience → CLUBVERSE → deterministic AURA without conflicts. On a fresh local database migrations 000–009 applied and a second pass made no changes. Nine PostgreSQL tests, seven Chromium journeys, lint, typecheck and production build passed before the academic workspace increment. Release 1 was also built separately at e5d507d. The two-stage acceptance runner exercised five roles and denied two unrelated personas. Following a clean shutdown, the fictional database was copied to an isolated instance. The seven migration entries and 12 audit events matched. Fresh sessions on the restored app read the same private file bytes, grade and resolved request. One early replay hit the shared sign-in rate limit; a later run passed without bypassing it. Managed backup, hosted verification and model access remain outstanding.
 
 The registry now tracks 477 permanent IDs. Wave 2 course workspaces at 584c31c use the roster and scheme tables. Fictional-data Chromium journeys went from seven to eight passing tests. The institutional catalog directory, resources, attendance, timetable and faculty grading queue remain separate requirements. Course workspace code stays on its own branch.
+
+## November 22 master plan
+
+GitHub main is f62828f with CI 45005295131. PRs #1 and #2 are merged. PR #3 remains open at d9550af with CI 45013323182. The [independent review](FACULTY_PR3_REVIEW.md) records blocking read-volume and assignment-discovery issues. No parallel Experience 2.0 branch was visible. GitHub showed zero release environments, zero deployments and no release-workflow runs.
+
+The pinned main revision built and accepted all five fictional roles locally. Ten migrations applied and verified on rerun. Browser acceptance checked denied section and tenant access, exact private file content, published grades, request resolution and aggregate reports. Hosted Vercel verification and managed recovery remain outstanding.
+
+The [resource booking slice](RESOURCE_BOOKING.md) adds CL-035 and OP-008 evidence on its dedicated branch. All 477 original IDs survive. SA-023, GU-012 and CR-037 capture distinct master-plan requirements.
