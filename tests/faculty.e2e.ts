@@ -128,16 +128,39 @@ test("the evaluation queue rejects malformed filters without failing", async ({ 
 });
 
 test("compact assignment and searchable choices work on mobile with the keyboard", async ({ page }) => {
+  await import("../scripts/environment");
   const migrationUrl = process.env.MIGRATION_DATABASE_URL;
   if (!migrationUrl || !["127.0.0.1","localhost"].includes(new URL(migrationUrl).hostname)) {
     throw new Error("Local test database required.");
   }
   const { Client } = await import("pg");
-  const owner = new Client({ connectionString: migrationUrl });
-  await owner.connect();
+  const connect = async () => {
+    const client = new Client({ connectionString: migrationUrl });
+    await client.connect();
+    return client;
+  };
+  const owner = await connect();
   const token = randomUUID().slice(0,8);
   const title = `Compact workshop ${token}`;
-  let assignment: string;
+  let assignment = "";
+  // Remove this test's fictional rows so repeated local runs do not fill the demo faculty queue.
+  const cleanup = async () => {
+    const client = await connect();
+    try {
+      await client.query("BEGIN");
+      await client.query(`DELETE FROM attachment WHERE institution_id=$1 AND submission_id IN
+        (SELECT id FROM submission WHERE institution_id=$1 AND assignment_id=$2)`, [fixtures.institution, assignment]);
+      await client.query("DELETE FROM submission WHERE institution_id=$1 AND assignment_id=$2", [fixtures.institution, assignment]);
+      await client.query("DELETE FROM assignment WHERE institution_id=$1 AND id=$2", [fixtures.institution, assignment]);
+      await client.query(`DELETE FROM "user" WHERE id LIKE $1 AND email LIKE '%@nexus.example.invalid'`, [`${token}-%`]);
+      await client.query("COMMIT");
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      await client.end();
+    }
+  };
   try {
     const {rows:[record]} = await owner.query<{id:string}>(`INSERT INTO assignment
       (institution_id,offering_id,title,description,deadline,max_marks,published_at)
@@ -156,39 +179,43 @@ test("compact assignment and searchable choices work on mobile with the keyboard
     await owner.end();
   }
 
-  await page.setViewportSize({width:390,height:844});
-  await signIn(page,"faculty");
-  await page.goto(`/assignments/${assignment}?${workspace("faculty")}`);
-  await expect(page.getByText("Showing the first 20 submissions. Open the evaluation queue for all 23 submissions.")).toBeVisible();
-  await expect(page.getByRole("link", {name:/Evaluate submission by Fictional learner/})).toHaveCount(20);
-  await expect(page.getByText(/Private response/)).toHaveCount(0);
-  await expect(page.getByRole("link",{name:/\.txt$/})).toHaveCount(0);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
-
-  const first = page.getByRole("link",{name:"Evaluate submission by Fictional learner 1",exact:true});
-  await first.focus();
-  await page.keyboard.press("Enter");
-  await expect(page.getByText("Private response 1",{exact:true})).toBeVisible();
-  await expect(page.getByRole("link",{name:`${token}-1.txt`})).toBeVisible();
-  await expect(page.getByRole("link",{name:`${token}-2.txt`})).toHaveCount(0);
-
-  await page.getByRole("link",{name:"Open in evaluation queue"}).click();
-  const search = page.getByRole("searchbox",{name:"Find assignments by title"});
-  await search.focus();
-  await page.keyboard.press("Tab");
-  await expect(page.getByRole("combobox",{name:"Assignment",exact:true})).toBeFocused();
-  await search.fill(token);
-  await search.press("Enter");
-  await expect(page.getByRole("combobox",{name:"Assignment",exact:true})).toHaveValue(assignment);
-  await expect(page.getByRole("option",{name:new RegExp(title)})).toHaveCount(1);
-  await expect(page.getByRole("heading",{name:"Evaluation queue"})).toBeVisible();
-  for (const width of [360,390,768,1024,1440]) {
-    await page.setViewportSize({width,height:844});
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
-  }
-  if (process.env.NEXUS_FACULTY_SCREENSHOTS) {
-    await page.screenshot({path:`${process.env.NEXUS_FACULTY_SCREENSHOTS}/queue-desktop.png`});
+  try {
     await page.setViewportSize({width:390,height:844});
-    await page.screenshot({path:`${process.env.NEXUS_FACULTY_SCREENSHOTS}/queue-mobile.png`});
+    await signIn(page,"faculty");
+    await page.goto(`/assignments/${assignment}?${workspace("faculty")}`);
+    await expect(page.getByText("Showing the first 20 submissions. Open the evaluation queue for all 23 submissions.")).toBeVisible();
+    await expect(page.getByRole("link", {name:/Evaluate submission by Fictional learner/})).toHaveCount(20);
+    await expect(page.getByText(/Private response/)).toHaveCount(0);
+    await expect(page.getByRole("link",{name:/\.txt$/})).toHaveCount(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
+
+    const first = page.getByRole("link",{name:"Evaluate submission by Fictional learner 1",exact:true});
+    await first.focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByText("Private response 1",{exact:true})).toBeVisible();
+    await expect(page.getByRole("link",{name:`${token}-1.txt`})).toBeVisible();
+    await expect(page.getByRole("link",{name:`${token}-2.txt`})).toHaveCount(0);
+
+    await page.getByRole("link",{name:"Open in evaluation queue"}).click();
+    const search = page.getByRole("searchbox",{name:"Find assignments by title"});
+    await search.focus();
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("combobox",{name:"Assignment",exact:true})).toBeFocused();
+    await search.fill(token);
+    await search.press("Enter");
+    await expect(page.getByRole("combobox",{name:"Assignment",exact:true})).toHaveValue(assignment);
+    await expect(page.getByRole("option",{name:new RegExp(title)})).toHaveCount(1);
+    await expect(page.getByRole("heading",{name:"Evaluation queue"})).toBeVisible();
+    for (const width of [360,390,768,1024,1440]) {
+      await page.setViewportSize({width,height:844});
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
+    }
+    if (process.env.NEXUS_FACULTY_SCREENSHOTS) {
+      await page.screenshot({path:`${process.env.NEXUS_FACULTY_SCREENSHOTS}/queue-desktop.png`});
+      await page.setViewportSize({width:390,height:844});
+      await page.screenshot({path:`${process.env.NEXUS_FACULTY_SCREENSHOTS}/queue-mobile.png`});
+    }
+  } finally {
+    if (assignment) await cleanup();
   }
 });
