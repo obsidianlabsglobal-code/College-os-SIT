@@ -268,3 +268,138 @@ test("workspace navigation is scoped, keyboard-operable and responsive", async (
   await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
 });
+
+test("CLUBVERSE recognition, membership, event and leadership journeys persist", async ({ page }) => {
+  const name = `Robotics workshop club ${randomUUID().slice(0,8)}`;
+  const title = "Planetary rover workshop";
+  const visitDirectory = async () => {
+    await page.getByRole("navigation",{ name:"Campus workflows" }).getByRole("link",{ name:"CLUBVERSE",exact:true }).click();
+    await expect(page.getByRole("heading",{ name:"CLUBVERSE",exact:true })).toBeVisible();
+  };
+  const openClub = async () => {
+    await page.getByRole("link",{ name,exact:true }).click();
+    await expect(page.getByRole("heading",{ name,exact:true })).toBeVisible();
+  };
+  const proposal = page.getByRole("article").filter({ has:page.getByRole("heading",{ name,exact:true }) });
+  const event = page.getByRole("article").filter({ has:page.getByRole("heading",{ name:title,exact:true }) });
+  const transition = async (value: string) => {
+    await event.getByRole("combobox",{ name:"Next event status" }).selectOption(value);
+    await event.getByRole("button",{ name:"Update event status" }).click();
+    await expect(event.locator(".tag")).toHaveText(value.replaceAll("_"," "));
+  };
+
+  await signIn(page,"faculty");
+  await visitDirectory();
+  await page.getByLabel("Club name").fill(name);
+  await page.getByRole("textbox",{ name:"Purpose",exact:true }).fill("Build robotic prototypes collaboratively.");
+  await page.getByLabel("Membership rules and planned activities").fill("Workshop members attend a safety briefing.");
+  await page.getByRole("button",{ name:"Save club draft" }).click();
+  await proposal.getByRole("button",{ name:"Submit proposal" }).click();
+  await expect(proposal.locator(".tag")).toHaveText("submitted");
+  await signOut(page);
+
+  await signIn(page,"admin");
+  await visitDirectory();
+  await proposal.getByRole("button",{ name:"Start review" }).click();
+  await proposal.getByRole("button",{ name:"Record decision" }).click();
+  await expect(page.getByRole("link",{ name,exact:true })).toBeVisible();
+  await signOut(page);
+
+  await page.setViewportSize({ width:390,height:844 });
+  await signIn(page,"student");
+  await visitDirectory();
+  await page.getByRole("searchbox",{ name:"Search clubs" }).fill(name);
+  await page.getByRole("button",{ name:"Apply filters" }).click();
+  await openClub();
+  await page.getByRole("button",{ name:"Request membership" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByText("Membership · requested")).toBeVisible();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(390);
+  await signOut(page);
+
+  await page.setViewportSize({ width:1440,height:900 });
+  await signIn(page,"faculty");
+  await visitDirectory();
+  await openClub();
+  const student = page.getByRole("listitem").filter({ hasText:"Asha Sen" });
+  await student.getByRole("button",{ name:"Review membership" }).click();
+  await expect(student).toContainText("active");
+  const stamp = (offset:number) => new Intl.DateTimeFormat("sv-SE",{
+    dateStyle:"short",timeStyle:"short",timeZone:"Asia/Kolkata",
+  }).format(new Date(Date.now()+offset)).replace(" ","T");
+  await page.getByLabel("Event title").fill(title);
+  await page.getByLabel("Location").fill("Electronics lab");
+  await page.getByLabel(/Starts/).fill(stamp(3600000));
+  await page.getByLabel(/Ends/).fill(stamp(7200000));
+  await page.getByLabel("Capacity",{ exact:true }).fill("1");
+  await page.getByLabel("Requirements and event plan").fill("Bring a laptop.");
+  await page.getByRole("button",{ name:"Save event draft" }).click();
+  await expect(event.locator(".tag")).toHaveText("draft");
+  await transition("pending_approval");
+  await signOut(page);
+
+  await signIn(page,"admin");
+  await visitDirectory();
+  await openClub();
+  await transition("approved");
+  await signOut(page);
+
+  await signIn(page,"faculty");
+  await visitDirectory();
+  await openClub();
+  await transition("published");
+  await transition("registration_open");
+  await signOut(page);
+
+  await signIn(page,"student");
+  await visitDirectory();
+  await openClub();
+  await expect(page.getByRole("heading",{ name:"Member area" })).toBeVisible();
+  await expect(page.getByRole("heading",{ name:"Organizer console" })).toHaveCount(0);
+  await event.getByRole("button",{ name:"Register for event" }).click();
+  await expect(event.getByText("Registered · participation unverified")).toBeVisible();
+  await signOut(page);
+
+  await signIn(page,"faculty");
+  await visitDirectory();
+  await openClub();
+  await expect(event.getByText("1 registered · 0 verified participants")).toBeVisible();
+  await transition("registration_closed");
+  // Move only this fictional fixture into its scheduled interval without a wall-clock wait.
+  await import("../scripts/environment");
+  const migrationUrl = process.env.MIGRATION_DATABASE_URL;
+  if (!migrationUrl || !["127.0.0.1","localhost"].includes(new URL(migrationUrl).hostname)) throw new Error("Local test database required.");
+  const { Client } = await import("pg");
+  const connection = new Client({ connectionString:migrationUrl });
+  await connection.connect();
+  try {
+    const club = new URL(page.url()).pathname.split("/").at(-1);
+    await connection.query("UPDATE club_event SET starts_at=now()-interval '1 minute' WHERE club_id=$1 AND title=$2",[club,title]);
+  } finally {
+    await connection.end();
+  }
+  await transition("in_progress");
+  await event.getByText("Participants and evidence",{ exact:true }).click();
+  await event.getByLabel("Attendance evidence").fill("Checked in at the lab.");
+  await event.getByRole("button",{ name:"Verify participation" }).click();
+  await expect(event.getByText("1 registered · 1 verified participants")).toBeVisible();
+  await transition("completed");
+  await page.getByRole("combobox",{ name:"Incoming lead" }).selectOption({ label:"Asha Sen" });
+  await page.getByLabel("Handover documentation").fill("Keep the approved workshop schedule.");
+  await page.getByRole("button",{ name:"Submit handover" }).click();
+  await expect(page.getByText("Asha Sen · Awaiting approval")).toBeVisible();
+  await signOut(page);
+
+  await signIn(page,"admin");
+  await visitDirectory();
+  await openClub();
+  await page.getByRole("button",{ name:"Approve leadership transfer" }).click();
+  await expect(page.getByText("Asha Sen · Approved")).toBeVisible();
+  await signOut(page);
+  await signIn(page,"student");
+  await visitDirectory();
+  await openClub();
+  await expect(page.getByRole("heading",{ name:"Organizer console" })).toBeVisible();
+  await expect(event.getByText("Participation verified")).toBeVisible();
+  await expect(page.getByText("Keep the approved workshop schedule.")).toBeVisible();
+});

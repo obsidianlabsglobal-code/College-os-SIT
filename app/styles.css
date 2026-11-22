@@ -87,3 +87,4 @@ dd { margin-bottom: .5rem; }
 .metrics > div { border-top: 1px solid var(--border); padding-top: var(--space-2); }
 .metrics dt { color: var(--muted); font-size: var(--text-meta); }
 .metrics dd { font-size: 1.8rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+.club-record + .club-record { border-top: 1px solid var(--border); padding-top: var(--space-4); }

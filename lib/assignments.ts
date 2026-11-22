@@ -22,10 +22,10 @@ async function requireRoster(client: PoolClient, scope: Scope, offering: string,
   if (!result.rowCount) throw new WorkflowError("This action is unavailable.");
 }
 
-export async function audit(client: PoolClient, scope: Scope, entity: string, action: string, revision?: number) {
+export async function audit(client: PoolClient, scope: Scope, entity: string, action: string, revision?: number, subject?: string) {
   await client.query(
-    "INSERT INTO audit_event (institution_id,actor_id,entity_id,action,revision) VALUES ($1,$2,$3,$4,$5)",
-    [scope.institution, scope.account, entity, action, revision],
+    "INSERT INTO audit_event (institution_id,actor_id,entity_id,action,revision,subject_id) VALUES ($1,$2,$3,$4,$5,$6)",
+    [scope.institution, scope.account, entity, action, revision, subject],
   );
 }
 

@@ -13,10 +13,11 @@ export const roleLabels = {
   principal: "Principal",
 } satisfies Record<Scope["role"], string>;
 
-type Destination = "/" | "/notices" | "/requests" | "/admin";
+type Destination = "/" | "/notices" | "/requests" | "/admin" | "/clubverse";
 const labels: Record<Destination, string> = {
   "/": "Overview",
   "/notices": "Notices",
+  "/clubverse": "CLUBVERSE",
   "/requests": "Service requests",
   "/admin": "Academic setup and roles",
 };
@@ -32,6 +33,7 @@ export async function Chrome({ user, current, section = "/", children }: {
   const query = current ? workspaceQuery(current) : "";
   const home = query ? `/?${query}` : "/";
   const destinations: Destination[] = ["/", "/notices"];
+  if (current && ["student", "faculty", "admin"].includes(current.role)) destinations.push("/clubverse");
   if (current?.role === "student" || current?.role === "admin") destinations.push("/requests");
   if (current?.role === "admin") destinations.push("/admin");
 
