@@ -4,6 +4,9 @@ import { assignments, offerings } from "../lib/assignments";
 import { departmentSummary, institutionSummary } from "../lib/reporting";
 import { ActionForm } from "./forms";
 import { workflow } from "./actions/workflow";
+import { Suspense } from "react";
+import { ExperienceHeading } from "./experience/heading";
+import { StudentHome, StudentHomeLoading } from "./student/home";
 import { cookies } from "next/headers";
 import { Chrome, roleLabels } from "./chrome";
 
@@ -15,14 +18,22 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ i
   const first = options.find(option => option.id === preferred.get("institution") && option.role === preferred.get("role")) ?? options[0];
   const current = first ? await scope(params.institution ?? first.id, params.role ?? first.role) : null;
   const workspace = options.find(option => option.id === current?.institution && option.role === current?.role);
+  if (current?.role === "student") {
+    return <Chrome user={user} current={current}>
+      <Suspense fallback={<StudentHomeLoading />}>
+        <StudentHome current={current} name={user.name} timezone={workspace?.timezone ?? "UTC"} />
+      </Suspense>
+    </Chrome>;
+  }
+
   const [records, courses, summary, overview] = current
     ? await Promise.all([assignments(current), offerings(current), departmentSummary(current), institutionSummary(current)])
     : [[], [], [], []];
   const query = current ? workspaceQuery(current) : "";
   return <Chrome user={user} current={current}>
-    <div className="hero">
-      <h1>{current ? roleLabels[current.role] : "Your workspace"}</h1>
-    </div>
+    <ExperienceHeading title={current ? roleLabels[current.role] : "Your workspace"}
+      context={current?.role === "faculty" ? "Manage assignments for the courses you teach." :
+        current?.role === "hod" ? "Review academic activity for your departments." : undefined} />
     {!current && <p className="panel">Your account has no active institutional workspace.</p>}
     {current?.role === "principal" && <section className="panel">
       <h2>Institution activity</h2>
@@ -50,13 +61,13 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ i
         <tbody>{summary.map(row => <tr key={row.name}><th scope="row">{row.name}</th><td>{row.assignments}</td><td>{row.submissions}</td><td>{row.results}</td><td>{row.hours === null ? "—" : `${row.hours.toFixed(1)} h`}</td></tr>)}</tbody>
       </table></div> : <p>No departments are assigned to this workspace.</p>}
     </section>}
-    {(current?.role === "student" || current?.role === "faculty") && <section className="panel">
+    {current?.role === "faculty" && <section className="panel">
       <h2>My courses</h2>
       {courses.length ? <ul className="items">{courses.map(course => <li key={course.id}>
         <Link href={`/courses/${course.id}?${query}`}>{course.label}</Link>
       </li>)}</ul> : <p>No active course assignments are available for this workspace.</p>}
     </section>}
-    {(current?.role === "faculty" || current?.role === "student") && <div className={current.role === "faculty" ? "grid" : "stack"}>
+    {current?.role === "faculty" && <div className="grid">
       <section className="panel">
         <h2>Assignments</h2>
         {records.length ? <ul className="items">{records.map(record => <li key={record.id}>

@@ -24,7 +24,7 @@ export default async function Notices({ searchParams }: { searchParams: Promise<
     <div className={canDraft ? "grid" : "stack"}>
       <section className="panel stack" aria-label="Notice list">
         {!records.length && <p>No notices match this view.</p>}
-        {records.map(record => <article className="stack" key={record.id}>
+        {records.map(record => <article className="stack" id={`notice-${record.id}`} key={record.id}>
           <div><h2>{record.title}</h2><p className="meta">{record.author} · {record.audience} · {record.published_at
             ? new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: timezone }).format(record.published_at) : "Draft"}</p></div>
           <p className="prose-text">{record.body}</p>

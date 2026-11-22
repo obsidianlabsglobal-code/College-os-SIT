@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
 import { randomUUID } from "node:crypto";
 import { Pool } from "pg";
-import { assignments, offerings, createAssignment, files, publishAssignment, submissions, submitAssignment, updateGrade } from "../lib/assignments";
+import { assignments, offerings, studentAssignmentSummaries, createAssignment, files, publishAssignment, submissions, submitAssignment, updateGrade } from "../lib/assignments";
 import { changeCatalog } from "../lib/academics";
 import { advanceRequest, createRequest, draftNotice, notices, publishNotice, requests } from "../lib/connected";
 import { changeInstitution } from "../lib/institution";
@@ -44,13 +44,18 @@ test("assignment persists with tenant, section, file and grade boundaries", asyn
   const id = await createAssignment(teacher,{ ...draft(), file: upload });
   await assert.rejects(publishAssignment(viewer("replacement","faculty"),id),/unavailable/);
   assert.equal((await assignments(student,id)).length,0);
+  assert.ok(!(await studentAssignmentSummaries(student)).some(item=>item.id===id));
   await publishAssignment(teacher,id);
+  const summary = async () => (await studentAssignmentSummaries(student)).find(item=>item.id===id);
+  assert.deepEqual([(await summary())?.submitted,(await summary())?.result],[false,false]);
+  assert.deepEqual(await studentAssignmentSummaries(teacher),[]);
   const [attachment] = await files(student,id);
   assert.equal(attachment.filename,"instructions.txt");
   assert.equal((await files(student,id,attachment.id))[0].bytes?.toString(),"Evidence");
   for (const unrelated of [outsider,tenant]) {
     assert.equal((await assignments(unrelated,id)).length,0);
     assert.equal((await files(unrelated,id,attachment.id)).length,0);
+    assert.ok(!(await studentAssignmentSummaries(unrelated)).some(item=>item.id===id));
     await assert.rejects(submitAssignment(unrelated,id,randomUUID(),"Work",null),/unavailable/);
   }
   await assert.rejects(submitAssignment(student,id,randomUUID(),"",null),/Enter a response/);
@@ -73,11 +78,13 @@ test("assignment persists with tenant, section, file and grade boundaries", asyn
   const [unpublished] = await submissions(student,id);
   assert.equal(unpublished.draft,null);
   assert.equal(unpublished.published,null);
+  assert.deepEqual([(await summary())?.submitted,(await summary())?.result],[true,false]);
   await updateGrade(teacher,{ ...grade, expected: 1, expectedDraft: true, publish: true });
   await assert.rejects(updateGrade(teacher,{ ...grade, expected: 1, expectedDraft: true, marks: 18, reason: "Stale draft" }),/grade changed/);
   await assert.rejects(updateGrade(teacher,{ ...grade, expected: 1, marks: 18 }),/reason/);
   await updateGrade(teacher,{ ...grade, expected: 1, marks: 18, reason: "Correction" });
   assert.equal((await submissions(student,id))[0].published?.marks,17);
+  assert.deepEqual([(await summary())?.submitted,(await summary())?.result],[true,true]);
   await updateGrade(teacher,{ ...grade, expected: 2, expectedDraft: true, marks: 19, reason: "Correction" });
   await updateGrade(teacher,{ ...grade, expected: 3, expectedDraft: true, publish: true });
   assert.equal((await submissions(student,id))[0].published?.marks,19);
@@ -114,6 +121,7 @@ test("deadline, inactive membership and faculty handover take effect immediately
   try {
     assert.equal((await offerings(student,offering)).length,0);
     assert.equal((await assignments(student,id)).length,0);
+    assert.ok(!(await studentAssignmentSummaries(student)).some(item=>item.id===id));
     assert.equal((await submissions(student,id)).length,0);
   } finally {
     await changeCatalog(admin,grant);

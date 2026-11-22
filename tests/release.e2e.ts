@@ -49,6 +49,8 @@ test("faculty, student and HOD use the persisted assignment workflow", async ({ 
   await signOut(page);
 
   await signIn(page,"student");
+  const homeAssignment = page.getByRole("listitem").filter({hasText:title});
+  await expect(homeAssignment.getByText("Ready to submit",{exact:true})).toBeVisible();
   await page.getByRole("link",{name:"Introduction to Programming · Section A · Term 1"}).click();
   await expect(page.getByRole("heading",{name:"Course assignments"})).toBeVisible();
   await expect(page.getByText(/Fictional Engineering Scheme/)).toBeVisible();
@@ -80,6 +82,7 @@ test("faculty, student and HOD use the persisted assignment workflow", async ({ 
   await signOut(page);
 
   await signIn(page,"student");
+  await expect(homeAssignment.getByText("Submitted",{exact:true})).toBeVisible();
   await page.goto(studentUrl);
   await expect(page.getByText("Feedback has yet to be published.")).toBeVisible();
   await expect(page.getByText("Explain what happens at the boundary.")).toHaveCount(0);
@@ -98,6 +101,7 @@ test("faculty, student and HOD use the persisted assignment workflow", async ({ 
   await signOut(page);
 
   await signIn(page,"student");
+  await expect(homeAssignment.getByText("Result published",{exact:true})).toBeVisible();
   await page.goto(studentUrl);
   await expect(page.getByRole("heading",{ name:"Published result · 18/20" })).toBeVisible();
   await signOut(page);
@@ -129,6 +133,7 @@ test("a course notice and enrollment letter request reach the right users", asyn
   await signOut(page);
 
   await signIn(page,"outsider");
+  await expect(page.getByRole("link",{name:title,exact:true})).toHaveCount(0);
   await page.getByRole("link",{ name:"Notices", exact:true }).click();
   await expect(page.getByRole("heading",{ name:title })).toHaveCount(0);
   await signOut(page);
@@ -138,7 +143,8 @@ test("a course notice and enrollment letter request reach the right users", asyn
   await page.goto("/");
   await page.keyboard.press("Tab");
   await expect(page.getByRole("link",{ name:"Skip to content" })).toBeFocused();
-  await page.getByRole("link",{ name:"Notices", exact:true }).click();
+  await page.getByRole("link",{name:title,exact:true}).click();
+  await expect(page).toHaveURL(/#notice-/);
   await expect(page.getByRole("heading",{ name:title })).toBeVisible();
   await page.getByRole("link",{ name:"Workspace" }).click();
   await page.getByRole("link",{ name:"Service requests" }).click();
@@ -225,7 +231,7 @@ test("administrators configure academic records and manage delegated roles", asy
   await expect(grant.getByText("Ended",{ exact:true })).toBeVisible();
   await signOut(page);
   await signIn(page, "student");
-  await expect(page.getByRole("heading", { name: "Student", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your campus, at a glance.", exact: true })).toBeVisible();
   await expect(page.getByRole("combobox", { name: "Workspace" })).toHaveCount(0);
 });
 
@@ -475,4 +481,26 @@ test("course workspaces require the current offering roster", async ({page}) => 
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(390);
   const forged = await page.goto(`/courses/${fixtures.offering}?institution=${fixtures.institution}&role=student`);
   expect(forged?.status()).toBe(404);
+});
+
+test("student home uses responsive layout, keyboard navigation and reduced motion",async ({page})=>{
+  await page.emulateMedia({reducedMotion:"reduce",colorScheme:"dark"});
+  await signIn(page,"student");
+  await expect(page.getByRole("heading",{name:"Your campus, at a glance."})).toBeVisible();
+  await expect(page.getByText(/^Welcome, Asha/)).toBeVisible();
+  const shortcut = page.getByRole("link",{name:"See what’s next"});
+  await shortcut.focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/#student-assignments$/);
+  await expect(page.getByRole("region",{name:"Your next best moves"})).toBeFocused();
+  const intro = page.getByRole("heading",{level:1});
+  expect(await intro.evaluate(node=>getComputedStyle(node.parentElement!).animationName)).toBe("none");
+  const summary = page.getByRole("navigation",{name:"Academic summary"});
+  expect(await summary.evaluate(node=>getComputedStyle(node).colorScheme)).toBe("dark");
+  for (const width of [360,390,768,1024,1440]) {
+    await page.setViewportSize({width,height:900});
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(width);
+  }
+  await page.getByRole("link",{name:"Open AURA activity"}).click();
+  await expect(page.getByRole("heading",{name:"AURA activity"})).toBeVisible();
 });
