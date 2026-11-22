@@ -9,3 +9,5 @@ Use Node 24 and npm. Run `npm ci`, then follow README for database setup and sta
 Record major decisions, observed test results, and blockers in the corresponding docs. Track planned, implemented, tested, demonstrated, user-validated, and production readiness independently.
 
 Keep Release 1, experience, CLUBVERSE and AURA work on their intended branches. Use scoped club grants for community actions. Route agent operations through existing domain authorization, validate typed inputs, require deterministic approval before writes, and persist verifiable outcomes. Only label a provider or hosted deployment operational after executing it with approved access.
+
+Trace new founder requirements and evidence to permanent IDs in docs/NEXUS_MASTER_FEATURE_REGISTRY.md. Update docs/NEXUS_IMPLEMENTATION_DEPENDENCIES.md when sequencing or authority changes. Preserve prototype and deferred requirements with explicit status.

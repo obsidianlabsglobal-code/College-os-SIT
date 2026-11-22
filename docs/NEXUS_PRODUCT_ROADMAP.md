@@ -9,3 +9,5 @@ Experiences and transport are tracked in [Experience roadmap](EXPERIENCE_ROADMAP
 ## November 22 implementation evidence
 
 CLUBVERSE core passed GitHub CI run 44998619503 on its separate feature branch. AURA adds the deterministic event draft journey on a dependent branch. The combined local run passed migration, lint, type check, build, nine PostgreSQL tests, and seven Chromium tests. Chromium captured the fictional directory at 390 px and organizer and AURA activity at 1440 px. These are development and automated browser results. Hosted, model-provider, and institutional user acceptance remain open.
+
+The [master registry](NEXUS_MASTER_FEATURE_REGISTRY.md) owns feature status. The [dependency roadmap](NEXUS_IMPLEMENTATION_DEPENDENCIES.md) owns cross-domain sequencing and release gates.
