@@ -1,0 +1,29 @@
+:root {
+  color-scheme: light;
+  --canvas: #f8f7f4;
+  --surface: #fff;
+  --ink: #222923;
+  --muted: #505b53;
+  --border: #dce2db;
+  --control-border: #778378;
+  --accent: #315c4b;
+  --accent-hover: #254839;
+  --tint: #e7efe8;
+  --danger: #912d2d;
+  --focus: #315c4b;
+  --font-body: system-ui, "Noto Sans Kannada", sans-serif;
+  --text-meta: .875rem;
+  --text-heading: clamp(1.9rem, 4vw, 2.75rem);
+  --space-1: .25rem;
+  --space-2: .5rem;
+  --space-3: .75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --radius-control: .5rem;
+  --radius-panel: .9rem;
+  --elevation-panel: 0 1px 2px #2229230a;
+  --motion-fast: 140ms;
+  --motion-easing: ease-out;
+  --focus-width: 3px;
+}

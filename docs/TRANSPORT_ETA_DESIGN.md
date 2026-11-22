@@ -1,0 +1,7 @@
+# Transport ETA and delivery proposal
+
+Keep the schedule and ETA separate. A server service matches the latest valid sample against ordered route geometry, uses progress and direction to disambiguate loops, then estimates travel and dwell to upcoming stops. Use schedule as fallback and collect actual stop arrival observations before calibrating a speed or traffic model. Cache one trip prediction per observation, shared by scoped readers. Start with explainable estimates and record coverage, absolute minutes of error, signed bias and fallback rate by route segment.
+
+Initial freshness assumptions for a 15-second sample goal: up to 30 seconds is fresh, 30–90 seconds is recently updated, and older than 90 seconds is stale. Show observation time. Suppress ETA or marker movement when stale and stop predictions for terminal trips and passed stops. Use server receipt time and source time together to catch delayed delivery. Confirm thresholds, route snap limits, and position accuracy with pilot data before production.
+
+Start with scoped polling compatible with serverless hosting. Only poll the visible active-trip view, start at 15 seconds, back off on failure, and stop on terminal state or idle/background contexts. Compare managed realtime or SSE after measuring fanout and latency. If Traccar uses a persistent upstream feed, run that connector on suitable infrastructure rather than assuming a persistent connection inside an app function. Cache geometry and evaluate tile costs and location privacy before picking a map vendor.

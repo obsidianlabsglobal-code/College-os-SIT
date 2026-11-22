@@ -1,5 +1,5 @@
+import { PageHeader } from "../../page-header";
 import { randomUUID } from "node:crypto";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { account, scope, workspaceQuery } from "../../../lib/scope";
@@ -22,12 +22,9 @@ export default async function Detail({ params, searchParams }: { params: Promise
     <p key={file.id}><a download href={`/files/${file.id}?assignment=${id}&${query}`}>{file.filename}</a></p>);
   const assignmentField = <input type="hidden" name="assignment" value={id} />;
 
-  return <Chrome name={user.name}>
-    <div className="hero">
-      <Link href={`/?${query}`}>Assignments</Link>
-      <h1>{assignment.title}</h1>
-      <p className="meta">{assignment.course} · {assignment.section}</p>
-    </div>
+  return <Chrome user={user} current={current} section="/">
+    <PageHeader title={assignment.title} context={`${assignment.course} · ${assignment.section}`}
+      parent={{ href: `/?${query}`, label: "Assignments" }} />
     <div className="grid">
       <section className="panel stack" aria-label="Assignment details">
         <div><span className="tag">{assignment.published_at ? "Published" : "Draft"}</span></div>

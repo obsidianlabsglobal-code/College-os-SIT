@@ -1,13 +1,65 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { signOut } from "./actions/session";
+import { WorkspaceNavigation } from "./workspace-navigation";
+import { chooseWorkspace } from "./actions/workspace";
+import { workspaces, workspaceQuery, type Scope } from "../lib/scope";
 
-export function Chrome({ name, children }: { name: string; children: ReactNode }) {
-  return <div className="shell">
-    <header className="top">
-      <Link href="/" className="brand">NEXUS</Link>
-      <div className="row"><span className="meta">{name}</span><form action={signOut}><button className="button secondary">Sign out</button></form></div>
+export const roleLabels = {
+  student: "Student",
+  faculty: "Faculty",
+  hod: "Department head",
+  admin: "Institution admin",
+  principal: "Principal",
+} satisfies Record<Scope["role"], string>;
+
+type Destination = "/" | "/notices" | "/requests" | "/admin";
+const labels: Record<Destination, string> = {
+  "/": "Overview",
+  "/notices": "Notices",
+  "/requests": "Service requests",
+  "/admin": "Academic setup and roles",
+};
+
+export async function Chrome({ user, current, section = "/", children }: {
+  user: { id: string; name: string };
+  current: Scope | null;
+  section?: Destination;
+  children: ReactNode;
+}) {
+  const options = await workspaces(user.id);
+  const selected = options.find(option => option.id === current?.institution && option.role === current.role);
+  const query = current ? workspaceQuery(current) : "";
+  const home = query ? `/?${query}` : "/";
+  const destinations: Destination[] = ["/", "/notices"];
+  if (current?.role === "student" || current?.role === "admin") destinations.push("/requests");
+  if (current?.role === "admin") destinations.push("/admin");
+
+  return <div className={current ? "app-shell" : "app-shell app-shell-single"}>
+    <header className="app-top">
+      <Link href={home} className="brand">NEXUS</Link>
+      {selected && <span className="institution-label">{selected.name}</span>}
+      <div className="account-tools">
+        {options.length > 1 && <form action={chooseWorkspace} className="workspace-form">
+          <label><span className="sr-only">Workspace</span>
+            <select name="workspace" defaultValue={query} key={query}>
+              {options.map(option => {
+                const value = new URLSearchParams({ institution: option.id, role: option.role }).toString();
+                return <option key={value} value={value}>{option.name} · {roleLabels[option.role]}</option>;
+              })}
+            </select>
+          </label>
+          <button className="button secondary">Switch</button>
+        </form>}
+        <span className="account-name">{user.name}</span>
+        <form action={signOut}><button className="button secondary">Sign out</button></form>
+      </div>
     </header>
-    <main id="main" tabIndex={-1}>{children}</main>
+    {current && <WorkspaceNavigation role={roleLabels[current.role]} items={destinations.map(destination => ({
+      href: `${destination}?${query}`,
+      label: labels[destination],
+      active: destination === section,
+    }))} />}
+    <main className="app-main" id="main" tabIndex={-1}>{children}</main>
   </div>;
 }

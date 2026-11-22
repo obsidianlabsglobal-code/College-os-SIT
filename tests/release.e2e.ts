@@ -207,8 +207,23 @@ test("administrators configure academic records and manage delegated roles", asy
   await page.getByRole("button",{ name:"Assign role" }).click();
   const grant = page.getByRole("listitem").filter({ hasText:`hod · Engineering ${suffix}` });
   await expect(grant.getByText("Asha Sen",{ exact:true })).toBeVisible();
+  const adminUrl = page.url();
+  await signOut(page);
+  await signIn(page, "student");
+  await page.getByRole("combobox", { name: "Workspace" }).selectOption({ label: "Northfield Institute · Fictional demo · Department head" });
+  await page.getByRole("button", { name: "Switch", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Department head", exact: true })).toBeVisible();
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Department head", exact: true })).toBeVisible();
+  await signOut(page);
+  await signIn(page, "admin");
+  await page.goto(adminUrl);
   await grant.getByRole("button",{ name:"End role" }).click();
   await expect(grant.getByText("Ended",{ exact:true })).toBeVisible();
+  await signOut(page);
+  await signIn(page, "student");
+  await expect(page.getByRole("heading", { name: "Student", exact: true })).toBeVisible();
+  await expect(page.getByRole("combobox", { name: "Workspace" })).toHaveCount(0);
 });
 
 test("the sign-in form observes PostgreSQL-backed throttling", async ({ page, playwright, baseURL }) => {
@@ -230,4 +245,26 @@ test("the sign-in form observes PostgreSQL-backed throttling", async ({ page, pl
   } finally {
     await api.dispose();
   }
+});
+
+test("workspace navigation is scoped, keyboard-operable and responsive", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await signIn(page, "student");
+  const navigation = page.getByRole("navigation", { name: "Campus workflows" });
+  await expect(navigation.getByRole("link", { name: "Overview" })).toHaveAttribute("aria-current", "page");
+  await expect(navigation.getByRole("link", { name: "Academic setup and roles" })).toHaveCount(0);
+  const toggle = page.getByRole("button", { name: "Hide navigation" });
+  await toggle.focus();
+  await page.keyboard.press("Enter");
+  await expect(navigation).toBeHidden();
+  await expect(page.getByRole("button", { name: "Show navigation" })).toHaveAttribute("aria-expanded", "false");
+  await page.setViewportSize({ width: 390, height: 844 });
+  const notices = navigation.getByRole("link", { name: "Notices" });
+  await expect(notices).toBeVisible();
+  expect(await notices.evaluate(link => getComputedStyle(link).transitionDuration)).toBe("0s");
+  await notices.click();
+  await expect(navigation.getByRole("link", { name: "Notices" })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
 });
