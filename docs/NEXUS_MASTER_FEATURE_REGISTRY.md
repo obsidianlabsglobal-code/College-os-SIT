@@ -4,7 +4,7 @@ This register preserves founder requirements across releases. Each ID identifies
 
 Status vocabulary: Proposed, Researching, Designed, In development, Implemented, Tested, Hosted, User-validated, Production-ready, Blocked, Explicitly deprecated. “Tested” applies only to the scope described and the named revision. Hosted acceptance, institutional validation and production readiness each require separate evidence. Proposed rows have founder requirement evidence only. Designed rows have the cited specification. No SIT participation, approved policy or external integration is inferred.
 
-Evidence keys: **R** = Release 1 at e5d507d, app/, lib/, db/000–006, tests/workflow.test.ts and the Release 1 cases in tests/release.e2e.ts. **X** = experience at f9a24f5, app/chrome.tsx, app/workspace-navigation.tsx and browser workspace tests. **C** = CLUBVERSE at cd872a5, db/007–008, lib/clubverse.ts, tests/clubverse.test.ts and Chromium club journey. **A** = deterministic AURA at 605b3c3, db/009, lib/aura/tasks.ts, tests/aura.test.ts and Chromium confirmation journey. **T** = TRANSPORT_PRODUCT_SPEC.md and companion transport designs, with no operational fleet evidence. **S** = CLUBVERSE_NEXT_SLICES.md, proposed slice designs. **L** = INNOVATION_LAB.md, hypotheses only. **P** = founder-reported prior prototype, port suitability and source availability unverified. **F** = founder directive, no implementation evidence. Branch-specific evidence is cumulative on integration and does not imply inclusion on main.
+Evidence keys: **R** = Release 1 at e5d507d, app/, lib/, db/000–006, tests/workflow.test.ts and the Release 1 cases in tests/release.e2e.ts. **X** = experience at f9a24f5, app/chrome.tsx, app/workspace-navigation.tsx and browser workspace tests. **C** = CLUBVERSE at cd872a5, db/007–008, lib/clubverse.ts, tests/clubverse.test.ts and Chromium club journey. **A** = deterministic AURA at 605b3c3, db/009, lib/aura/tasks.ts, tests/aura.test.ts and Chromium confirmation journey. **T** = TRANSPORT_PRODUCT_SPEC.md and companion transport designs, with no operational fleet evidence. **S** = CLUBVERSE_NEXT_SLICES.md, proposed slice designs. **L** = INNOVATION_LAB.md, hypotheses only. **P** = founder-reported prior prototype, port suitability and source availability unverified. **F** = founder directive, no implementation evidence. Experience, CLUBVERSE and deterministic AURA are cumulative on integration. **W2** = separate feature/academic-course-workspaces commit 584c31c, app/courses/[id]/page.tsx, lib/assignments.ts, roster-revocation and Chromium course tests. A status on a feature branch does not imply inclusion on integration or main.
 
 Priority notation: P0 hosted acceptance, P1 connected daily workflows, P2 specializations and experiments. Wave numbers refer to [delivery dependencies](NEXUS_IMPLEMENTATION_DEPENDENCIES.md). Default decision for all proposed work: validate the institutional owner, data provenance and success criteria before deployment. AI is optional for ordinary workflows. Human authority governs grades, credentials, spending and access changes.
 
@@ -36,8 +36,8 @@ Students locate authoritative course work and deadlines for their enrollment. St
 | --- | --- | --- | --- | --- |
 | SA-001 | Student dashboard | Open current assignments and authorized service links. | Tested | R/X |
 | SA-002 | Course directory | Browse institution-published catalog entries with visibility rules. | Proposed | F |
-| SA-003 | Enrolled course workspaces | Open a roster-scoped offering and its assigned coursework. | Proposed | F |
-| SA-004 | Academic schemes and terms | Identify the effective scheme and term for the student's cohort. | Proposed | F |
+| SA-003 | Enrolled course workspaces | Open a roster-scoped offering and its assigned coursework. | Tested | W2 |
+| SA-004 | Academic schemes and terms | Read the offering’s current scheme and term. Cohort-specific eligibility policy remains a separate requirement. | Tested | W2 |
 | SA-005 | Attendance records | See verified session attendance and request corrections. | Proposed | F |
 | SA-006 | Attendance percentage | Calculate from recorded sessions and approved denominator rules. | Proposed | F |
 | SA-007 | Attendance eligibility | Explain eligibility with verified scheme and policy version. | Proposed | F |
@@ -356,28 +356,28 @@ Eligible riders need trustworthy journey information. Open assigned trip → sel
 
 | ID | Capability | Functional workflow or acceptance outcome | Status | Evidence |
 | --- | --- | --- | --- | --- |
-| TR-001 | Assigned route | Resolve eligible route and direction. | Proposed | F |
-| TR-002 | Bus identifier | Identify the vehicle assigned to the current trip. | Proposed | F |
-| TR-003 | Boarding stop | Select a stop on the eligible route. | Proposed | F |
+| TR-001 | Assigned route | Resolve eligible route and direction. | Designed | T |
+| TR-002 | Bus identifier | Identify the vehicle assigned to the current trip. | Designed | T |
+| TR-003 | Boarding stop | Select a stop on the eligible route. | Designed | T |
 | TR-004 | Bus pass | Issue and present a scoped boarding entitlement. | Proposed | F |
 | TR-005 | Pass validity | Check current dates, status and revocation. | Proposed | F |
 | TR-006 | QR boarding | Verify a short-lived boarding credential with replay protection. | Proposed | F |
-| TR-007 | Trip schedule | Show scheduled stop and campus arrival with service date. | Proposed | F |
-| TR-008 | Live GPS | Show only authorized active-trip telemetry with freshness. | Proposed | F |
-| TR-009 | Route map | Display geometry, ordered stops and an accessible text equivalent. | Proposed | F |
-| TR-010 | Current bus position | Distinguish recent, stale and unavailable position. | Proposed | F |
-| TR-011 | Pickup ETA | Estimate time to the selected upcoming stop. | Proposed | F |
-| TR-012 | College ETA | Estimate arrival at campus with uncertainty. | Proposed | F |
-| TR-013 | Stop arrival predictions | Compute central estimates over ordered upcoming stops. | Proposed | F |
-| TR-014 | Actual stop events | Record authorized arrivals and departures. | Proposed | F |
-| TR-015 | Passed-stop status | Mark passed stops and suppress future ETA for them. | Proposed | F |
-| TR-016 | Bus occupancy | Show aggregate manual or approved sensor observation and source. | Proposed | F |
-| TR-017 | Available capacity | Distinguish permitted capacity, seat availability and unknown counts. | Proposed | F |
-| TR-018 | Delay alerts | Issue effective and expiring route-specific delay updates. | Proposed | F |
-| TR-019 | Cancellation alerts | Communicate cancellation and remove active estimates. | Proposed | F |
-| TR-020 | Diversion notices | Communicate confirmed route diversions. | Proposed | F |
-| TR-021 | Replacement vehicle notices | Identify a verified replacement and its capacity. | Proposed | F |
-| TR-022 | Arrival reminders | Opt in to timely, scoped notifications. | Proposed | F |
+| TR-007 | Trip schedule | Show scheduled stop and campus arrival with service date. | Designed | T |
+| TR-008 | Live GPS | Show only authorized active-trip telemetry with freshness. | Designed | T |
+| TR-009 | Route map | Display geometry, ordered stops and an accessible text equivalent. | Designed | T |
+| TR-010 | Current bus position | Distinguish recent, stale and unavailable position. | Designed | T |
+| TR-011 | Pickup ETA | Estimate time to the selected upcoming stop. | Designed | T |
+| TR-012 | College ETA | Estimate arrival at campus with uncertainty. | Designed | T |
+| TR-013 | Stop arrival predictions | Compute central estimates over ordered upcoming stops. | Designed | T |
+| TR-014 | Actual stop events | Record authorized arrivals and departures. | Designed | T |
+| TR-015 | Passed-stop status | Mark passed stops and suppress future ETA for them. | Designed | T |
+| TR-016 | Bus occupancy | Show aggregate manual or approved sensor observation and source. | Designed | T |
+| TR-017 | Available capacity | Distinguish permitted capacity, seat availability and unknown counts. | Designed | T |
+| TR-018 | Delay alerts | Issue effective and expiring route-specific delay updates. | Designed | T |
+| TR-019 | Cancellation alerts | Communicate cancellation and remove active estimates. | Designed | T |
+| TR-020 | Diversion notices | Communicate confirmed route diversions. | Designed | T |
+| TR-021 | Replacement vehicle notices | Identify a verified replacement and its capacity. | Designed | T |
+| TR-022 | Arrival reminders | Opt in to timely, scoped notifications. | Designed | T |
 | TR-023 | Alternative services | Show alternatives only when eligibility and availability are confirmed. | Proposed | F |
 | TR-024 | Lost and found | Submit, privately match and resolve an item report. | Proposed | F |
 | TR-025 | Transport incidents | Report an issue to an authorized responder. | Proposed | F |
