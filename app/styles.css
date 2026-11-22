@@ -101,7 +101,7 @@ dd { margin-bottom: .5rem; }
 .status-tabs a[aria-current] { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
 .status-tabs .count { margin-inline-start: var(--space-2); padding: 0 .45rem; border-radius: 2rem; background: var(--tint); color: var(--accent); font-variant-numeric: tabular-nums; font-weight: 650; }
 .queue-filters { display: grid; gap: var(--space-3); align-items: end; }
-@media (min-width: 55rem) { .queue-filters { grid-template-columns: repeat(3, minmax(0, 1fr)) auto; } }
+@media (min-width: 55rem) { .queue-filters { grid-template-columns: repeat(4, minmax(0, 1fr)); } .queue-filters > .row { grid-column: 1 / -1; } }
 .queue { display: grid; }
 .queue > li { display: grid; gap: var(--space-2) var(--space-4); padding-block: var(--space-3); border-top: 1px solid var(--border); overflow-wrap: anywhere; }
 @media (min-width: 40rem) { .queue > li { grid-template-columns: minmax(0, 1fr) minmax(9rem, auto) auto; align-items: center; } }

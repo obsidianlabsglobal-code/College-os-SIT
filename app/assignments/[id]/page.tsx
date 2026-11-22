@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { account, scope, workspaceQuery } from "../../../lib/scope";
-import { assignments, files, submissions } from "../../../lib/assignments";
+import { assignments, files, submissionPreview, submissions } from "../../../lib/assignments";
 import { ActionForm } from "../../forms";
 import { Chrome } from "../../chrome";
 import { workflow } from "../../actions/workflow";
@@ -23,14 +23,19 @@ export default async function Detail({ params, searchParams }: { params: Promise
   if (!assignment) notFound();
   const isFaculty = current.role === "faculty";
   const focus = isFaculty && z.uuid().safeParse(selection.submission).success ? selection.submission : undefined;
-  const [received, attachments, progress, next] = await Promise.all([
-    submissions(current, id, focus), files(current, id),
+  const [preview, progress, next] = await Promise.all([
+    isFaculty && !focus ? submissionPreview(current, id, inlineGradingLimit + 1) : [],
     isFaculty ? assignmentProgress(current, { assignment: id }) : null,
     focus ? nextAwaitingEvaluation(current, id, focus) : null,
   ]);
-  if (focus && !received.length) notFound();
   const [summary] = progress?.rows ?? [];
-  const compact = isFaculty && !focus && received.length > inlineGradingLimit;
+  const compact = preview.length > inlineGradingLimit;
+  const selectedIds = focus ? [focus] : isFaculty ? preview.map(row => row.id) : undefined;
+  const [received, attachments] = await Promise.all([
+    compact ? [] : submissions(current, id, selectedIds),
+    files(current, id, undefined, compact ? [] : selectedIds),
+  ]);
+  if (focus && !received.length) notFound();
   const query = workspaceQuery(current);
   const deadline = new Intl.DateTimeFormat("en-IN", { dateStyle: "long", timeStyle: "short", timeZone: assignment.timezone }).format(assignment.deadline);
   const fileLinks = (submissionId: string | null) => attachments.filter(file => file.submission_id === submissionId).map(file =>
@@ -53,16 +58,16 @@ export default async function Detail({ params, searchParams }: { params: Promise
         <h2>{isFaculty ? "Submissions" : "Your submission"}</h2>
         {summary && <div className="stack">
           <ProgressLine row={summary} query={query} links={false} />
-          {summary.published > 0 && <p className="meta">{summary.published} published</p>}
+          {summary.published > 0 && <p className="meta">{summary.published} with a published result</p>}
           {summary.submitted > 0 && <p className="submission-nav">
             {focus && <Link href={href(`/assignments/${id}`, query)}>All submissions for this assignment</Link>}
             <Link href={href("/grading", query, { status: "all", assignment: id })}>Open in evaluation queue</Link>
           </p>}
         </div>}
-        {isFaculty && !received.length && <p>No submissions yet.</p>}
+        {isFaculty && !compact && !received.length && <p>No submissions yet.</p>}
         {compact && <>
-          <p className="meta">This assignment has {plural(received.length, "submission")}. Open each one to evaluate it.</p>
-          <ul className="items submission-list">{received.map(submission => {
+          <p className="meta">Showing the first {inlineGradingLimit} submissions. Open the evaluation queue for all {plural(summary?.submitted ?? preview.length, "submission")}.</p>
+          <ul className="items submission-list">{preview.slice(0, inlineGradingLimit).map(submission => {
             const state = evaluationState(submission);
             return <li key={submission.id} id={`submission-${submission.id}`}>
               <span>{submission.name}</span>
@@ -71,7 +76,7 @@ export default async function Detail({ params, searchParams }: { params: Promise
             </li>;
           })}</ul>
         </>}
-        {!isFaculty && !received.length && (assignment.accepting ?
+        {!isFaculty && !compact && !received.length && (assignment.accepting ?
           <ActionForm action={workflow} context={current} operation="submit" label="Submit assignment">
             {assignmentField}<input type="hidden" name="request" value={randomUUID()} />
             <p className="meta">Enter a response, attach a file, or do both. Submitted work is final.</p>

@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
 import { randomUUID } from "node:crypto";
 import { Pool } from "pg";
-import { createAssignment, publishAssignment, submissions, submitAssignment, updateGrade } from "../lib/assignments";
-import { assignmentProgress, evaluationQueue, evaluationTotals, nextAwaitingEvaluation } from "../lib/faculty";
+import { createAssignment, files, publishAssignment, submissionPreview, submissions, submitAssignment, updateGrade } from "../lib/assignments";
+import { assignmentProgress, evaluationQueue, evaluationTotals, gradingAssignments, nextAwaitingEvaluation } from "../lib/faculty";
 import { db } from "../lib/db";
 import type { Scope } from "../lib/scope";
 import { fixtures as f, demoEmail } from "../scripts/fixtures";
@@ -101,6 +101,12 @@ test("evaluation states follow the existing grading engine from submission to co
   assert.equal(correction.draft_marks, 16);
   assert.equal(correction.published_marks, 14, "The published result stays visible until the correction is published");
   assert.equal((await queue("published")).total, 1, "A correction draft keeps its earlier published result");
+  const [studentResult] = await submissions(students[0], assignment);
+  assert.equal(studentResult.published?.marks, 14);
+  assert.equal(studentResult.draft, null);
+  await updateGrade(teacher, { ...grade, expected: 2, expectedDraft: true, publish: true });
+  assert.equal((await submissions(students[0], assignment))[0].published?.marks, 16);
+  await updateGrade(teacher, { ...grade, expected: 2, expectedDraft: false, marks: 17, reason: "Another correction" });
 
   const { rows: [progress] } = await assignmentProgress(teacher, { assignment });
   assert.deepEqual(
@@ -131,7 +137,7 @@ test("the queue paginates, sorts and bounds untrusted filters", async () => {
   assert.deepEqual(byName.items.map(item => item.student.at(-1)), ["A", "B", "C", "D", "E"]);
 
   const hostile = await evaluationQueue(teacher, { status: "x' OR 1=1", sort: "1;DROP TABLE grade", page: -4, pageSize: 100000, assignment: "not-a-uuid" });
-  assert.deepEqual([hostile.status, hostile.sort, hostile.page, hostile.pageSize, hostile.assignment], ["pending", "oldest", 1, 25, undefined]);
+  assert.deepEqual([hostile.status, hostile.sort, hostile.page, hostile.pageSize, hostile.assignment], ["pending", "oldest", 0, 25, undefined]);
 });
 
 test("only current faculty on the offering can read its queue", async () => {
@@ -201,6 +207,16 @@ test("focused grading reads one authorized submission and finds the next one", a
   const [first, second] = await submitAll(assignment, 2);
   const focused = await submissions(teacher, assignment, second);
   assert.deepEqual(focused.map(row => row.id), [second]);
+  const preview = await submissionPreview(teacher, assignment, 1);
+  assert.deepEqual(preview, [{ id: first, name: `Synthetic Student ${run} E`, draft: false, published: false }]);
+  assert.deepEqual(await submissionPreview(viewer("replacement", "faculty"), assignment, 21), []);
+  assert.deepEqual(await submissionPreview(viewer("faculty", "faculty", f.otherInstitution), assignment, 21), []);
+  await owner.query(`INSERT INTO attachment (institution_id,assignment_id,submission_id,filename,mime,bytes)
+    VALUES ($1,$2,NULL,'instructions.txt','text/plain','test'),($1,NULL,$3,'first.txt','text/plain','test'),
+      ($1,NULL,$4,'second.txt','text/plain','test')`, [f.institution, assignment, first, second]);
+  assert.deepEqual((await files(teacher, assignment, undefined, [])).map(file => file.filename), ["instructions.txt"]);
+  assert.deepEqual((await files(teacher, assignment, undefined, [second])).map(file => file.filename).sort(), ["instructions.txt","second.txt"]);
+  assert.deepEqual(await files(viewer("replacement", "faculty"), assignment, undefined, [second]), []);
   assert.equal((await submissions(students[0], assignment, second)).length, 0, "A student cannot open another student's submission");
   assert.equal((await nextAwaitingEvaluation(teacher, assignment, first))?.submission, second);
   await updateGrade(teacher, { assignment, submission: second, expected: 0, expectedDraft: false, marks: 5, feedback: "Draft.", publish: false });
@@ -237,5 +253,38 @@ test("progress separates withdrawn students and totals follow filters without ro
   assert.ok(limited.total >= 2 && limited.truncated, "The unpublished count is not reduced by the display limit");
   assert.ok((await assignmentProgress(teacher, { offering, view: "open" })).rows.every(row => row.published_at && row.accepting));
   assert.ok(!(await assignmentProgress(teacher, { offering, view: "open" })).rows.some(row => row.id === first));
-  assert.equal((await evaluationQueue(teacher, { page: 5000 })).page, 1, "Pages beyond the cap fall back to the first page");
+  const largePage = await evaluationQueue(teacher, { page: 5000, assignment });
+  assert.equal(largePage.page, 5000);
+  assert.equal(largePage.total, 3);
+  assert.deepEqual(largePage.items, []);
+});
+
+
+test("assignment choices ignore unsubmitted drafts before paging and search across all matches", async () => {
+  const teacher = viewer("faculty", "faculty");
+  const title = `Z submitted ${run}`;
+  const assignment = await publishedAssignment(title);
+  const [submission] = await submitAll(assignment, 1);
+  await updateGrade(teacher, { assignment, submission, expected: 0, expectedDraft: false, marks: 12, feedback: "Complete", publish: false });
+  await updateGrade(teacher, { assignment, submission, expected: 1, expectedDraft: true, publish: true });
+  await owner.query(`INSERT INTO assignment (institution_id,offering_id,title,description,deadline,max_marks)
+    SELECT $1,$2,'A draft '||n,'Synthetic',now()+interval '2 hours',20 FROM generate_series(1,205) n`, [f.institution,offering]);
+  const legacy = await assignmentProgress(teacher, { offering, limit: 200 });
+  assert.ok(legacy.truncated);
+  assert.ok(!legacy.rows.some(row => row.id === assignment), "The old capped progress list drops the published assignment");
+
+  assert.ok((await gradingAssignments(teacher, { offering })).some(row => row.id === assignment));
+  const { rows } = await owner.query<{ id: string }>(`INSERT INTO assignment (institution_id,offering_id,title,description,deadline,max_marks,published_at)
+    SELECT $1,$2,$3,'Synthetic',now()+interval '2 hours',20,now() FROM generate_series(1,27) RETURNING id`, [f.institution,offering,title]);
+  await owner.query(`INSERT INTO submission (institution_id,assignment_id,student_id,body,submitted_at,request_id)
+    SELECT $1,id,$3,'Synthetic',now(),gen_random_uuid() FROM unnest($2::uuid[]) id`, [f.institution, rows.map(row => row.id), students[0].account]);
+  const options = { offering, search: title.toUpperCase() };
+  const first = await gradingAssignments(teacher, options);
+  const second = await gradingAssignments(teacher, { ...options, page: 2 });
+  assert.equal(first.length, 26, "The extra row signals a next page");
+  assert.equal(second.length, 3);
+  assert.deepEqual(new Set([...first.slice(0,25), ...second].map(row => row.id)), new Set([assignment,...rows.map(row => row.id)]));
+  assert.deepEqual((await gradingAssignments(teacher, { assignment })).map(row => row.id), [assignment]);
+  assert.deepEqual(await gradingAssignments(viewer("replacement", "faculty"), options), []);
+  assert.deepEqual(await gradingAssignments(viewer("faculty", "faculty", f.otherInstitution), options), []);
 });

@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { account, scope, workspaceQuery } from "../../lib/scope";
 import { offerings } from "../../lib/assignments";
 import {
-  assignmentProgress, evaluationLabels, queueFilters, evaluationQueue, evaluationTotals,
+  gradingAssignments, resultPage, evaluationLabels, queueFilters, evaluationQueue, evaluationTotals,
   queueSortLabels, queueSorts, queueStatusLabels, queueStatuses, type QueueStatus,
 } from "../../lib/faculty";
 import { Chrome } from "../chrome";
@@ -22,23 +22,23 @@ export default async function EvaluationQueue({ searchParams }: { searchParams: 
     status: first(params.status), sort: first(params.sort), assignment: first(params.assignment),
     offering: first(params.offering), page: first(params.page),
   });
-  const [selected] = requested.assignment ? (await assignmentProgress(current, { assignment: requested.assignment })).rows : [];
-  if (requested.assignment && requested.offering && selected && selected.offering_id !== requested.offering) {
-    // A course change keeps the previous assignment in the form; prefer the course the user just chose.
-    redirect(href("/grading", query, { status: requested.status, sort: requested.sort, offering: requested.offering }));
-  }
-  const [queue, totals, progress, courses] = await Promise.all([
+  const assignmentSearch = first(params.assignmentSearch)?.trim().slice(0,160) ?? "";
+  const pickerPage = resultPage.parse(first(params.pickerPage));
+  const [queue, totals, options, selection, courses] = await Promise.all([
     evaluationQueue(current, requested),
     evaluationTotals(current, { assignment: requested.assignment, offering: requested.offering }),
-    assignmentProgress(current, { offering: requested.offering, limit: 200 }),
+    gradingAssignments(current, { offering: requested.offering, search: assignmentSearch, page: pickerPage }),
+    requested.assignment ? gradingAssignments(current, { assignment: requested.assignment }) : [],
     offerings(current),
   ]);
-  const filters = { status: queue.status, sort: queue.sort, assignment: queue.assignment, offering: queue.offering };
+  const [selected] = selection;
+  const filters = { status: queue.status, sort: queue.sort, assignment: queue.assignment, offering: queue.offering, assignmentSearch, pickerPage };
   const pages = Math.max(1, Math.ceil(queue.total / queue.pageSize));
   const start = (queue.page - 1) * queue.pageSize;
   const counts: Partial<Record<QueueStatus, number>> = { pending: totals.pending, awaiting: totals.awaiting, published: totals.published };
   const course = courses.find(row => row.id === queue.offering);
-  const assignmentOptions = progress.rows.filter(row => row.submitted > 0 || row.id === selected?.id);
+  const assignmentOptions = options.slice(0,25);
+  const conflictingFilters = selected && queue.offering && selected.offering_id !== queue.offering;
 
   return <Chrome user={user} current={current} section="/grading">
     <PageHeader title="Evaluation queue" context="Submitted work in the courses you currently teach. Students see marks and feedback only after you publish them."
@@ -51,6 +51,7 @@ export default async function EvaluationQueue({ searchParams }: { searchParams: 
         </Link>)}
       </nav>
 
+      <p className="meta">A submission with a pending correction appears under both Awaiting publication and Has a published result. Students keep seeing the published result until the correction is published.</p>
       <form className="panel queue-filters" method="get" action="/grading">
         <input type="hidden" name="institution" value={current.institution} />
         <input type="hidden" name="role" value={current.role} />
@@ -61,10 +62,14 @@ export default async function EvaluationQueue({ searchParams }: { searchParams: 
             {courses.map(row => <option key={row.id} value={row.id}>{row.label}</option>)}
           </select>
         </label>
+        <label>Find assignments by title
+          <input type="search" name="assignmentSearch" defaultValue={assignmentSearch} maxLength={160}/>
+        </label>
         <label>Assignment
           <select name="assignment" defaultValue={queue.assignment ?? ""}>
             <option value="">All assignments</option>
             {assignmentOptions.map(row => <option key={row.id} value={row.id}>{row.title} · {row.section}</option>)}
+            {queue.assignment && !selected && <option value={queue.assignment}>Unavailable assignment</option>}
             {selected && !assignmentOptions.some(row => row.id === selected.id) && <option value={selected.id}>{selected.title} · {selected.section}</option>}
           </select>
         </label>
@@ -73,16 +78,24 @@ export default async function EvaluationQueue({ searchParams }: { searchParams: 
             {queueSorts.map(sort => <option key={sort} value={sort}>{queueSortLabels[sort]}</option>)}
           </select>
         </label>
-        <div className="row"><button className="button">Apply</button>
-          {(queue.offering || queue.assignment) && <Link href={href("/grading", query, { status: queue.status, sort: queue.sort })}>Clear filters</Link>}</div>
+        <div className="row"><button className="button">Apply filters</button>
+          {(queue.offering || queue.assignment || assignmentSearch) && <Link href={href("/grading", query, { status: queue.status, sort: queue.sort })}>Clear filters</Link>}</div>
       </form>
+      {assignmentSearch && !options.length && pickerPage === 1 && <p className="meta">No submitted assignments match that title search.</p>}
+      {(pickerPage !== 1 || options.length > 25) && <nav aria-label="Assignment choices" className="row">
+        {pickerPage !== 1 && <Link href={href("/grading", query, { ...filters, pickerPage: pickerPage > 1 && options.length ? pickerPage - 1 : 1, page: queue.page || undefined })}>{pickerPage > 1 && options.length ? "Previous assignment choices" : "Go to first assignment choices"}</Link>}
+        {options.length > 25 && <Link href={href("/grading", query, { ...filters, pickerPage: pickerPage + 1, page: queue.page || undefined })}>Next assignment choices</Link>}
+      </nav>}
 
       <section className="panel" aria-labelledby="queue-results">
         <h2 id="queue-results">{queueStatusLabels[queue.status]}</h2>
         {(course || selected) && <p className="meta">Filtered to {[course?.label, selected && `${selected.title} · ${selected.section}`].filter(Boolean).join(" · ")}</p>}
         {queue.items.length > 0 && <p className="meta" role="status">Showing {start + 1}–{start + queue.items.length} of {plural(queue.total, "submission")}</p>}
-        {!courses.length ? <p>You have no active teaching assignments in this workspace.</p>
-          : queue.total === 0 ? <EmptyState status={queue.status} awaiting={totals.awaiting} query={query} filtered={Boolean(queue.offering || queue.assignment)} />
+        {!queue.page ? <p>That page number is invalid. <Link href={href("/grading", query, { ...filters, page: 1 })}>Go to page 1</Link></p>
+          : conflictingFilters ? <p>The selected assignment belongs to a different course. <Link href={href("/grading", query, { ...filters, assignment: undefined, page: 1 })}>Clear assignment filter</Link></p>
+          : queue.assignment && !selected ? <p>The selected assignment is unavailable.</p>
+          : !courses.length ? <p>You have no active teaching assignments in this workspace.</p>
+          : queue.total === 0 && queue.page === 1 ? <EmptyState status={queue.status} awaiting={totals.awaiting} query={query} filters={filters} filtered={Boolean(queue.offering || queue.assignment)} />
           : queue.items.length === 0 ? <p>This page is past the end of the results. <Link href={href("/grading", query, { ...filters, page: pages })}>Go to the last page</Link></p>
           : <ol className="queue" start={start + 1}>{queue.items.map(item => <li key={item.submission}>
             <div className="queue-main">
@@ -112,7 +125,7 @@ export default async function EvaluationQueue({ searchParams }: { searchParams: 
   </Chrome>;
 }
 
-function EmptyState({ status, awaiting, query, filtered }: { status: QueueStatus; awaiting: number; query: string; filtered: boolean }) {
+function EmptyState({ status, awaiting, query, filters, filtered }: { status: QueueStatus; awaiting: number; query: string; filters: Parameters<typeof href>[2]; filtered: boolean }) {
   const message = {
     pending: "No submissions are awaiting evaluation.",
     awaiting: "No feedback drafts are awaiting publication.",
@@ -121,6 +134,6 @@ function EmptyState({ status, awaiting, query, filtered }: { status: QueueStatus
   }[status];
   return <div className="stack">
     <p>{filtered ? message.replace(".", " for this filter.") : message}</p>
-    {status === "pending" && awaiting > 0 && <p><Link href={href("/grading", query, { status: "awaiting" })}>Review {plural(awaiting, "feedback draft")} awaiting publication</Link></p>}
+    {status === "pending" && awaiting > 0 && <p><Link href={href("/grading", query, { ...filters, status: "awaiting" })}>Review {plural(awaiting, "feedback draft")} awaiting publication</Link></p>}
   </div>;
 }

@@ -138,7 +138,7 @@ export type QueueSort = typeof queueSorts[number];
 export const queueStatusLabels: Record<QueueStatus, string> = {
   pending: "Awaiting evaluation",
   awaiting: "Awaiting publication",
-  published: "Published",
+  published: "Has a published result",
   all: "All submissions",
 };
 
@@ -165,12 +165,36 @@ const statusStates: Record<QueueStatus, EvaluationState[]> = {
   all: ["pending", "draft", "correction", "published"],
 };
 
+// A count from PostgreSQL is an integer, so every possible result page fits this range.
+export const resultPage = z.union([z.number(),z.string().regex(/^[1-9][0-9]*$/).transform(Number)])
+  .pipe(z.number().int().min(1).max(2_147_483_647)).optional().transform(page => page ?? 1).catch(0);
+
+export async function gradingAssignments(scope: Scope, options: { offering?: string; assignment?: string; search?: string; page?: number }) {
+  if (scope.role !== "faculty") return [];
+  const page = resultPage.parse(options.page);
+  if (!page) return [];
+  return (await db.query<{ id: string; title: string; section: string; offering_id: string }>(
+    `WITH ${taught}
+     SELECT a.id,a.title,sec.name AS section,a.offering_id
+     FROM taught t JOIN assignment a ON (a.institution_id,a.offering_id)=(t.institution_id,t.offering_id)
+     JOIN offering o ON (o.institution_id,o.id)=(a.institution_id,a.offering_id)
+     JOIN section sec ON (sec.institution_id,sec.id)=(o.institution_id,o.section_id)
+     WHERE ($3::uuid IS NULL OR a.offering_id=$3)
+       AND ($4::text IS NULL OR strpos(lower(a.title),lower($4))>0)
+       AND (CASE WHEN $5::uuid IS NOT NULL THEN a.id=$5 ELSE EXISTS (
+         SELECT 1 FROM submission s WHERE (s.institution_id,s.assignment_id)=(a.institution_id,a.id)) END)
+     ORDER BY lower(a.title),a.id LIMIT 26 OFFSET $6`,
+    [scope.institution, scope.account, options.offering ?? null, options.search?.trim().slice(0,160) || null,
+      options.assignment ?? null, (page-1)*25],
+  )).rows;
+}
+
 export const queueFilters = z.object({
   status: z.enum(queueStatuses).catch("pending"),
   sort: z.enum(queueSorts).catch("oldest"),
   assignment: z.uuid().optional().catch(undefined),
   offering: z.uuid().optional().catch(undefined),
-  page: z.coerce.number().int().min(1).max(1000).catch(1),
+  page: resultPage,
   pageSize: z.coerce.number().int().min(1).max(100).catch(25),
 });
 export type QueueFilters = z.infer<typeof queueFilters>;
@@ -187,7 +211,7 @@ export type QueueItem = {
  */
 export async function evaluationQueue(scope: Scope, raw: unknown = {}) {
   const filters = queueFilters.parse(raw ?? {});
-  if (scope.role !== "faculty") return { items: [] as QueueItem[], total: 0, ...filters };
+  if (scope.role !== "faculty" || !filters.page) return { items: [] as QueueItem[], total: 0, ...filters };
   const { rows } = await db.query<QueueItem & { total: number }>(
     `WITH ${taught}, ${work}
      SELECT w.id AS submission,a.id AS assignment,a.title,c.name AS course,sec.name AS section,u.name AS student,

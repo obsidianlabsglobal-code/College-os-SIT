@@ -90,10 +90,13 @@ test("faculty mission control leads from pending work through the evaluation que
   await page.getByRole("button", { name: "Publish feedback" }).click();
   await expect(page.getByText("Published result · 8/10")).toBeVisible();
   await page.getByRole("link", { name: "Open in evaluation queue" }).click();
-  await page.getByRole("navigation", { name: "Queue status" }).getByRole("link", { name: /^Published/ }).click();
+  await page.getByRole("navigation", { name: "Queue status" }).getByRole("link", { name: /^Has a published result/ }).click();
   await expect(page.getByRole("listitem").filter({ hasText: "Asha Sen" }).getByText("Published 8/10")).toBeVisible();
   expect(page.url()).toContain("assignment=");
   await page.goto(`${page.url()}&offering=${fixtures.otherOffering}`);
+  await expect(page).toHaveURL(/assignment=/);
+  await expect(page.getByText("The selected assignment belongs to a different course.")).toBeVisible();
+  await page.getByRole("link", { name: "Clear assignment filter" }).click();
   await expect(page).not.toHaveURL(/assignment=/);
 
   await page.setViewportSize({ width: 390, height: 844 });
@@ -115,6 +118,77 @@ test("the evaluation queue rejects malformed filters without failing", async ({ 
   expect(response?.status()).toBe(200);
   await expect(page.getByRole("navigation", { name: "Queue status" }).getByRole("link", { name: /Awaiting evaluation/ })).toHaveAttribute("aria-current", "page");
   await expect(page.getByLabel("Sort")).toHaveValue("oldest");
+  await expect(page.getByText("That page number is invalid.")).toBeVisible();
+  await page.goto(`/grading?${workspace("faculty")}&status=all&page=1001`);
+  await expect(page).toHaveURL(/page=1001/);
+  await expect(page.getByText("This page is past the end of the results.")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Go to the last page" })).toHaveAttribute("href", /status=all.*page=/);
   const outsideTenant = await page.goto(`/grading?institution=${fixtures.otherInstitution}&role=faculty`);
   expect(outsideTenant?.status()).toBe(404);
+});
+
+test("compact assignment and searchable choices work on mobile with the keyboard", async ({ page }) => {
+  const migrationUrl = process.env.MIGRATION_DATABASE_URL;
+  if (!migrationUrl || !["127.0.0.1","localhost"].includes(new URL(migrationUrl).hostname)) {
+    throw new Error("Local test database required.");
+  }
+  const { Client } = await import("pg");
+  const owner = new Client({ connectionString: migrationUrl });
+  await owner.connect();
+  const token = randomUUID().slice(0,8);
+  const title = `Compact workshop ${token}`;
+  let assignment: string;
+  try {
+    const {rows:[record]} = await owner.query<{id:string}>(`INSERT INTO assignment
+      (institution_id,offering_id,title,description,deadline,max_marks,published_at)
+      VALUES ($1,$2,$3,'Fictional instructions',now()+interval '1 day',20,now()) RETURNING id`,
+    [fixtures.institution,fixtures.offering,title]);
+    assignment = record.id;
+    await owner.query(`INSERT INTO "user" (id,name,email,"emailVerified")
+      SELECT $1||'-'||n,'Fictional learner '||n,$1||'-'||n||'@nexus.example.invalid',false FROM generate_series(1,23) n`,[token]);
+    await owner.query(`INSERT INTO submission (institution_id,assignment_id,student_id,body,submitted_at,request_id)
+      SELECT $1,$2,$3||'-'||n,'Private response '||n,now()+n*interval '1 second',gen_random_uuid()
+      FROM generate_series(1,23) n`,[fixtures.institution,assignment,token]);
+    await owner.query(`INSERT INTO attachment (institution_id,submission_id,filename,mime,bytes)
+      SELECT institution_id,id,student_id||'.txt','text/plain','fixture' FROM submission
+      WHERE (institution_id,assignment_id)=($1,$2)`,[fixtures.institution,assignment]);
+  } finally {
+    await owner.end();
+  }
+
+  await page.setViewportSize({width:390,height:844});
+  await signIn(page,"faculty");
+  await page.goto(`/assignments/${assignment}?${workspace("faculty")}`);
+  await expect(page.getByText("Showing the first 20 submissions. Open the evaluation queue for all 23 submissions.")).toBeVisible();
+  await expect(page.getByRole("link", {name:/Evaluate submission by Fictional learner/})).toHaveCount(20);
+  await expect(page.getByText(/Private response/)).toHaveCount(0);
+  await expect(page.getByRole("link",{name:/\.txt$/})).toHaveCount(0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
+
+  const first = page.getByRole("link",{name:"Evaluate submission by Fictional learner 1",exact:true});
+  await first.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByText("Private response 1",{exact:true})).toBeVisible();
+  await expect(page.getByRole("link",{name:`${token}-1.txt`})).toBeVisible();
+  await expect(page.getByRole("link",{name:`${token}-2.txt`})).toHaveCount(0);
+
+  await page.getByRole("link",{name:"Open in evaluation queue"}).click();
+  const search = page.getByRole("searchbox",{name:"Find assignments by title"});
+  await search.focus();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("combobox",{name:"Assignment",exact:true})).toBeFocused();
+  await search.fill(token);
+  await search.press("Enter");
+  await expect(page.getByRole("combobox",{name:"Assignment",exact:true})).toHaveValue(assignment);
+  await expect(page.getByRole("option",{name:new RegExp(title)})).toHaveCount(1);
+  await expect(page.getByRole("heading",{name:"Evaluation queue"})).toBeVisible();
+  for (const width of [360,390,768,1024,1440]) {
+    await page.setViewportSize({width,height:844});
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
+  }
+  if (process.env.NEXUS_FACULTY_SCREENSHOTS) {
+    await page.screenshot({path:`${process.env.NEXUS_FACULTY_SCREENSHOTS}/queue-desktop.png`});
+    await page.setViewportSize({width:390,height:844});
+    await page.screenshot({path:`${process.env.NEXUS_FACULTY_SCREENSHOTS}/queue-mobile.png`});
+  }
 });
