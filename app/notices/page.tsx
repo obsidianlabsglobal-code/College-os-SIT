@@ -1,3 +1,4 @@
+import { PageHeader } from "../page-header";
 import Link from "next/link";
 import { account, scope, workspaces, workspaceQuery } from "../../lib/scope";
 import { notices, noticeTargets } from "../../lib/connected";
@@ -13,14 +14,13 @@ export default async function Notices({ searchParams }: { searchParams: Promise<
   const timezone = options.find(option => option.id === current.institution)?.timezone ?? "UTC";
   const query = workspaceQuery(current);
   const canDraft = current.role === "admin" || targets.length > 0;
-  return <Chrome name={user.name}>
-    <div className="hero"><Link href={`/?${query}`}>Workspace</Link><h1>Notices</h1>
+  return <Chrome user={user} current={current} section="/notices">
+    <PageHeader title="Notices" parent={{ href: `/?${query}`, label: "Workspace" }} />
       <nav className="row" aria-label="Filter notices">
         {(["all","published",...(canDraft ? ["draft"] : [])]).map(value => <Link key={value}
           href={`/notices?${query}&filter=${value}`} aria-current={value === filter ? "page" : undefined}>
           {value === "all" ? "All notices" : value === "draft" ? "Drafts" : "Published"}</Link>)}
       </nav>
-    </div>
     <div className={canDraft ? "grid" : "stack"}>
       <section className="panel stack" aria-label="Notice list">
         {!records.length && <p>No notices match this view.</p>}

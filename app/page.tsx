@@ -4,47 +4,47 @@ import { assignments, offerings } from "../lib/assignments";
 import { departmentSummary, institutionSummary } from "../lib/reporting";
 import { ActionForm } from "./forms";
 import { workflow } from "./actions/workflow";
-import { Chrome } from "./chrome";
-
-const roleLabels = { student: "Student", faculty: "Faculty", hod: "Department head", admin: "Institution admin", principal: "Principal" };
+import { cookies } from "next/headers";
+import { Chrome, roleLabels } from "./chrome";
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ institution?: string; role?: string }> }) {
   const user = await account();
   const options = await workspaces(user.id);
   const params = await searchParams;
-  const first = options[0];
+  const preferred = new URLSearchParams((await cookies()).get("nexus_workspace")?.value);
+  const first = options.find(option => option.id === preferred.get("institution") && option.role === preferred.get("role")) ?? options[0];
   const current = first ? await scope(params.institution ?? first.id, params.role ?? first.role) : null;
   const workspace = options.find(option => option.id === current?.institution && option.role === current?.role);
   const [records, courses, summary, overview] = current
     ? await Promise.all([assignments(current), offerings(current), departmentSummary(current), institutionSummary(current)])
     : [[], [], [], []];
   const query = current ? workspaceQuery(current) : "";
-  return <Chrome name={user.name}>
+  return <Chrome user={user} current={current}>
     <div className="hero">
-      <span className="meta">{workspace?.name ?? "College OS"}</span>
       <h1>{current ? roleLabels[current.role] : "Your workspace"}</h1>
-      {options.length > 1 && <nav className="row" aria-label="Workspaces">
-        {options.map(option => <Link key={`${option.id}-${option.role}`} href={`/?${new URLSearchParams({ institution: option.id, role: option.role })}`}
-          aria-current={option === workspace ? "page" : undefined}>{option.name} · {roleLabels[option.role]}</Link>)}
-      </nav>}
     </div>
     {!current && <p className="panel">Your account has no active institutional workspace.</p>}
-    {current && <nav className="row workspace-nav" aria-label="Campus workflows">
-      <Link href={`/notices?${query}`}>Notices</Link>
-      {(current.role === "admin" || current.role === "student") && <Link href={`/requests?${query}`}>Service requests</Link>}
-      {current.role === "admin" && <Link href={`/admin?${query}`}>Academic setup and roles</Link>}
-    </nav>}
     {current?.role === "principal" && <section className="panel">
       <h2>Institution activity</h2>
-      {overview.map(row => <dl key={row.name}>
-        <dt>Published assignments</dt><dd>{row.assignments}</dd>
-        <dt>Submissions</dt><dd>{row.submissions}</dd>
-        <dt>Published results</dt><dd>{row.results}</dd>
-        <dt>Open service requests</dt><dd>{row.open_requests}</dd>
+      <p className="meta">All recorded activity for this institution. Published results count each submission once.</p>
+      {overview.map(row => <dl className="metrics" key={row.name}>
+        <div><dt>Published assignments</dt><dd>{row.assignments}</dd></div>
+        <div><dt>Submissions</dt><dd>{row.submissions}</dd></div>
+        <div><dt>Published results</dt><dd>{row.results}</dd></div>
+        <div><dt>Open service requests</dt><dd>{row.open_requests}</dd></div>
       </dl>)}
+    </section>}
+    {current?.role === "admin" && <section className="panel">
+      <h2>Institution operations</h2>
+      <ul className="items">
+        <li><Link href={`/admin?${query}`}>Manage catalog and access</Link><p className="meta">Set up academic offerings, rosters and delegated roles.</p></li>
+        <li><Link href={`/requests?${query}`}>Review the request queue</Link><p className="meta">Process student enrollment-letter requests.</p></li>
+        <li><Link href={`/notices?${query}`}>Manage institution notices</Link><p className="meta">Publish notices for this institution.</p></li>
+      </ul>
     </section>}
     {current?.role === "hod" && <section className="panel">
       <h2>Department activity</h2>
+      <p className="meta">Turnaround measures the average time from submission to first publication.</p>
       {summary.length ? <div className="table-scroll"><table>
         <thead><tr><th scope="col">Department</th><th scope="col">Published assignments</th><th scope="col">Submissions</th><th scope="col">Published results</th><th scope="col">Average turnaround</th></tr></thead>
         <tbody>{summary.map(row => <tr key={row.name}><th scope="row">{row.name}</th><td>{row.assignments}</td><td>{row.submissions}</td><td>{row.results}</td><td>{row.hours === null ? "—" : `${row.hours.toFixed(1)} h`}</td></tr>)}</tbody>

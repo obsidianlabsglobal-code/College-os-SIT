@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { PageHeader } from "../page-header";
 import { notFound } from "next/navigation";
 import { account, scope, workspaceQuery } from "../../lib/scope";
 import { adminCatalog } from "../../lib/academics";
@@ -20,8 +20,8 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   const current = await scope(selection.institution,selection.role);
   if (current.role !== "admin") notFound();
   const [data, setup] = await Promise.all([adminCatalog(current),institutionCatalog(current)]);
-  return <Chrome name={user.name}>
-    <div className="hero"><Link href={`/?${workspaceQuery(current)}`}>Workspace</Link><h1>Academic setup</h1></div>
+  return <Chrome user={user} current={current} section="/admin">
+    <PageHeader title="Academic setup" parent={{ href: `/?${workspaceQuery(current)}`, label: "Workspace" }} />
     <div className="grid">
       <section className="panel stack">
         <h2>Courses and sections</h2>

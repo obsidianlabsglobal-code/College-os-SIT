@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { PageHeader } from "../page-header";
 import { notFound } from "next/navigation";
 import { account, scope, workspaceQuery } from "../../lib/scope";
 import { requests } from "../../lib/connected";
@@ -13,8 +13,8 @@ export default async function Requests({ searchParams }: { searchParams: Promise
   const current = await scope(selection.institution,selection.role);
   if (current.role !== "admin" && current.role !== "student") notFound();
   const records = await requests(current);
-  return <Chrome name={user.name}>
-    <div className="hero"><Link href={`/?${workspaceQuery(current)}`}>Workspace</Link><h1>Service requests</h1></div>
+  return <Chrome user={user} current={current} section="/requests">
+    <PageHeader title="Service requests" parent={{ href: `/?${workspaceQuery(current)}`, label: "Workspace" }} />
     <div className={current.role === "student" ? "grid" : "stack"}>
       <section className="panel stack">
         <h2>{current.role === "admin" ? "Student request queue" : "Your requests"}</h2>
