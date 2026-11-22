@@ -504,3 +504,27 @@ test("student home uses responsive layout, keyboard navigation and reduced motio
   await page.getByRole("link",{name:"Open AURA activity"}).click();
   await expect(page.getByRole("heading",{name:"AURA activity"})).toBeVisible();
 });
+
+test("student home shows a loading state and recovers after a database timeout",async ({page})=>{
+  const migrationUrl = process.env.MIGRATION_DATABASE_URL;
+  if (!migrationUrl || !["127.0.0.1","localhost"].includes(new URL(migrationUrl).hostname)) {
+    throw new Error("Local test database required.");
+  }
+  const {Client} = await import("pg");
+  const lock = new Client({connectionString:migrationUrl});
+  await signIn(page,"student");
+  const home = page.getByRole("heading",{name:"Your campus, at a glance."});
+  await expect(home).toBeVisible();
+  await lock.connect();
+  try {
+    await lock.query("BEGIN");
+    await lock.query("LOCK TABLE assignment IN ACCESS EXCLUSIVE MODE");
+    await page.reload({waitUntil:"commit"});
+    await expect(page.getByRole("status").filter({hasText:"Loading your campus overview"})).toBeVisible();
+    await expect(page.getByRole("heading",{name:"Workspace unavailable"})).toBeVisible({timeout:12000});
+  } finally {
+    await lock.query("ROLLBACK").finally(()=>lock.end());
+  }
+  await page.getByRole("button",{name:"Retry"}).click();
+  await expect(home).toBeVisible();
+});
