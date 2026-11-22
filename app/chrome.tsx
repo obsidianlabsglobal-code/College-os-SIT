@@ -13,11 +13,12 @@ export const roleLabels = {
   principal: "Principal",
 } satisfies Record<Scope["role"], string>;
 
-type Destination = "/" | "/notices" | "/requests" | "/admin" | "/clubverse";
+type Destination = "/" | "/notices" | "/requests" | "/admin" | "/clubverse" | "/aura";
 const labels: Record<Destination, string> = {
   "/": "Overview",
   "/notices": "Notices",
   "/clubverse": "CLUBVERSE",
+  "/aura": "AURA",
   "/requests": "Service requests",
   "/admin": "Academic setup and roles",
 };
@@ -36,6 +37,7 @@ export async function Chrome({ user, current, section = "/", children }: {
   if (current && ["student", "faculty", "admin"].includes(current.role)) destinations.push("/clubverse");
   if (current?.role === "student" || current?.role === "admin") destinations.push("/requests");
   if (current?.role === "admin") destinations.push("/admin");
+  if (current?.role === "student" || current?.role === "faculty") destinations.push("/aura");
 
   return <div className={current ? "app-shell" : "app-shell app-shell-single"}>
     <header className="app-top">

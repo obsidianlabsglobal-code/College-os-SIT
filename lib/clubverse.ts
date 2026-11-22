@@ -108,20 +108,28 @@ async function candidate(client: PoolClient, scope: Scope, person: string, audie
   return rows;
 }
 
+export async function eventSchedule(client: PoolClient, institution: string, input: EventInput) {
+  const { rows: [schedule] } = await client.query<{ starts:Date; ends:Date }>(
+    `WITH event_time AS (
+       SELECT $2::timestamp AT TIME ZONE timezone AS starts,$3::timestamp AT TIME ZONE timezone AS ends
+       FROM institution WHERE id=$1
+     ) SELECT starts,ends FROM event_time WHERE ends>starts AND starts>clock_timestamp()`,
+    [institution,input.starts,input.ends],
+  );
+  if (!schedule) throw new WorkflowError("Choose a future event start and an end after the start.");
+  return schedule;
+}
+
 export async function saveEventDraft(client: PoolClient, scope: Scope, input: EventInput) {
   await lockClubActor(client,scope);
   const access = await clubAccess(client,scope,input.club);
   if (!access.officer || access.state !== "active") denied();
+  const schedule = await eventSchedule(client,scope.institution,input);
   const { rows: [record] } = await client.query<{ id: string }>(
-    `WITH event_time AS (
-       SELECT $7::timestamp AT TIME ZONE timezone AS starts,$8::timestamp AT TIME ZONE timezone AS ends
-       FROM institution WHERE id=$1
-     )
-     INSERT INTO club_event (institution_id,club_id,author_id,title,location,requirements,starts_at,ends_at,capacity,audience)
-     SELECT $1,$2,$3,$4,$5,$6,starts,ends,$9,$10 FROM event_time WHERE ends>starts AND starts>clock_timestamp() RETURNING id`,
-    [scope.institution,input.club,scope.account,input.title,input.location,input.requirements,input.starts,input.ends,input.capacity,input.audience],
+    `INSERT INTO club_event (institution_id,club_id,author_id,title,location,requirements,starts_at,ends_at,capacity,audience)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`,
+    [scope.institution,input.club,scope.account,input.title,input.location,input.requirements,schedule.starts,schedule.ends,input.capacity,input.audience],
   );
-  if (!record) throw new WorkflowError("Choose a future event start and an end after the start.");
   await audit(client,scope,record.id,"club.event_drafted");
   return record.id;
 }

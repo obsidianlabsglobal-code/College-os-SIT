@@ -1,6 +1,6 @@
 # NEXUS College OS
 
-NEXUS is Obsidian Labs' configurable higher-education platform. SIT Mysuru is a proposed pilot. AURA is the planned intelligence layer. Use fictional data until institutional access and handling are authorized.
+NEXUS is Obsidian Labs' configurable higher-education platform. SIT Mysuru is a proposed pilot. AURA is the intelligence layer with a deterministic event draft capability on its development branch. Use fictional data until institutional access and handling are authorized.
 
 Use the Next.js modular monolith and PostgreSQL. Keep write policies in domain services and resolve sessions and workspace selection on the server. Enforce tenant-scoped relationships, active role and roster checks, validated input, private downloads, transactional state transitions, and metadata-only audit events. Keep applied migrations immutable.
 

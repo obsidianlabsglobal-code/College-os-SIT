@@ -403,3 +403,59 @@ test("CLUBVERSE recognition, membership, event and leadership journeys persist",
   await expect(event.getByText("Participation verified")).toBeVisible();
   await expect(page.getByText("Keep the approved workshop schedule.")).toBeVisible();
 });
+
+test("AURA event planning confirms a private persisted draft", async ({ page }) => {
+  await import("../scripts/environment");
+  const migrationUrl = process.env.MIGRATION_DATABASE_URL;
+  const runtimeUrl = process.env.DATABASE_URL;
+  for (const url of [migrationUrl,runtimeUrl]) {
+    if (!url || !["127.0.0.1","localhost"].includes(new URL(url).hostname)) throw new Error("Local test database required.");
+  }
+  const { Client } = await import("pg");
+  const { fixtures } = await import("../scripts/fixtures");
+  const { changeClub } = await import("../lib/clubverse");
+  const { db:runtime } = await import("../lib/db");
+  const connection = new Client({ connectionString:migrationUrl });
+  await connection.connect();
+  const name = `AURA planning club ${randomUUID().slice(0,8)}`;
+  const title = `Robotics for eighty ${randomUUID().slice(0,8)}`;
+  let club: string;
+  try {
+    const { rows:[faculty] } = await connection.query('SELECT id FROM "user" WHERE email=$1',[demoEmail("faculty")]);
+    const { rows:[admin] } = await connection.query('SELECT id FROM "user" WHERE email=$1',[demoEmail("admin")]);
+    const founder = { institution:fixtures.institution,account:faculty.id,role:"faculty" as const };
+    const reviewer = { institution:fixtures.institution,account:admin.id,role:"admin" as const };
+    club=await changeClub(founder,{operation:"draft",name,purpose:"Explore robotics",rules:"Open workshops",joining:"approval",category:"technical",audience:"campus"});
+    await changeClub(founder,{operation:"proposal",id:club,revision:0,next:"submitted"});
+    await changeClub(reviewer,{operation:"proposal",id:club,revision:1,next:"under_review"});
+    await changeClub(reviewer,{operation:"proposal",id:club,revision:2,next:"approved"});
+    await signIn(page,"faculty");
+    await page.getByRole("navigation",{ name:"Campus workflows" }).getByRole("link",{ name:"CLUBVERSE",exact:true }).click();
+    await page.getByRole("link",{ name,exact:true }).click();
+    await page.getByRole("link",{ name:"Plan an event with AURA" }).click();
+    await expect(page.getByText("Guided event planning · Deterministic mode")).toBeVisible();
+    const stamp = (offset:number) => new Intl.DateTimeFormat("sv-SE",{
+      dateStyle:"short",timeStyle:"short",timeZone:"Asia/Kolkata",
+    }).format(new Date(Date.now()+offset)).replace(" ","T");
+    await page.getByLabel("Event title").fill(title);
+    await page.getByLabel("Location").fill("Workshop room");
+    await page.getByLabel(/Starts/).fill(stamp(3600000));
+    await page.getByLabel(/Ends/).fill(stamp(7200000));
+    await page.getByLabel("Capacity",{ exact:true }).fill("80");
+    await page.getByLabel("Requirements and event plan").fill("Reserve tables and check safety equipment.");
+    await page.getByRole("button",{ name:"Review event plan" }).click();
+    await expect(page.getByText("Awaiting your confirmation",{ exact:true })).toBeVisible();
+    expect((await connection.query("SELECT 1 FROM club_event WHERE institution_id=$1 AND club_id=$2",[fixtures.institution,club])).rowCount).toBe(0);
+    await page.getByRole("button",{ name:"Confirm and save event draft" }).click();
+    const plan=page.getByRole("article").filter({has:page.getByRole("heading",{name:title,exact:true})}).first();
+    const link=plan.getByRole("link",{ name:"Open saved event draft",exact:true });
+    await expect(link).toBeVisible();
+    await link.click();
+    await expect(page).toHaveURL(new RegExp(`/clubverse/${club}\\?`));
+    const event=page.getByRole("article").filter({has:page.getByRole("heading",{name:title,exact:true})});
+    await expect(event.locator(".tag")).toHaveText("draft");
+    await expect(event.getByText(/Capacity 80/)).toBeVisible();
+  } finally {
+    await Promise.all([connection.end(),runtime.end()]);
+  }
+});

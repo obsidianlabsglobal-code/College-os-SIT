@@ -5,7 +5,7 @@ import { Chrome } from "../../chrome";
 import { PageHeader } from "../../page-header";
 import { account, scope, workspaceQuery } from "../../../lib/scope";
 import { clubView } from "../../../lib/club-views";
-import { ClubForm, stateText } from "../controls";
+import { ClubForm, EventFields, stateText } from "../controls";
 
 const actions: Record<string, readonly string[]> = {
   draft:["pending_approval","cancelled"], approved:["published","cancelled"], published:["registration_open","cancelled"],
@@ -92,7 +92,7 @@ export default async function ClubHome({ params,searchParams }: {
       </div>
       <div className="stack">
         {member && <section className="panel"><h2>Member area</h2><p>Member events appear in Events. Registration and attendance are tracked separately.</p></section>}
-        {officer && <section className="panel stack"><h2>Organizer console</h2>
+        {officer && <section className="panel stack"><h2>Organizer console</h2><Link href={`/aura?${query}&club=${id}`}>Plan an event with AURA</Link>
           <ClubForm current={current} operation="event-draft" label="Save event draft" values={key}>
             <EventFields timezone={club.timezone} />
           </ClubForm>
@@ -138,16 +138,4 @@ export default async function ClubHome({ params,searchParams }: {
       </div>
     </div>
   </Chrome>;
-}
-
-function EventFields({ timezone }: { timezone: string }) {
-  return <>
-    <label>Event title<input name="title" maxLength={140} required /></label>
-    <label>Location<input name="location" maxLength={180} required /></label>
-    <label>Starts ({timezone})<input name="starts" type="datetime-local" required /></label>
-    <label>Ends ({timezone})<input name="ends" type="datetime-local" required /></label>
-    <label>Capacity<input name="capacity" type="number" min={1} max={10000} required /></label>
-    <label>Event audience<select name="audience"><option value="club">Club members</option><option value="eligible">Eligible students</option></select></label>
-    <label>Requirements and event plan<textarea name="requirements" maxLength={4000} required /></label>
-  </>;
 }

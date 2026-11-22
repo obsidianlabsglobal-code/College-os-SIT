@@ -33,3 +33,15 @@ export function ProposalFields({ options, draft }: {
 }
 
 export const stateText = (value: string) => value.replaceAll("_"," ");
+
+export function EventFields({ timezone }: { timezone: string }) {
+  return <>
+    <label>Event title<input name="title" maxLength={140} required /></label>
+    <label>Location<input name="location" maxLength={180} required /></label>
+    <label>Starts ({timezone})<input name="starts" type="datetime-local" required /></label>
+    <label>Ends ({timezone})<input name="ends" type="datetime-local" required /></label>
+    <label>Capacity<input name="capacity" type="number" min={1} max={10000} required /></label>
+    <label>Event audience<select name="audience"><option value="club">Club members</option><option value="eligible">Eligible students</option></select></label>
+    <label>Requirements and event plan<textarea name="requirements" maxLength={4000} required /></label>
+  </>;
+}
