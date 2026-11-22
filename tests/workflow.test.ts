@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
 import { randomUUID } from "node:crypto";
 import { Pool } from "pg";
-import { assignments, createAssignment, files, publishAssignment, submissions, submitAssignment, updateGrade } from "../lib/assignments";
+import { assignments, offerings, createAssignment, files, publishAssignment, submissions, submitAssignment, updateGrade } from "../lib/assignments";
 import { changeCatalog } from "../lib/academics";
 import { advanceRequest, createRequest, draftNotice, notices, publishNotice, requests } from "../lib/connected";
 import { changeInstitution } from "../lib/institution";
@@ -112,6 +112,7 @@ test("deadline, inactive membership and faculty handover take effect immediately
   const grant = { operation: "add-roster" as const, offering, account: student.account, role: "student" as const };
   await changeCatalog(admin,{ ...grant,operation:"end-roster" });
   try {
+    assert.equal((await offerings(student,offering)).length,0);
     assert.equal((await assignments(student,id)).length,0);
     assert.equal((await submissions(student,id)).length,0);
   } finally {
