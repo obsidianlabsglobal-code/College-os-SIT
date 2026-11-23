@@ -15,10 +15,11 @@ export const roleLabels = {
   principal: "Principal",
 } satisfies Record<Scope["role"], string>;
 
-type Destination = "/opportunities" | "/" | "/grading" | "/notices" | "/requests" | "/admin" | "/clubverse" | "/aura";
+type Destination = "/opportunities" | "/" | "/grading" | "/notices" | "/requests" | "/admin" | "/clubverse" | "/aura" | "/timetable";
 const labels: Record<Destination, string> = {
   "/opportunities": "Opportunities",
   "/": "Overview",
+  "/timetable": "Timetable",
   "/grading": "Evaluation queue",
   "/notices": "Notices",
   "/clubverse": "CLUBVERSE",
@@ -29,7 +30,7 @@ const labels: Record<Destination, string> = {
 
 const icons: Record<Destination, ComponentProps<typeof Icon>["name"]> = {
   "/opportunities": "service",
-  "/": "home", "/grading": "check", "/notices": "notice", "/clubverse": "people",
+  "/": "home", "/timetable": "calendar", "/grading": "check", "/notices": "notice", "/clubverse": "people",
   "/aura": "spark", "/requests": "service", "/admin": "book",
 };
 
@@ -44,6 +45,7 @@ export async function Chrome({ user, current, section = "/", children }: {
   const query = current ? workspaceQuery(current) : "";
   const home = query ? `/?${query}` : "/";
   const destinations: Destination[] = current?.role === "faculty" ? ["/", "/grading", "/notices"] : ["/", "/notices"];
+  if (current && ["student", "faculty", "admin", "hod"].includes(current.role)) destinations.splice(1, 0, "/timetable");
   if (current && ["student", "faculty", "admin"].includes(current.role)) destinations.push("/clubverse");
   if (current?.role === "student" || current?.role === "admin") destinations.push("/requests");
   if (current?.role === "student" || current?.role === "admin") destinations.push("/opportunities");

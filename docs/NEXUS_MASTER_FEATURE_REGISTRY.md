@@ -44,11 +44,11 @@ Students locate authoritative course work and deadlines for their enrollment. St
 | SA-002 | Course directory | Browse institution-published catalog entries with visibility rules. | Proposed | F |
 | SA-003 | Enrolled course workspaces | Open a roster-scoped offering and its assigned coursework. | Tested | W2 |
 | SA-004 | Academic schemes and terms | Read the offering’s current scheme and term. Cohort-specific eligibility policy remains a separate requirement. | Tested | W2 |
-| SA-005 | Attendance records | See verified session attendance and request corrections. | Proposed | F |
-| SA-006 | Attendance percentage | Calculate from recorded sessions and approved denominator rules. | Proposed | F |
+| SA-005 | Attendance records | Read own recorded marks. A student-initiated correction request remains planned. | Tested (record view) | [Academic day](ACADEMIC_DAY.md) |
+| SA-006 | Attendance percentage | Calculate from own present and recorded marks. Institutional policy and leave exceptions remain planned. | Tested (record-based rate) | [Academic day](ACADEMIC_DAY.md) |
 | SA-007 | Attendance eligibility | Explain eligibility with verified scheme and policy version. | Proposed | F |
-| SA-008 | Attendance what-if planning | Model hypothetical future attendance with explicit assumptions. | Proposed | F |
-| SA-009 | Timetable | View published class and lab slots for the active section. | Proposed | F |
+| SA-008 | Attendance what-if planning | Project from recorded marks and user-selected future counts without writing to official records. | Tested | [Academic day](ACADEMIC_DAY.md) |
+| SA-009 | Timetable | View published whole-section sessions by day or week. Lab subgroup scheduling remains planned. | Tested (whole section) | [Academic day](ACADEMIC_DAY.md) |
 | SA-010 | Academic calendar | Filter institution and course dates and deadlines. | Proposed | F |
 | SA-011 | Assignments | Open a published assignment from an enrolled offering. | Tested | R |
 | SA-012 | Submissions | Submit on time once, with an allowed private attachment or text. | Tested | R |
@@ -120,8 +120,8 @@ Faculty need to organize teaching and evaluation by assigned offering. Select as
 | FC-001 | Faculty mission control | Find assigned courses, deadlines, evaluation queue and unpublished feedback. | Tested | FQ; no faculty user validation |
 | FC-002 | Assigned courses | Choose an authorized offering for assignment creation. | Tested | R |
 | FC-003 | Class management | Organize classes, sections and session activity. | Proposed | F |
-| FC-004 | Faculty timetable | See assigned classes and propose changes against constraints. | Proposed | F |
-| FC-005 | Attendance recording | Record and correct verified attendance per session. | Proposed | F |
+| FC-004 | Faculty timetable | See assigned classes. Faculty change proposals remain planned. | Tested (assigned schedule) | [Academic day](ACADEMIC_DAY.md) |
+| FC-005 | Attendance recording | Record present or absent in bulk for an ended assigned session and save a reasoned revision. | Tested | [Academic day](ACADEMIC_DAY.md) |
 | FC-006 | Teaching records | Log class delivery and coverage against the curriculum. | Proposed | F |
 | FC-007 | Assignment drafting and publication | Create private draft, attach instructions and publish to assigned offering. | Tested | R |
 | FC-008 | Assessment creation | Prepare assessment instruments against approved concepts. | Proposed | F |

@@ -19,7 +19,7 @@ test("a club organizer requests a room and sees the custodian confirmation after
     await page.getByLabel("Password").fill(demoPassword);
     await button("Sign in").click();
     await expect(button("Sign out")).toBeVisible();
-    await link("CLUBVERSE").click();
+    await page.getByRole("link",{name:/^(CLUBVERSE|Clubs)$/}).click();
   }
   await login("faculty");
   await page.getByLabel("Club name").fill(club);

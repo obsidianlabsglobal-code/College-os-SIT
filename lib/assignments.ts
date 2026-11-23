@@ -50,12 +50,12 @@ export async function studentAssignmentSummaries(scope: Scope) {
   if (scope.role !== "student") return [];
   const { rows } = await db.query<{
     id: string; title: string; course: string; section: string; deadline: Date; accepting: boolean;
-    submitted: boolean; result: boolean;
+    submitted: boolean; result_published_at: Date | null;
   }>(
     `SELECT a.id,a.title,c.name AS course,sec.name AS section,a.deadline,
        a.deadline >= clock_timestamp() AS accepting,s.id IS NOT NULL AS submitted,
-       EXISTS (SELECT 1 FROM grade g WHERE (g.institution_id,g.submission_id)=(s.institution_id,s.id)
-         AND g.published_at IS NOT NULL) AS result
+       (SELECT max(g.published_at) FROM grade g
+        WHERE (g.institution_id,g.submission_id)=(s.institution_id,s.id)) AS result_published_at
      FROM assignment a
      JOIN offering o ON (o.institution_id,o.id)=(a.institution_id,a.offering_id)
      JOIN course c ON (c.institution_id,c.id)=(o.institution_id,o.course_id)
