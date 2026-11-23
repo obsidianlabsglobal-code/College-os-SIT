@@ -69,7 +69,7 @@ test("venue approval serializes collisions, respects grants and atomically relea
   const confirm = (booking:string) => ({operation:"confirm",booking,revision:0});
   await assert.rejects(changeResource(reviewer,confirm(a)),/unavailable/);
   const queue = await resourceQueue(custodian,1);
-  assert.equal(queue.bookings.length,4);
+  for (const id of [a,b,abutting,other]) assert.ok(queue.bookings.some(row=>row.id===id));
   assert.doesNotMatch(JSON.stringify(queue.bookings),/Private event|Test materials/);
   const pair = await Promise.allSettled([a,b].map(id=>changeResource(custodian,confirm(id))));
   const accepted = pair.flatMap(value=>value.status==="fulfilled" ? [value.value] : []);

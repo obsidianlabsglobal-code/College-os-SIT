@@ -33,6 +33,12 @@ test("admin publishes a timetable and faculty posts a corrected attendance recor
     const path = (role:string,day:string,session="") => `/timetable?institution=${f.institution}&role=${role}&day=${day}${session}`;
     await signIn(page,"admin");
     await page.getByRole("link",{name:"Timetable"}).click();
+    const policy = page.locator("details").filter({has:page.locator("summary").filter({hasText:course+" · Section A · Term 1"})}).first();
+    await policy.locator("summary").click();
+    await policy.getByLabel("Target percentage").fill("80");
+    await policy.getByLabel("Policy reference").fill("Fictional handbook");
+    await policy.getByRole("button",{name:"Save planning target"}).click();
+    await expect(policy.locator("summary")).toContainText("80%");
     const draft = async (day:string) => {
       const form = page.getByRole("heading",{name:"Draft a weekly series"}).locator("..");
       await form.getByLabel("Course and instructor").selectOption({label:`${course} · Section A · Term 1 · Riya Rao`});
@@ -78,8 +84,19 @@ test("admin publishes a timetable and faculty posts a corrected attendance recor
     const recorded = await summary.locator("li").first().getByText(/recorded classes attended/).textContent();
     await summary.getByText("Try an attendance scenario").first().click();
     await summary.getByLabel("Classes you would attend").first().fill("0");
+    await expect(summary.getByText("Planning target 80% · Fictional handbook")).toBeVisible();
+    await expect(summary.getByText(/falls below the planning target/)).toBeVisible();
     await expect(summary.getByText(/Projected/)).toBeVisible();
     await expect(summary.getByText(recorded!,{exact:true})).toBeVisible();
+
+    await page.goto(`/aura?institution=${f.institution}&role=student`);
+    await page.getByRole("button",{name:"My attendance",exact:true}).click();
+    const response=page.getByRole("listitem",{name:"Request: My attendance"}).first();
+    const source=response.getByRole("link",{name:new RegExp(course+".*100.0%")});
+    await expect(source).toBeVisible();
+    await source.click();
+    await expect(page.getByRole("heading",{name:"Timetable",exact:true})).toBeVisible();
+    await page.goto(path("student",historical,oldSession));
 
     await page.emulateMedia({reducedMotion:"reduce"});
     for (const width of [360,390,768,1024,1440]) {

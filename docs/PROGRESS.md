@@ -1,5 +1,12 @@
 # Progress
 
+### November 23 · Academic and AURA runtime integration
+
+Reconciled the academic branch at 72d33c6, Claude runtime at 89f4cd8, and main at 5af9797 on integration/aura-academic-runtime. The new composer reads real academic data and keeps the approved deterministic CLUBVERSE workflow. Academic tool results refresh against live grants when reopened. Explicit consent gates free-text provider transfers. Duplicate requests share one operation, and a failed proposal-to-preview link rolls back its draft preview. The fixed-topic pilot remains available where free-text model mode is off.
+
+Local verification used a fictional PostgreSQL database. Migrations applied and reran, lint, typecheck, production build and all 34 service tests passed. All 20 ordinary Chromium journeys plus a separate mobile tutor provider-contract journey passed. Three focused AURA journeys also passed during screenshot capture in docs/evidence/aura-academic-runtime. No paid inference or hosted verification was performed. 480 original registry IDs are preserved.
+
+
 ## November 21, 2026
 
 - Implemented Release 1 application code for five role workspaces, academic administration, assignments and feedback, notices, enrollment-letter requests, and scoped reporting. PostgreSQL persists workflow state and mutation audits.
