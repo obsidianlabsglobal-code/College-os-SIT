@@ -282,7 +282,7 @@ test("CLUBVERSE recognition, membership, event and leadership journeys persist",
   const name = `Robotics workshop club ${randomUUID().slice(0,8)}`;
   const title = "Planetary rover workshop";
   const visitDirectory = async () => {
-    await page.getByRole("navigation",{ name:"Campus workflows" }).getByRole("link",{ name:"CLUBVERSE",exact:true }).click();
+    await page.getByRole("navigation",{ name:"Campus workflows" }).getByRole("link",{ name:/^(CLUBVERSE|Clubs)$/ }).click();
     await expect(page.getByRole("heading",{ name:"CLUBVERSE",exact:true })).toBeVisible();
   };
   const openClub = async () => {
@@ -439,7 +439,7 @@ test("AURA event planning confirms a private persisted draft", async ({ page }) 
     await changeClub(reviewer,{operation:"proposal",id:club,revision:1,next:"under_review"});
     await changeClub(reviewer,{operation:"proposal",id:club,revision:2,next:"approved"});
     await signIn(page,"faculty");
-    await page.getByRole("navigation",{ name:"Campus workflows" }).getByRole("link",{ name:"CLUBVERSE",exact:true }).click();
+    await page.getByRole("navigation",{ name:"Campus workflows" }).getByRole("link",{ name:/^(CLUBVERSE|Clubs)$/ }).click();
     await page.getByRole("link",{ name,exact:true }).click();
     await page.getByRole("link",{ name:"Plan an event with AURA" }).click();
     await expect(page.getByText("Guided event planning · Deterministic mode")).toBeVisible();
@@ -511,6 +511,46 @@ test("an unrelated institution receives the empty priority and a keyboard course
   await priority.getByRole("link", { name: "See my courses" }).focus();
   await page.keyboard.press("Enter");
   await expect(page.getByRole("region", { name: "My courses" })).toBeFocused();
+});
+
+test("Student Today links to the most recently released feedback", async ({ page }) => {
+  const migrationUrl = process.env.MIGRATION_DATABASE_URL;
+  if (!migrationUrl || !["127.0.0.1", "localhost"].includes(new URL(migrationUrl).hostname)) {
+    throw new Error("Local test database required.");
+  }
+  const { Client } = await import("pg");
+  const { fixtures } = await import("../scripts/fixtures");
+  const client = new Client({ connectionString: migrationUrl });
+  const oldest = randomUUID(), latest = randomUUID();
+  const submissions = [randomUUID(), randomUUID()];
+  await client.connect();
+  try {
+    await client.query(`INSERT INTO assignment (institution_id,id,offering_id,title,description,deadline,max_marks,published_at)
+      VALUES ($1,$3,$2,'Earlier deadline','Fictional',now()-interval '4 days',10,now()-interval '8 days'),
+             ($1,$4,$2,'Latest released feedback','Fictional',now()-interval '3 days',10,now()-interval '8 days')`,
+      [fixtures.otherInstitution, fixtures.offering, oldest, latest]);
+    await client.query(`INSERT INTO submission (institution_id,id,assignment_id,student_id,body,submitted_at,request_id)
+      SELECT $1,v.id,v.assignment_id,u.id,'Fictional',now()-interval '5 days',gen_random_uuid()
+      FROM "user" u CROSS JOIN (VALUES ($3::uuid,$5::uuid),($4::uuid,$6::uuid)) v(id,assignment_id) WHERE u.email=$2`,
+      [fixtures.otherInstitution, demoEmail("tenant"), ...submissions, oldest, latest]);
+    await client.query(`INSERT INTO grade (institution_id,submission_id,revision,marks,feedback,published_at)
+      VALUES ($1,$2,1,7,'Earlier released result',now()-interval '2 days'),
+             ($1,$3,1,8,'Latest released result',now()-interval '1 day'),
+             ($1,$2,2,9,'Private correction draft',NULL)`, [fixtures.otherInstitution,...submissions]);
+
+    await signIn(page, "tenant");
+    const priority = page.getByRole("region", {name:"Next up"});
+    await expect(priority).toContainText("Latest released feedback");
+    await expect(page.getByRole("link", {name:/Published results/})).toHaveAttribute("href", new RegExp(latest));
+    await priority.getByRole("link", {name:"Read feedback"}).click();
+    await expect(page.getByRole("heading", {name:"Published result · 8/10"})).toBeVisible();
+    await expect(page.getByText("Private correction draft")).toHaveCount(0);
+  } finally {
+    await client.query("DELETE FROM grade WHERE institution_id=$1 AND submission_id=ANY($2::uuid[])", [fixtures.otherInstitution, submissions]);
+    await client.query("DELETE FROM submission WHERE institution_id=$1 AND id=ANY($2::uuid[])", [fixtures.otherInstitution, submissions]);
+    await client.query("DELETE FROM assignment WHERE institution_id=$1 AND id=ANY($2::uuid[])", [fixtures.otherInstitution, [oldest, latest]]);
+    await client.end();
+  }
 });
 
 test("student home shows a loading state and recovers after a database timeout",async ({page})=>{
