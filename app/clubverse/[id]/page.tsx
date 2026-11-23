@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { Chrome } from "../../chrome";
-import { PageHeader } from "../../page-header";
+import { ExperienceHeading } from "../../experience/heading";
 import { account, scope, workspaceQuery } from "../../../lib/scope";
 import { clubView } from "../../../lib/club-views";
 import { ClubForm, EventFields, stateText } from "../controls";
@@ -35,7 +35,7 @@ export default async function ClubHome({ params,searchParams }: {
   const date = new Intl.DateTimeFormat("en-IN",{ dateStyle:"medium",timeStyle:"short",timeZone:club.timezone });
   const query = workspaceQuery(current);
   return <Chrome user={user} current={current} section="/clubverse">
-    <PageHeader title={club.name} context={club.category} parent={{ href:`/clubverse?${query}`,label:"CLUBVERSE" }} />
+    <ExperienceHeading title={club.name} context={club.category} parent={{ href:`/clubverse?${query}`,label:"CLUBVERSE" }} />
     <div className="grid">
       <div className="stack">
         <section className="panel stack">

@@ -46,6 +46,27 @@ export async function assignments(scope: Scope, id?: string, offering?: string) 
   return rows;
 }
 
+export async function studentAssignmentSummaries(scope: Scope) {
+  if (scope.role !== "student") return [];
+  const { rows } = await db.query<{
+    id: string; title: string; course: string; section: string; deadline: Date; accepting: boolean;
+    submitted: boolean; result: boolean;
+  }>(
+    `SELECT a.id,a.title,c.name AS course,sec.name AS section,a.deadline,
+       a.deadline >= clock_timestamp() AS accepting,s.id IS NOT NULL AS submitted,
+       EXISTS (SELECT 1 FROM grade g WHERE (g.institution_id,g.submission_id)=(s.institution_id,s.id)
+         AND g.published_at IS NOT NULL) AS result
+     FROM assignment a
+     JOIN offering o ON (o.institution_id,o.id)=(a.institution_id,a.offering_id)
+     JOIN course c ON (c.institution_id,c.id)=(o.institution_id,o.course_id)
+     JOIN section sec ON (sec.institution_id,sec.id)=(o.institution_id,o.section_id)
+     LEFT JOIN submission s ON (s.institution_id,s.assignment_id,s.student_id)=(a.institution_id,a.id,$2)
+     WHERE a.institution_id=$1 AND ${activeRoster} AND a.published_at IS NOT NULL
+     ORDER BY a.deadline,a.id`, [scope.institution,scope.account,scope.role],
+  );
+  return rows;
+}
+
 export async function offerings(scope: Scope, id?: string) {
   if (scope.role !== "faculty" && scope.role !== "student") return [];
   return (await db.query<{ id: string; label: string; course: string; section: string; term: string; scheme: string; timezone: string }>(

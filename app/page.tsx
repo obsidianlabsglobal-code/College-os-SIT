@@ -1,8 +1,10 @@
+import { MissionControl } from "./faculty/mission-control";
 import Link from "next/link";
 import { account, scope, workspaces, workspaceQuery } from "../lib/scope";
-import { assignments, offerings } from "../lib/assignments";
 import { departmentSummary, institutionSummary } from "../lib/reporting";
-import { MissionControl } from "./faculty/mission-control";
+import { Suspense } from "react";
+import { ExperienceHeading } from "./experience/heading";
+import { StudentHome, StudentHomeLoading } from "./student/home";
 import { cookies } from "next/headers";
 import { Chrome, roleLabels } from "./chrome";
 
@@ -14,15 +16,22 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ i
   const first = options.find(option => option.id === preferred.get("institution") && option.role === preferred.get("role")) ?? options[0];
   const current = first ? await scope(params.institution ?? first.id, params.role ?? first.role) : null;
   const workspace = options.find(option => option.id === current?.institution && option.role === current?.role);
-  const student = current?.role === "student";
-  const [records, courses, summary, overview] = current
-    ? await Promise.all([student ? assignments(current) : [], student ? offerings(current) : [], departmentSummary(current), institutionSummary(current)])
-    : [[], [], [], []];
+  if (current?.role === "student") {
+    return <Chrome user={user} current={current}>
+      <Suspense fallback={<StudentHomeLoading />}>
+        <StudentHome current={current} name={user.name} timezone={workspace?.timezone ?? "UTC"} />
+      </Suspense>
+    </Chrome>;
+  }
+
+  const [summary, overview] = current
+    ? await Promise.all([departmentSummary(current), institutionSummary(current)])
+    : [[], []];
   const query = current ? workspaceQuery(current) : "";
   return <Chrome user={user} current={current}>
-    <div className="hero">
-      <h1>{current ? roleLabels[current.role] : "Your workspace"}</h1>
-    </div>
+    <ExperienceHeading title={current ? roleLabels[current.role] : "Your workspace"}
+      context={current?.role === "faculty" ? "Manage assignments for the courses you teach." :
+        current?.role === "hod" ? "Review academic activity for your departments." : undefined} />
     {!current && <p className="panel">Your account has no active institutional workspace.</p>}
     {current?.role === "principal" && <section className="panel">
       <h2>Institution activity</h2>
@@ -51,22 +60,5 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ i
       </table></div> : <p>No departments are assigned to this workspace.</p>}
     </section>}
     {current?.role === "faculty" && <MissionControl current={current} timezone={workspace?.timezone ?? "Asia/Kolkata"} />}
-    {current?.role === "student" && <section className="panel">
-      <h2>My courses</h2>
-      {courses.length ? <ul className="items">{courses.map(course => <li key={course.id}>
-        <Link href={`/courses/${course.id}?${query}`}>{course.label}</Link>
-      </li>)}</ul> : <p>No active course assignments are available for this workspace.</p>}
-    </section>}
-    {current?.role === "student" && <section className="panel">
-      <h2>Assignments</h2>
-      {records.length ? <ul className="items">{records.map(record => <li key={record.id}>
-        <div className="row"><Link href={`/assignments/${record.id}?${query}`}>{record.title}</Link><span className="tag">{record.published_at ? "Published" : "Draft"}</span></div>
-        <p className="meta">{record.course} · {record.section} · Due {formatDate(record.deadline, record.timezone)}</p>
-      </li>)}</ul> : <p>No assignments are available.</p>}
-    </section>}
   </Chrome>;
-}
-
-function formatDate(value: Date, timezone: string) {
-  return new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: timezone }).format(value);
 }
