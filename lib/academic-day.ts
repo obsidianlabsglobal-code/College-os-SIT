@@ -63,18 +63,20 @@ export async function nextClass(scope:Scope) {
 
 export async function attendanceSummary(scope:Scope) {
   if (scope.role!=="student") return [];
-  return (await db.query<{offering_id:string;course:string;term:string;present:number;recorded:number}>(`
+  return (await db.query<{offering_id:string;course:string;term:string;present:number;recorded:number;target:number|null;source:string|null}>(`
     SELECT s.offering_id,c.name AS course,t.name AS term,count(*) FILTER (WHERE m.status='present')::int AS present,
-      count(*)::int AS recorded
+      count(*)::int AS recorded,p.percent AS target,p.source
     FROM class_attendance_mark m JOIN class_session s ON (s.institution_id,s.id)=(m.institution_id,m.session_id)
     JOIN class_attendance_revision v ON (v.institution_id,v.session_id,v.revision)=(m.institution_id,m.session_id,m.revision)
     JOIN offering o ON (o.institution_id,o.id)=(s.institution_id,s.offering_id)
     JOIN course c ON (c.institution_id,c.id)=(o.institution_id,o.course_id)
     JOIN academic_term t ON (t.institution_id,t.id)=(o.institution_id,o.term_id)
+    LEFT JOIN LATERAL (SELECT percent,source FROM attendance_planning_target
+      WHERE (institution_id,offering_id)=(s.institution_id,s.offering_id) ORDER BY revision DESC LIMIT 1) p ON true
     WHERE s.institution_id=$1 AND m.student_id=$2 AND s.state='conducted' AND ${readable}
       AND v.revision=(SELECT max(v2.revision) FROM class_attendance_revision v2
         WHERE (v2.institution_id,v2.session_id)=(s.institution_id,s.id))
-    GROUP BY s.offering_id,c.name,t.name ORDER BY c.name,t.name,s.offering_id`,[scope.institution,scope.account,scope.role])).rows;
+    GROUP BY s.offering_id,c.name,t.name,p.percent,p.source ORDER BY c.name,t.name,s.offering_id`,[scope.institution,scope.account,scope.role])).rows;
 }
 
 export function attendancePercentage(present:number, recorded:number) {

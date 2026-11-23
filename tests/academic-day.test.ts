@@ -4,6 +4,7 @@ import { after, before, test } from "node:test";
 import { randomUUID } from "node:crypto";
 import { Pool } from "pg";
 import { attendancePercentage, attendanceSummary, changeClass, nextClass, sessionDetail, timetable, timetableOptions } from "../lib/academic-day";
+import { planningOptions, savePlanningTarget } from "../lib/attendance-planning";
 import { db } from "../lib/db";
 import type { Scope } from "../lib/scope";
 import { demoEmail, fixtures as f } from "../scripts/fixtures";
@@ -125,4 +126,21 @@ test("ambiguous and skipped DST wall times are rejected without moving a class",
   } finally {
     await owner.query("UPDATE institution SET timezone='Asia/Kolkata' WHERE id=$1",[f.institution]);
   }
+});
+
+test("planning targets are versioned, tenant-scoped and withdrawable", async () => {
+  const admin = actor("admin","admin");
+  const original = (await planningOptions(admin)).find(row=>row.id===f.offering)!;
+  const input = {offering:f.offering,revision:original.revision,percent:78,source:"Fictional planning policy"};
+  for (const denied of [actor("student","student"),actor("tenant","admin"),actor("admin","admin",f.otherInstitution)]) {
+    await assert.rejects(savePlanningTarget(denied,input),/unavailable/);
+  }
+  await assert.rejects(savePlanningTarget(admin,{...input,percent:101}));
+  const attempts = await Promise.allSettled([savePlanningTarget(admin,input),savePlanningTarget(admin,input)]);
+  assert.equal(attempts.filter(r=>r.status==="fulfilled").length,1);
+  assert.match(String(attempts.find(r=>r.status==="rejected")?.reason),/changed/);
+  const saved = (await planningOptions(admin)).find(row=>row.id===f.offering)!;
+  assert.equal(saved.percent,78);
+  await savePlanningTarget(admin,{...input,revision:saved.revision,percent:null,source:"Withdrawn for review"});
+  assert.equal((await planningOptions(admin)).find(row=>row.id===f.offering)?.percent,null);
 });

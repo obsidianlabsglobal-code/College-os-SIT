@@ -47,7 +47,7 @@ Students locate authoritative course work and deadlines for their enrollment. St
 | SA-005 | Attendance records | Read own recorded marks. A student-initiated correction request remains planned. | Tested (record view) | [Academic day](ACADEMIC_DAY.md) |
 | SA-006 | Attendance percentage | Calculate from own present and recorded marks. Institutional policy and leave exceptions remain planned. | Tested (record-based rate) | [Academic day](ACADEMIC_DAY.md) |
 | SA-007 | Attendance eligibility | Explain eligibility with verified scheme and policy version. | Proposed | F |
-| SA-008 | Attendance what-if planning | Project from recorded marks and user-selected future counts without writing to official records. | Tested | [Academic day](ACADEMIC_DAY.md) |
+| SA-008 | Attendance what-if planning | Compare recorded marks and hypothetical future counts with the offering’s optional, sourced advisory target. | Tested | [Academic day](ACADEMIC_DAY.md) |
 | SA-009 | Timetable | View published whole-section sessions by day or week. Lab subgroup scheduling remains planned. | Tested (whole section) | [Academic day](ACADEMIC_DAY.md) |
 | SA-010 | Academic calendar | Filter institution and course dates and deadlines. | Proposed | F |
 | SA-011 | Assignments | Open a published assignment from an enrolled offering. | Tested | R |
@@ -501,7 +501,7 @@ Authenticated user and accountable tool owners. Route task from session → scop
 | AI-007 | Explicit approvals | Confirm or cancel an expiring owned proposal and recheck grants. | Tested | A |
 | AI-008 | Execution evidence | Return one private persisted draft on replay-safe confirmation. | Tested | A |
 | AI-009 | Rate limits | Bound preview admission by account and institution. | Implemented | A |
-| AI-010 | Cost management | Reserve and reconcile provider usage and spend per institution and feature. | Designed | AURA_ARCHITECTURE.md |
+| AI-010 | Cost management | Reserve and reconcile provider usage and spend per institution and feature. | In development | Tutor reservations and token estimates tested with injected transport. Billing reconciliation pending. See AURA_ARCHITECTURE.md |
 | AI-011 | Context and knowledge | Retrieve only approved versions with document-level access and citations. | Proposed | F |
 | AI-012 | Agent orchestration | Bound planning and dependent tools with failure handling. | Proposed | F |
 | AI-013 | Durable tasks and workers | Resume eligible long-running work with actual scheduler, cancellation and idempotent retries. | Proposed | F |
