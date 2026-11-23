@@ -501,7 +501,7 @@ Authenticated user and accountable tool owners. Route task from session → scop
 | AI-007 | Explicit approvals | Confirm or cancel an expiring owned proposal and recheck grants. | Tested | A |
 | AI-008 | Execution evidence | Return one private persisted draft on replay-safe confirmation. | Tested | A |
 | AI-009 | Rate limits | Bound preview admission by account and institution. | Implemented | A |
-| AI-010 | Cost management | Reserve and reconcile provider usage and spend per institution and feature. | Designed | AURA_ARCHITECTURE.md |
+| AI-010 | Cost management | Reserve and reconcile provider usage and spend per institution and feature. | In development | Tutor reservations and token estimates tested with injected transport. Billing reconciliation pending. See AURA_ARCHITECTURE.md |
 | AI-011 | Context and knowledge | Retrieve only approved versions with document-level access and citations. | Proposed | F |
 | AI-012 | Agent orchestration | Bound planning and dependent tools with failure handling. | Proposed | F |
 | AI-013 | Durable tasks and workers | Resume eligible long-running work with actual scheduler, cancellation and idempotent retries. | Proposed | F |

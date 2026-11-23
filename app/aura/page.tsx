@@ -1,3 +1,6 @@
+import { randomUUID } from "node:crypto";
+import { topics, tutorActivity, tutorEnabled } from "../../lib/aura/tutor";
+import { AcademicPanel } from "./academic-panel";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -16,13 +19,21 @@ export default async function Aura({ searchParams }: { searchParams:Promise<Reco
   const current = await scope(params.institution,params.role);
   if (current.role !== "student" && current.role !== "faculty") notFound();
   const club = z.uuid().safeParse(params.club);
-  const [tasks,context] = await Promise.all([eventPlans(current),club.success ? clubView(current,club.data) : null]);
+  const [tasks,context,usage] = await Promise.all([eventPlans(current),club.success ? clubView(current,club.data) : null,tutorActivity(current)]);
   const query = workspaceQuery(current);
   return <Chrome user={user} current={current} section="/aura">
-    <ExperienceHeading title="AURA activity" context="Guided event planning · Deterministic mode" />
+    <ExperienceHeading title="AURA activity" context="Academic assistance and event planning" />
+    <AcademicPanel key={query} workspace={{role:current.role,institution:current.institution}} topics={tutorEnabled(current)?topics:{}} request={randomUUID()} />
+    {usage.length>0 && <section className="panel stack"><h2>Your recent tutor usage</h2>
+      <ul className="items">{usage.map(row=><li key={row.id}>
+        <strong>{topics[row.topic]}</strong> · {row.state==="answered" ? "Answered" : row.state==="reserved" ? "Spend reserved" : "Charge unconfirmed"}
+        <p className="meta">{row.state==="answered" ? `${row.input_tokens} input and ${row.output_tokens} output tokens · estimated cost` : "Reserved budget"} USD {(Number(row.budget_microusd)/1_000_000).toFixed(6)}</p>
+      </li>)}</ul>
+    </section>}
     <div className="grid">
       <section className="panel stack">
         <h2>Your event plans</h2>
+        <p className="meta">Guided event planning · Deterministic mode</p>
         {!tasks.length && <p>No previews yet. Open a club you organize to start a plan.</p>}
         {tasks.map(task => {
           const plan = eventInput.safeParse(task.payload);

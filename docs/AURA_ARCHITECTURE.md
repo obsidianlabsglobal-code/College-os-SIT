@@ -18,3 +18,15 @@ The first question for a model is how to organize an event within constraints th
 6. Before enabling a pilot, run fictional cases for missing sources, contradictory capacity, prompt injection in club rules, forged citations, revoked officers during inference, another tenant's event, duplicated confirmations, malformed output, timeout after billing and exhausted budgets. Require zero unauthorized disclosures or writes and zero false claims of booking/approval in the evaluation set. Compare blinded organizer ratings with the form baseline and agree the spend limit before any billable execution.
 
 Status: proposed. No external model call, approved provider account or measured quality advantage has been established.
+
+## Academic assistant branch
+
+The academic workspace accepts explicit local lookup intents for the current student's assignments, timetable and attendance, and the current instructor's timetable. Each answer links to its source workspace and uses that domain's existing membership and roster checks. Unrecognized text stays local. The existing CLUBVERSE confirmation path is unchanged.
+
+An optional single-institution study pilot calls the Anthropic Messages API with a fixed curriculum topic. Only the topic prompt leaves NEXUS. A learner must explicitly select Generate explanation. Tool access, course-record grounding, free-text model chat and model-powered event planning remain future work. No streaming is needed for the bounded single response.
+
+Configure the seven optional server variables in .env.example after approving the model, current prices and pilot budget. Each generated explanation is limited to 512 output tokens, one call, a 15-second timeout and five requests per actor per rolling 24 hours. Migration 013 tracks reservations and estimated spend in integer millionths of a US dollar. Institution locking and a unique operation ID protect admission. Unknown provider outcomes retain their reservation for the rolling window. There is no automatic paid retry or invoice reconciliation. An actor can see their five most recent estimates in their current workspace. Never put API keys in client configuration.
+
+PostgreSQL tests exercise the real accounting and authorization code with an injected provider response. This is provider-contract evidence only. A live provider check, answer-quality evaluation and hosted rollout require separate evidence.
+
+The dedicated Chromium contract journey runs with `npx playwright test --config playwright.tutor.config.ts` after a local production build, migration and fictional seed. Its isolated app process intercepts the provider request with a test fixture, uses a dummy key, and checks the mobile, keyboard-triggered topic selection, returned example and usage history after reload.
