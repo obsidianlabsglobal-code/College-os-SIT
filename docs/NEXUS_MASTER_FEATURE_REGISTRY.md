@@ -47,7 +47,7 @@ Students locate authoritative course work and deadlines for their enrollment. St
 | SA-005 | Attendance records | Read own recorded marks. A student-initiated correction request remains planned. | Tested (record view) | [Academic day](ACADEMIC_DAY.md) |
 | SA-006 | Attendance percentage | Calculate from own present and recorded marks. Institutional policy and leave exceptions remain planned. | Tested (record-based rate) | [Academic day](ACADEMIC_DAY.md) |
 | SA-007 | Attendance eligibility | Explain eligibility with verified scheme and policy version. | Proposed | F |
-| SA-008 | Attendance what-if planning | Project from recorded marks and user-selected future counts without writing to official records. | Tested | [Academic day](ACADEMIC_DAY.md) |
+| SA-008 | Attendance what-if planning | Compare recorded marks and hypothetical future counts with the offering’s optional, sourced advisory target. | Tested | [Academic day](ACADEMIC_DAY.md) |
 | SA-009 | Timetable | View published whole-section sessions by day or week. Lab subgroup scheduling remains planned. | Tested (whole section) | [Academic day](ACADEMIC_DAY.md) |
 | SA-010 | Academic calendar | Filter institution and course dates and deadlines. | Proposed | F |
 | SA-011 | Assignments | Open a published assignment from an enrolled offering. | Tested | R |

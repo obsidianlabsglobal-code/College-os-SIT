@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { savePlanningTarget } from "../../lib/attendance-planning";
 import { changeClass } from "../../lib/academic-day";
 import { WorkflowError } from "../../lib/assignments";
 import { scope, workspaceQuery } from "../../lib/scope";
@@ -13,6 +14,15 @@ export async function timetableAction(_state:ActionState, form:FormData):Promise
   const operation = form.get("operation");
   let session: string;
   try {
+    if (operation === "target") {
+      const percent = form.get("percent");
+      await savePlanningTarget(current,{
+        offering:form.get("offering"), revision:Number(form.get("revision") ?? NaN),
+        percent:percent === "" ? null : Number(percent), source:form.get("source"),
+      });
+      revalidatePath("/timetable");
+      return {message:"Planning target saved."};
+    }
     const [offering,faculty] = String(form.get("teaching") ?? "").split("|");
     const marks = [...form.entries()].filter(([name])=>name.startsWith("mark:"))
       .map(([name,value])=>({student:name.slice(5),status:value}));

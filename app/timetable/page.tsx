@@ -6,6 +6,7 @@ import { attendancePercentage,attendanceSummary,nextClass,sessionDetail,timetabl
 import { ActionForm } from "../forms";
 import { Chrome } from "../chrome";
 import { AttendanceForm } from "./attendance-form";
+import { planningOptions } from "../../lib/attendance-planning";
 import { AttendanceForecast } from "./forecast";
 import { timetableAction } from "./actions";
 import styles from "./timetable.module.css";
@@ -24,9 +25,9 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
   const days = params.view==="day" ? 1 : 7;
   const selectedID = z.uuid().safeParse(params.session);
   if (params.session && !selectedID.success) notFound();
-  const [sessions,upcoming,summary,options,detail] = await Promise.all([
+  const [sessions,upcoming,summary,options,detail,targets] = await Promise.all([
     timetable(current,day,days),current.role==="faculty" || current.role==="student" ? nextClass(current) : null,
-    attendanceSummary(current),timetableOptions(current),selectedID.success ? sessionDetail(current,selectedID.data) : null,
+    attendanceSummary(current),timetableOptions(current),selectedID.success ? sessionDetail(current,selectedID.data) : null,planningOptions(current),
   ]);
   if (selectedID.success && !detail) notFound();
   const query = workspaceQuery(current);
@@ -75,6 +76,19 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
           <label>Weekly occurrences<input type="number" min={1} max={16} name="weeks" defaultValue={1} required /></label>
         </ActionForm> : <p>Assign an active instructor and <Link href={`/clubverse/booking?${query}`}>add a campus room</Link> before drafting.</p>}
       </section>}
+      {targets.length > 0 && <section className="panel">
+        <h2>Attendance planning targets</h2>
+        <p className="meta">Choose a course to set its advisory percentage. Students see the source alongside their forecast.</p>
+        {targets.map(item=><details key={item.id}>
+          <summary>{item.label} · {item.percent === null ? "No target" : item.percent+"%"}</summary>
+          <ActionForm key={item.revision} action={timetableAction} context={current} operation="target" label="Save planning target">
+            <input type="hidden" name="offering" value={item.id} />
+            <input type="hidden" name="revision" value={item.revision} />
+            <label>Target percentage (clear to withdraw)<input type="number" name="percent" min="1" max="100" step="1" defaultValue={item.percent ?? ""} /></label>
+            <label>Policy reference or withdrawal reason<input name="source" maxLength={200} required defaultValue={item.source ?? ""} /></label>
+          </ActionForm>
+        </details>)}
+      </section>}
       {detail && <section className="panel" id="class-details" aria-labelledby="class-detail-title">
         <h2 id="class-detail-title">{detail.row.course} class</h2>
         <p>{date.format(detail.row.start)} · {time.format(detail.row.start)} – {time.format(detail.row.finish)} · {detail.row.room}</p>
@@ -104,7 +118,7 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
       {summary.length ? <ul className="items">{summary.map(row=><li key={row.offering_id}>
         <h3>{row.course} · {row.term}</h3><p className={styles.rate}>{attendancePercentage(row.present,row.recorded)}%</p>
         <p>{row.present} of {row.recorded} recorded classes attended</p>
-        <AttendanceForecast present={row.present} recorded={row.recorded} />
+        <AttendanceForecast present={row.present} recorded={row.recorded} target={row.target} source={row.source} />
       </li>)}</ul> : <p>No attendance recorded yet.</p>}
     </section>}
   </div></Chrome>;
