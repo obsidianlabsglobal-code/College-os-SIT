@@ -47,7 +47,7 @@ test("assignment persists with tenant, section, file and grade boundaries", asyn
   assert.ok(!(await studentAssignmentSummaries(student)).some(item=>item.id===id));
   await publishAssignment(teacher,id);
   const summary = async () => (await studentAssignmentSummaries(student)).find(item=>item.id===id);
-  assert.deepEqual([(await summary())?.submitted,(await summary())?.result],[false,false]);
+  assert.deepEqual([(await summary())?.submitted,Boolean((await summary())?.result_published_at)],[false,false]);
   assert.deepEqual(await studentAssignmentSummaries(teacher),[]);
   const [attachment] = await files(student,id);
   assert.equal(attachment.filename,"instructions.txt");
@@ -78,13 +78,15 @@ test("assignment persists with tenant, section, file and grade boundaries", asyn
   const [unpublished] = await submissions(student,id);
   assert.equal(unpublished.draft,null);
   assert.equal(unpublished.published,null);
-  assert.deepEqual([(await summary())?.submitted,(await summary())?.result],[true,false]);
+  assert.deepEqual([(await summary())?.submitted,Boolean((await summary())?.result_published_at)],[true,false]);
   await updateGrade(teacher,{ ...grade, expected: 1, expectedDraft: true, publish: true });
+  const firstPublication = (await summary())?.result_published_at;
   await assert.rejects(updateGrade(teacher,{ ...grade, expected: 1, expectedDraft: true, marks: 18, reason: "Stale draft" }),/grade changed/);
   await assert.rejects(updateGrade(teacher,{ ...grade, expected: 1, marks: 18 }),/reason/);
   await updateGrade(teacher,{ ...grade, expected: 1, marks: 18, reason: "Correction" });
   assert.equal((await submissions(student,id))[0].published?.marks,17);
-  assert.deepEqual([(await summary())?.submitted,(await summary())?.result],[true,true]);
+  assert.deepEqual((await summary())?.result_published_at,firstPublication);
+  assert.deepEqual([(await summary())?.submitted,Boolean((await summary())?.result_published_at)],[true,true]);
   await updateGrade(teacher,{ ...grade, expected: 2, expectedDraft: true, marks: 19, reason: "Correction" });
   await updateGrade(teacher,{ ...grade, expected: 3, expectedDraft: true, publish: true });
   assert.equal((await submissions(student,id))[0].published?.marks,19);

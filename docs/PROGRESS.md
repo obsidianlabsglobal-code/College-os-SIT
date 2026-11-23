@@ -27,3 +27,10 @@ The [resource booking slice](RESOURCE_BOOKING.md) adds CL-035 and OP-008 evidenc
 ## November 23 · Student Today integration candidate
 
 Main at 65d38cc contains Faculty Mission Control. integration/student-today reconciles booking PR #4 and experience PR #5 on a separate branch. All 477 main registry identifiers and the three additional booking-branch identifiers are present. The student priority opens a scoped assignment, falls back to published feedback or leads to active courses. Local production verification passed 17 database tests, 15 Chromium tests and the five-role release exercise with post-restart verification. GitHub had zero deployment records and zero release environments at inspection. [Screenshots and evidence](evidence/student-today/README.md).
+
+
+## November 23 · Staging readiness
+
+PR #6 merged at 030f7ed and main CI 45142587596 passed. Student Today now prioritizes the latest published feedback by the release timestamp for the student's own active roster. Draft corrections retain the prior published timestamp until release. The 480 feature IDs remain in the registry. Assignment summaries read metadata for every published assignment across the active roster and render the full list. Before scaling to long-lived offerings, measure typical row counts and load time, then add a bounded preview with a route to complete history. Term-only filtering can hide a result just released for an earlier term. No benchmark on institutional data exists.
+
+GitHub reported zero deployments. Creating the release environment returned HTTP 403 for the existing integration. The staging account steps are in [Deployment](DEPLOYMENT.md). Hosted HTTPS acceptance, persistence after redeployment, and managed backup recovery require provider access.
