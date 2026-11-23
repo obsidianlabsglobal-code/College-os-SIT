@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { after, before, test } from "node:test";
 import { Pool } from "pg";
+import { changeClass } from "../lib/academic-day";
 import { changeClub } from "../lib/clubverse";
 import { changeResource } from "../lib/resource-booking";
 import { eventBooking, resourceQueue } from "../lib/resource-views";
@@ -78,6 +79,20 @@ test("venue approval serializes collisions, respects grants and atomically relea
   assert.equal(await changeResource(custodian,confirm(accepted[0])),accepted[0]);
   await changeResource(custodian,confirm(abutting));
   await changeResource(custodian,confirm(other));
+  const classDraft = (room:string) => changeClass(reviewer,{
+    operation:"draft", offering:fixtures.offering,faculty:organizer.account,room,start:starts,end:ends,weeks:1,
+  });
+  const collidingClass = await classDraft(alternate);
+  await assert.rejects(changeClass(reviewer,{operation:"publish",session:collidingClass,revision:0}),/confirmed booking/);
+  const classRoom = await room("Teaching room");
+  await changeResource(reviewer,{operation:"grant",resource:classRoom,account:custodian.account,days:2});
+  const lesson = await classDraft(classRoom);
+  await changeClass(reviewer,{operation:"publish",session:lesson,revision:0});
+  assert.equal((await eventBooking(organizer,second))?.resources.find(item=>item.id===classRoom)?.busy,true);
+  const classBooking = await request(second,classRoom);
+  await assert.rejects(changeResource(custodian,confirm(classBooking)),/scheduled class/);
+  await changeClass(reviewer,{operation:"cancel",session:lesson,revision:1,reason:"End the test class reservation"});
+
   const winner = accepted[0] === a ? first : second;
   await changeClub(organizer,{operation:"event-state",club,id:winner,revision:0,next:"cancelled"});
   const history = await eventBooking(organizer,winner);

@@ -1,3 +1,4 @@
+import { nextClass } from "../../lib/academic-day";
 import Link from "next/link";
 import { offerings, studentAssignmentSummaries } from "../../lib/assignments";
 import { notices } from "../../lib/connected";
@@ -12,8 +13,8 @@ export function StudentHomeLoading() {
 }
 
 export async function StudentHome({current, name, timezone}:{current:Scope;name:string;timezone:string}) {
-  const [assignments, courses, updates] = await Promise.all([
-    studentAssignmentSummaries(current), offerings(current), notices(current,"published",3),
+  const [assignments, courses, updates, upcoming] = await Promise.all([
+    studentAssignmentSummaries(current), offerings(current), notices(current,"published",3), nextClass(current),
   ]);
   const query = workspaceQuery(current);
   const today = new Intl.DateTimeFormat("en-IN",{weekday:"long",day:"numeric",month:"long",timeZone:timezone});
@@ -51,6 +52,12 @@ export async function StudentHome({current, name, timezone}:{current:Scope;name:
         <a href={published[0] ? `/assignments/${published[0].id}?${query}` : "#student-assignments"}><span>Published results</span><strong>{published.length}</strong></a>
       </nav>
     </div>
+
+    {upcoming && <section className={styles.panel} aria-labelledby="student-next-class">
+      <h2 id="student-next-class"><Icon name="calendar" />{upcoming.start<=new Date() ? "Class in progress" : "Next class"}</h2>
+      <Link className={styles.record} href={`/timetable?${query}&session=${upcoming.id}#class-details`}>{upcoming.course}</Link>
+      <p className="meta"><time dateTime={upcoming.start.toISOString()}>{deadline.format(upcoming.start)}</time> · {upcoming.room}</p>
+    </section>}
 
     <div className={styles.content}>
       <div className={styles.column}>
