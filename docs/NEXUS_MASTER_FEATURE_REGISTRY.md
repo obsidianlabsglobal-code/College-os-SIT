@@ -496,7 +496,7 @@ Authenticated user and accountable tool owners. Route task from session → scop
 | AI-002 | Agent registry | Declare deterministic planner version, tools, roles, timeout and authority. | Implemented | A |
 | AI-003 | Typed tool contracts | Validate event planning and event draft inputs and outputs. | Tested | A |
 | AI-004 | Provider interface | Invoke a deterministic provider behind a bounded interface. | Tested | A |
-| AI-005 | Model-powered event suggestions | Generate grounded, editable suggestions with approved model, evaluation and spend caps. | Designed | AURA_ARCHITECTURE.md |
+| AI-005 | Model-powered event suggestions | Generate grounded, editable suggestions with approved model, evaluation and spend caps. | In development | Structured event proposals exercised with a test provider. Live pilot pending. See AURA_ARCHITECTURE.md |
 | AI-006 | Agent activity center | Inspect own event plan states, tools and saved draft references. | Tested | A |
 | AI-007 | Explicit approvals | Confirm or cancel an expiring owned proposal and recheck grants. | Tested | A |
 | AI-008 | Execution evidence | Return one private persisted draft on replay-safe confirmation. | Tested | A |

@@ -10,12 +10,7 @@ export function AcademicPanel({workspace,topics,request}:{workspace:Pick<Scope,"
   const [requestId,setRequestId]=useState(request);
   const context=<><input type="hidden" name="institution" value={workspace.institution}/><input type="hidden" name="role" value={workspace.role}/></>;
   return <section className="panel stack" aria-labelledby="academic-assistant-title">
-    <h2 id="academic-assistant-title">Ask about your academics</h2>
-    <p className="meta">{workspace.role==="faculty" ? "Ask for your timetable." : "Ask for your timetable, attendance or assignments."} These lookups stay inside NEXUS.</p>
-    <form action={action} className="form">{context}
-      <label>Academic question<input name="question" maxLength={120} required placeholder="My timetable"/></label>
-      <button className="button" disabled={pending}>Look up records</button>
-    </form>
+    <h2 id="academic-assistant-title">Topic tutor</h2>
     {Object.keys(topics).length>0 && <details>
       <summary>Study with Claude</summary>
       <form action={async data=>{action(data);setRequestId(crypto.randomUUID());}} className="form">{context}

@@ -108,3 +108,16 @@ export async function clubView(scope: Scope, id: string, selection?: { event: st
     candidates:candidates?.rows ?? [], registrations:registrations.slice(0,50), participantEvent, participantPage,
     moreParticipants:registrations.length>50, handovers:handovers?.rows ?? [] };
 }
+
+// Clubs where the caller can currently prepare event drafts. Mirrors clubAccess: active club, active membership in
+// an eligible audience, an unended lead or officer grant and an active institution membership. Read-only, capped.
+export async function officerClubs(scope: Scope) {
+  return (await db.query<{ id: string; name: string; timezone: string }>(
+    `SELECT c.id,p.name,i.timezone FROM club c JOIN club_proposal p USING (institution_id,id) JOIN institution i ON i.id=c.institution_id
+     JOIN club_member m ON (m.institution_id,m.club_id,m.account_id)=(c.institution_id,c.id,$2) AND m.state='active'
+     WHERE c.institution_id=$1 AND c.state='active' AND ${activeScope} AND ${activeAudience}
+     AND EXISTS (SELECT 1 FROM club_grant g WHERE (g.institution_id,g.club_id,g.account_id)=(c.institution_id,c.id,$2)
+       AND g.kind IN ('lead','officer') AND g.ended_at IS NULL)
+     ORDER BY p.name,c.id LIMIT 20`,[scope.institution,scope.account,scope.role],
+  )).rows;
+}

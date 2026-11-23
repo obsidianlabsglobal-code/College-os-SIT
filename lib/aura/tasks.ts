@@ -18,7 +18,7 @@ async function logTool(client: PoolClient, scope: Scope, task: string, sequence:
   );
 }
 
-export async function prepareEventPlan(scope: Scope, raw: unknown) {
+export async function prepareEventPlan(scope: Scope, raw: unknown, request?:string) {
   requireSupportedRole(scope);
   const input = eventPlanner.input.parse(raw);
   return transaction(async client => {
@@ -42,6 +42,12 @@ export async function prepareEventPlan(scope: Scope, raw: unknown) {
     );
     await logTool(client,scope,task.id,1,eventPlanner.tools.prepare,started);
     await audit(client,scope,task.id,"aura.event_preview_created");
+    if (request) {
+      const linked=await client.query(`UPDATE aura_request SET state='awaiting_confirmation',task_id=$4,tool_calls=tool_calls+1
+        WHERE institution_id=$1 AND actor_id=$2 AND id=$3 AND actor_role=$5 AND state='prepared'
+          AND result->>'clubId'=$6`,[scope.institution,scope.account,request,task.id,scope.role,input.club]);
+      if (!linked.rowCount) throw unavailable();
+    }
     return task.id;
   });
 }
@@ -86,6 +92,12 @@ export async function decideEventPlan(scope: Scope, id: string, decision: "confi
     await client.query(
       "UPDATE aura_task SET state=$3,event_id=$4,finished_at=clock_timestamp() WHERE (institution_id,id)=($1,$2)",
       [scope.institution,id,event ? "succeeded" : "cancelled",event],
+    );
+    // A chat request that produced this preview finishes with the same truthful outcome, in the same transaction.
+    await client.query(
+      `UPDATE aura_request SET state=$3,result=COALESCE(result,'{}'::jsonb) || jsonb_build_object('eventId',$4::uuid),finished_at=clock_timestamp()
+       WHERE (institution_id,task_id,actor_id)=($1,$2,$5) AND state='awaiting_confirmation'`,
+      [scope.institution,id,event ? "succeeded" : "cancelled",event,scope.account],
     );
     await audit(client,scope,id,event ? "aura.event_draft_created" : "aura.event_preview_cancelled");
     return event;

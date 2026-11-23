@@ -17,7 +17,7 @@ function config() {
 }
 export function tutorEnabled(scope:Scope) {
   const c = config();
-  return c.success && c.data.institution===scope.institution && ["faculty","student"].includes(scope.role);
+  return process.env.AURA_MODEL_ENABLED !== "true" && c.success && c.data.institution===scope.institution && ["faculty","student"].includes(scope.role);
 }
 const usage = z.object({input_tokens:z.number().int().nonnegative(),output_tokens:z.number().int().nonnegative()});
 const answer = z.object({model:z.string(),stop_reason:z.literal("end_turn"),usage,
