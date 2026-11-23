@@ -61,6 +61,7 @@ export default async function ClubHome({ params,searchParams }: {
             const attendance = registrations.filter(registration => registration.event_id === event.id);
             return <article key={event.id} id={`event-${event.id}`} className="club-record stack">
               <div><h3>{event.title}</h3><span className="tag">{stateText(event.state)}</span></div>
+              {officer && <Link href={`/clubverse/booking?${query}&event=${event.id}`}>Manage booking</Link>}
               <p>{event.location} · {date.format(event.starts_at)} – {date.format(event.ends_at)}</p>
               <p className="meta">Capacity {event.capacity} · {event.audience === "club" ? "Members only" : "Eligible students"}</p>
               <p className="prose-text">{event.requirements}</p>

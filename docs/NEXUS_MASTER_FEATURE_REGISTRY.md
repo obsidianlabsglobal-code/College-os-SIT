@@ -8,6 +8,12 @@ Evidence keys: **R** = Release 1 at e5d507d, app/, lib/, db/000–006, tests/wor
 
 Priority notation: P0 hosted acceptance, P1 connected daily workflows, P2 specializations and experiments. Wave numbers refer to [delivery dependencies](NEXUS_IMPLEMENTATION_DEPENDENCIES.md). Default decision for all proposed work: validate the institutional owner, data provenance and success criteria before deployment. AI is optional for ordinary workflows. Human authority governs grades, credentials, spending and access changes.
 
+### Acceptance and measurement
+
+Each row’s action specifies its expected outcome. Verify positive completion and relevant denial, stale state, rollback, retry and mobile behavior using the domain workflow and data in its block. Compare task completion, elapsed time, error/rework and authorization failures with the current workflow where measurable. Pilot baselines remain unmeasured unless the linked evidence says otherwise. Proposed capabilities have acceptance criteria awaiting refinement with the domain owner. Locally tested, CI verified, hosted verified, user-validated and production-approved are distinct evidence levels.
+
+**B** = feature/campus-resource-booking, db/010_resource_booking.sql, lib/resource-booking.ts, tests/resource-booking.test.ts and tests/resource-booking.e2e.ts. See [booking behavior and verification measures](RESOURCE_BOOKING.md). No booking is represented as deployed.
+
 ## Identity, delivery and trust
 
 Domain: shared foundation. Users: all institutional participants and authorized operators. Problem: fragmented identities and unsafe access. Resolve account → institution → active post → scoped operation and audit. Data: session, membership, roster, institution, grant, policy, migration ledger. Depends on PostgreSQL and authorized identity provisioning. All modules consume these controls. W1/P0, founder §§1–2, 14 and release directives.
@@ -56,6 +62,7 @@ Students locate authoritative course work and deadlines for their enrollment. St
 | SA-020 | Academic announcements | Read published notices in the eligible audience. | Tested | R |
 | SA-021 | Attendance correction workflow | Challenge a record and receive a traceable authorized decision. | Proposed | F |
 | SA-022 | Academic reports and exports | Download an authorized, scheme-aware record with source references. | Proposed | F |
+| SA-023 | Academic integrity appeals | Student opens a confidential case tied to a published policy and record. An authorized human reviews and records a reason. Measure review time and verify that outsiders cannot read the case. | Proposed | Master plan §10 |
 
 ## Student Life · personal learning
 
@@ -218,6 +225,7 @@ Verified guardians and authorizing students need narrowly scoped communications.
 | GU-009 | Service requests | Initiate only delegated guardian service requests. | Blocked | F; relationship and access policy pending |
 | GU-010 | Transport information | Access only explicitly authorized transport information. | Blocked | F; relationship and access policy pending |
 | GU-011 | Meeting coordination | Coordinate approved meetings and attendance. | Blocked | F; relationship and access policy pending |
+| GU-012 | School safeguarding model | An authorized safeguarding owner defines age-appropriate access and review rules before any school pilot. Verify revocation and restricted record access. | Blocked | Master plan §21 and legal review |
 
 ## Administration and specialist staff
 
@@ -301,7 +309,7 @@ Founders, eligible members, officers, faculty advisors and independent instituti
 | CL-032 | Club projects | Form scoped teams and review milestones. | Designed | S |
 | CL-033 | Club budgets | Prepare budgets and route financial authorization. | Proposed | F |
 | CL-034 | Sponsorship proposals | Draft sponsor proposals with approval before external communication. | Proposed | F |
-| CL-035 | Venue booking | Request a venue and resolve competing approvals. | Designed | S |
+| CL-035 | Venue booking | An active club officer requests a room for an event. A scoped custodian decides and the organizer reads the recorded status. | Tested | B |
 | CL-036 | Equipment requests | Request, assign, return and reconcile equipment. | Proposed | F |
 | CL-037 | Club collaboration | Agree shared duties without sharing unrelated club records. | Designed | S |
 | CL-038 | Participation evidence | Record written evidence on verified attendance. | Tested | C |
@@ -452,6 +460,7 @@ Students, placement and research offices, opted-in mentors, approved alumni and 
 | CR-034 | Grant applications | Track calls, budgets, approvals and decisions. | Proposed | F |
 | CR-035 | Intellectual property disclosure | Route private disclosure to authorized reviewers. | Proposed | F |
 | CR-036 | Experiment documentation | Record scoped experimental methods, evidence and revisions. | Proposed | F |
+| CR-037 | Verified individual project contributions | A project participant submits an artifact with consent to share. A named reviewer verifies the contribution before it appears in a portfolio. Track reviewed artifacts and test withdrawal. | Proposed | Master plan §20 |
 
 ## Campus operations
 
@@ -466,7 +475,7 @@ Resource custodians, library/lab staff, facilities teams, requesters and approve
 | OP-005 | Asset tracking | Record current location, custodian and equipment lifecycle. | Proposed | F |
 | OP-006 | Maintenance | Assign repairs and verify completion. | Proposed | F |
 | OP-007 | Facility issue reporting | Report a fault, attach evidence and track status. | Proposed | F |
-| OP-008 | Event venues | Request and confirm a conflict-free venue for an approved activity. | Designed | S |
+| OP-008 | Event venues | Confirm a conflict-free event reservation with a traceable responsible party and decision. | Tested | B |
 | OP-009 | Resource allocation | Compare demand and assign available resources under policy. | Proposed | F |
 | OP-010 | Operational notices | Publish scoped maintenance and closure notices. | Proposed | F |
 | OP-011 | Incident management | Escalate incidents through approved response policies. | Proposed | F |
