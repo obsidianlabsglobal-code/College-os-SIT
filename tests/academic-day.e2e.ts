@@ -89,6 +89,15 @@ test("admin publishes a timetable and faculty posts a corrected attendance recor
     await expect(summary.getByText(/Projected/)).toBeVisible();
     await expect(summary.getByText(recorded!,{exact:true})).toBeVisible();
 
+    await page.goto(`/aura?institution=${f.institution}&role=student`);
+    await page.getByLabel("Academic question").fill("What is my attendance?");
+    await page.getByRole("button",{name:"Look up records"}).click();
+    await expect(page.getByRole("heading",{name:"Your recorded attendance"})).toBeVisible();
+    await expect(page.getByText(new RegExp(course+".*100.0%"))).toBeVisible();
+    await page.getByRole("link",{name:"Open source workspace"}).click();
+    await expect(page.getByRole("heading",{name:"Timetable",exact:true})).toBeVisible();
+    await page.goto(path("student",historical,oldSession));
+
     await page.emulateMedia({reducedMotion:"reduce"});
     for (const width of [360,390,768,1024,1440]) {
       await page.setViewportSize({width,height:900});

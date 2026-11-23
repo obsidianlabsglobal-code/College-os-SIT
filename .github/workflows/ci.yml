@@ -50,6 +50,7 @@ jobs:
       - run: npm test
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
+      - run: npx playwright test --config playwright.tutor.config.ts
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
