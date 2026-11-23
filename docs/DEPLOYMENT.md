@@ -24,7 +24,7 @@ Enable managed backups and point-in-time recovery where the plan supports it. Be
 
 For a dedicated fictional release-candidate database, an authorized operator can set `NEXUS_DEMO_SEED=1`, `NEXUS_DEMO_DATABASE_HOST` to the exact migration URL hostname, and `NEXUS_DEMO_PASSWORD` to a unique staging-only secret of at least 24 characters. With the staging connection variables and auth configuration supplied securely, run `npm run db:seed` from the release checkout. The script checks for non-demo institutions and refuses to seed if present. Rerunning it retains existing account passwords. Keep the staging password in the team's secret manager.
 
-## Authenticated acceptance from the integration checkout
+## Authenticated acceptance
 
 The release runner exercises the academic and service-request workflows over HTTP(S). Use Node 24, npm ci and Playwright Chromium on the operator machine. Keep the deployed source pinned to green main. Select the dedicated fictional staging origin via RELEASE_URL, confirm its exact host via NEXUS_ACCEPTANCE_HOST and load NEXUS_DEMO_PASSWORD from the staging secret manager. If protected, supply VERCEL_AUTOMATION_BYPASS_SECRET for a same-origin bypass-cookie handshake. The protected-host handshake still needs hosted verification.
 
@@ -33,6 +33,12 @@ The release runner exercises the academic and service-request workflows over HTT
 3. Redeploy the same app revision. Run `npx tsx scripts/release-acceptance.ts verify` with the original run ID. This reads the existing workflow records and exercises authentication again.
 4. Restore the managed backup into an isolated instance with separate credentials. Check audit and migration counts against the snapshot, point a separate staging app at the restored instance, and repeat verify there. Record downtime, lost-write window, log access, outcomes and recovery owner before acceptance.
 
+### Running acceptance in GitHub Actions
+
+After the hosted-acceptance workflow reaches main, select **Verify fictional staging workflows** on main. In the protected `release-candidate` environment set `NEXUS_ACCEPTANCE_HOST` to the staging hostname and `NEXUS_DEMO_PASSWORD` to the staging-only fictional password. Reuse the configured `RELEASE_URL` and optional deployment-protection bypass. Limit environment deployments to main. The acceptance job uses no database, model or Vercel management credentials. Its concurrency group serializes it with deployment.
+
+Choose **exercise** and a fresh 8–64 character run ID to create the fictional records. After redeploying the same revision, choose **verify** with that ID to reopen the records. A rerun of **exercise** requires a fresh ID. A verify run still creates login sessions. Record the Actions URLs, deployed revision and provider backup evidence. Use the operator runner above against a separately restored instance.
+
 ## Current release checkpoint
 
-Confirm the exact current main SHA and its successful CI before dispatch. The runner also works from current main after the integration merge. Compare the migration ledger against the files at the pinned revision. The original seven-entry restore rehearsal was for e5d507d. Main at f62828f contains ten numbered migrations. Keep provider-approved backup and isolated restore evidence with the release record.
+Main at `5af9797` passed GitHub CI. On November 23, 2026, a local exercise and two verification runs used a clean fictional seed and the same persisted run ID. The first verification followed a database restart. The second used a separate application process and PostgreSQL instance initialized from an offline copy of the stopped cluster. The migration ledger (12 names and checksums), audit count (8), attachment count (1) and resource booking count (0) matched before verification. The exercise covered faculty, student, administrator, HOD and principal workspaces, an unrelated section and a different tenant. The managed staging provider, protected HTTPS alias, redeployment, and provider-native backup restore still require hosted acceptance.

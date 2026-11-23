@@ -1,0 +1,49 @@
+name: Verify fictional staging workflows
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Exercise creates fictional records. Verify reopens the same run.
+        type: choice
+        options: [verify, exercise]
+        default: verify
+        required: true
+      acceptance_run:
+        description: Unique fictional run ID, reused after redeploy or restore.
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: nexus-release-candidate
+  cancel-in-progress: false
+jobs:
+  accept:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    environment: release-candidate
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Check the configured HTTPS staging host and run authenticated acceptance
+        env:
+          RELEASE_URL: ${{ vars.RELEASE_URL }}
+          NEXUS_ACCEPTANCE_HOST: ${{ vars.NEXUS_ACCEPTANCE_HOST }}
+          NEXUS_ACCEPTANCE_RUN: ${{ inputs.acceptance_run }}
+          NEXUS_DEMO_PASSWORD: ${{ secrets.NEXUS_DEMO_PASSWORD }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          MODE: ${{ inputs.mode }}
+        run: |
+          node --input-type=module <<'JS'
+          const url = new URL(process.env.RELEASE_URL);
+          if (url.protocol !== "https:" || url.host !== process.env.NEXUS_ACCEPTANCE_HOST || url.href !== url.origin + "/") {
+            throw new Error("Configure the fictional staging HTTPS origin and its matching host.");
+          }
+          JS
+          npx --no-install tsx scripts/release-acceptance.ts "$MODE"

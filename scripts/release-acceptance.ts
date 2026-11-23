@@ -1,5 +1,6 @@
 /** Operator-run against a dedicated fictional staging alias. Uses only public UI and scoped downloads. */
 import { chromium, expect } from "@playwright/test";
+import { setTimeout as delay } from "node:timers/promises";
 import { randomUUID } from "node:crypto";
 import { demoEmail, demoPassword, fixtures } from "./fixtures";
 
@@ -36,11 +37,20 @@ try {
       await logout.click();
       await expect(page.getByRole("heading",{name:"Sign in"})).toBeVisible();
     }
-    await page.goto("/login");
-    await page.getByLabel("Email").fill(demoEmail(persona));
-    await page.getByLabel("Password").fill(password!);
-    await page.getByRole("button",{name:"Sign in"}).click();
-    await expect(page.getByRole("button",{name:"Sign out"})).toBeVisible();
+    const throttled = page.getByRole("alert").filter({hasText:"Too many attempts"});
+    for (let attempt=0; attempt<2; attempt++) {
+      await page.goto("/login");
+      await page.getByLabel("Email").fill(demoEmail(persona));
+      await page.getByLabel("Password").fill(password!);
+      await page.getByRole("button",{name:"Sign in"}).click();
+      await expect(logout.or(throttled).first()).toBeVisible({timeout:15000});
+      if (await logout.isVisible()) return;
+      if (attempt===0) {
+        console.log("Sign-in rate limit reached. Waiting for the configured one-minute window.");
+        await delay(61000);
+      }
+    }
+    throw new Error("Sign-in remained rate-limited after waiting one window.");
   }
   const button = (name:string) => page.getByRole("button",{name,exact:true});
   const link = (name:string) => page.getByRole("link",{name,exact:true});
@@ -94,6 +104,8 @@ try {
   await login("student");
   await page.goto(studentURL);
   await expect(page.getByRole("heading",{name:"Published result · 17/20"})).toBeVisible();
+  await expect(page.getByText("The boundary is correct.",{exact:true})).toBeVisible();
+  await expect(page.getByText("The loop ends at the upper bound.",{exact:true})).toBeVisible();
   await page.goto("/");
   await link("Service requests").click();
   if (mode === "exercise") {
@@ -115,7 +127,12 @@ try {
   for (const persona of ["outsider","tenant"]) {
     await login(persona);
     await expect(link(title)).toHaveCount(0);
-    if (persona === "tenant") fileURL.searchParams.set("institution",fixtures.otherInstitution);
+    const assignmentURL = new URL(studentURL,url.origin);
+    if (persona === "tenant") {
+      assignmentURL.searchParams.set("institution",fixtures.otherInstitution);
+      fileURL.searchParams.set("institution",fixtures.otherInstitution);
+    }
+    expect((await context.request.get(assignmentURL.href,{maxRedirects:0})).status()).toBe(404);
     expect((await fileRequest()).status()).toBe(404);
   }
   await login("hod");
