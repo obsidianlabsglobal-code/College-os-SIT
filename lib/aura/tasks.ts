@@ -87,6 +87,12 @@ export async function decideEventPlan(scope: Scope, id: string, decision: "confi
       "UPDATE aura_task SET state=$3,event_id=$4,finished_at=clock_timestamp() WHERE (institution_id,id)=($1,$2)",
       [scope.institution,id,event ? "succeeded" : "cancelled",event],
     );
+    // A chat request that produced this preview finishes with the same truthful outcome, in the same transaction.
+    await client.query(
+      `UPDATE aura_request SET state=$3,result=COALESCE(result,'{}'::jsonb) || jsonb_build_object('eventId',$4::uuid),finished_at=clock_timestamp()
+       WHERE (institution_id,task_id,actor_id)=($1,$2,$5) AND state='awaiting_confirmation'`,
+      [scope.institution,id,event ? "succeeded" : "cancelled",event,scope.account],
+    );
     await audit(client,scope,id,event ? "aura.event_draft_created" : "aura.event_preview_cancelled");
     return event;
   });
