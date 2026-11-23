@@ -2,8 +2,7 @@ import Link from "next/link";
 import { account, scope, workspaces, workspaceQuery } from "../lib/scope";
 import { assignments, offerings } from "../lib/assignments";
 import { departmentSummary, institutionSummary } from "../lib/reporting";
-import { ActionForm } from "./forms";
-import { workflow } from "./actions/workflow";
+import { MissionControl } from "./faculty/mission-control";
 import { cookies } from "next/headers";
 import { Chrome, roleLabels } from "./chrome";
 
@@ -15,8 +14,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ i
   const first = options.find(option => option.id === preferred.get("institution") && option.role === preferred.get("role")) ?? options[0];
   const current = first ? await scope(params.institution ?? first.id, params.role ?? first.role) : null;
   const workspace = options.find(option => option.id === current?.institution && option.role === current?.role);
+  const student = current?.role === "student";
   const [records, courses, summary, overview] = current
-    ? await Promise.all([assignments(current), offerings(current), departmentSummary(current), institutionSummary(current)])
+    ? await Promise.all([student ? assignments(current) : [], student ? offerings(current) : [], departmentSummary(current), institutionSummary(current)])
     : [[], [], [], []];
   const query = current ? workspaceQuery(current) : "";
   return <Chrome user={user} current={current}>
@@ -50,33 +50,20 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ i
         <tbody>{summary.map(row => <tr key={row.name}><th scope="row">{row.name}</th><td>{row.assignments}</td><td>{row.submissions}</td><td>{row.results}</td><td>{row.hours === null ? "—" : `${row.hours.toFixed(1)} h`}</td></tr>)}</tbody>
       </table></div> : <p>No departments are assigned to this workspace.</p>}
     </section>}
-    {(current?.role === "student" || current?.role === "faculty") && <section className="panel">
+    {current?.role === "faculty" && <MissionControl current={current} timezone={workspace?.timezone ?? "Asia/Kolkata"} />}
+    {current?.role === "student" && <section className="panel">
       <h2>My courses</h2>
       {courses.length ? <ul className="items">{courses.map(course => <li key={course.id}>
         <Link href={`/courses/${course.id}?${query}`}>{course.label}</Link>
       </li>)}</ul> : <p>No active course assignments are available for this workspace.</p>}
     </section>}
-    {(current?.role === "faculty" || current?.role === "student") && <div className={current.role === "faculty" ? "grid" : "stack"}>
-      <section className="panel">
-        <h2>Assignments</h2>
-        {records.length ? <ul className="items">{records.map(record => <li key={record.id}>
-          <div className="row"><Link href={`/assignments/${record.id}?${query}`}>{record.title}</Link><span className="tag">{record.published_at ? "Published" : "Draft"}</span></div>
-          <p className="meta">{record.course} · {record.section} · Due {formatDate(record.deadline, record.timezone)}</p>
-        </li>)}</ul> : <p>No assignments are available.</p>}
-      </section>
-      {current.role === "faculty" && <section className="panel">
-        <h2>Create assignment</h2>
-        {courses.length ? <ActionForm action={workflow} context={current} operation="create" label="Create draft">
-          <label>Course and section<select name="offering" required>{courses.map(course => <option key={course.id} value={course.id}>{course.label}</option>)}</select></label>
-          <label>Title<input name="title" required maxLength={160} /></label>
-          <label>Instructions<textarea name="description" required maxLength={10000} /></label>
-          <label>Deadline ({workspace?.timezone})<input name="deadline" type="datetime-local" required /></label>
-          <label>Maximum marks<input name="marks" type="number" min={1} max={10000} required /></label>
-          <label>Rubric (optional)<textarea name="rubric" maxLength={8000} /></label>
-          <label>Attachment (optional, PDF or TXT, 4 MiB)<input name="file" type="file" accept=".pdf,.txt" /></label>
-        </ActionForm> : <p>No courses are currently assigned to you.</p>}
-      </section>}
-    </div>}
+    {current?.role === "student" && <section className="panel">
+      <h2>Assignments</h2>
+      {records.length ? <ul className="items">{records.map(record => <li key={record.id}>
+        <div className="row"><Link href={`/assignments/${record.id}?${query}`}>{record.title}</Link><span className="tag">{record.published_at ? "Published" : "Draft"}</span></div>
+        <p className="meta">{record.course} · {record.section} · Due {formatDate(record.deadline, record.timezone)}</p>
+      </li>)}</ul> : <p>No assignments are available.</p>}
+    </section>}
   </Chrome>;
 }
 

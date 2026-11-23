@@ -128,7 +128,23 @@ export async function submitAssignment(scope: Scope, id: string, request: string
 type Grade = { revision: number; marks: number; feedback: string; reason: string | null; published_at: Date | null };
 type Submission = { id: string; name: string; body: string | null; submitted_at: Date; draft: Grade | null; published: Grade | null };
 
-export async function submissions(scope: Scope, assignment: string) {
+export async function submissionPreview(scope: Scope, assignment: string, limit: number) {
+  if (scope.role !== "faculty") return [];
+  return (await db.query<{ id: string; name: string; draft: boolean; published: boolean }>(
+    `SELECT s.id,u.name,
+      EXISTS (SELECT 1 FROM grade g WHERE (g.institution_id,g.submission_id)=(s.institution_id,s.id)
+        AND g.published_at IS NULL AND g.superseded_at IS NULL) AS draft,
+      EXISTS (SELECT 1 FROM grade g WHERE (g.institution_id,g.submission_id)=(s.institution_id,s.id)
+        AND g.published_at IS NOT NULL) AS published
+     FROM submission s JOIN "user" u ON u.id=s.student_id
+     JOIN assignment a ON (a.institution_id,a.id)=(s.institution_id,s.assignment_id)
+     WHERE a.institution_id=$1 AND a.id=$4 AND ${activeRoster}
+     ORDER BY s.submitted_at,s.id LIMIT $5`,
+    [scope.institution, scope.account, scope.role, assignment, limit],
+  )).rows;
+}
+
+export async function submissions(scope: Scope, assignment: string, only?: string | readonly string[]) {
   if (scope.role !== "student" && scope.role !== "faculty") return [];
   return (await db.query<Submission>(
     `SELECT s.id,u.name,s.body,s.submitted_at,
@@ -140,7 +156,8 @@ export async function submissions(scope: Scope, assignment: string) {
      JOIN assignment a ON (a.institution_id,a.id)=(s.institution_id,s.assignment_id)
      WHERE a.institution_id=$1 AND a.id=$4 AND ${activeRoster}
        AND ($3='faculty' OR (s.student_id=$2 AND a.published_at IS NOT NULL))
-     ORDER BY s.submitted_at,s.id`, [scope.institution, scope.account, scope.role, assignment],
+       AND ($5::uuid[] IS NULL OR s.id=ANY($5))
+     ORDER BY s.submitted_at,s.id`, [scope.institution, scope.account, scope.role, assignment, typeof only === "string" ? [only] : only ?? null],
   )).rows;
 }
 
@@ -190,7 +207,7 @@ export function updateGrade(scope: Scope, input: { assignment: string; submissio
   });
 }
 
-export async function files(scope: Scope, assignment: string, id?: string) {
+export async function files(scope: Scope, assignment: string, id?: string, submissionIds?: readonly string[]) {
   if (scope.role !== "student" && scope.role !== "faculty") return [];
   return (await db.query<{ id: string; submission_id: string | null; filename: string; mime: string; bytes: Buffer | null }>(
     `SELECT f.id,f.submission_id,f.filename,f.mime,CASE WHEN $5::uuid IS NOT NULL THEN f.bytes END AS bytes
@@ -198,6 +215,8 @@ export async function files(scope: Scope, assignment: string, id?: string) {
      JOIN assignment a ON a.institution_id=f.institution_id AND a.id=COALESCE(f.assignment_id,s.assignment_id)
      WHERE a.institution_id=$1 AND a.id=$4 AND ${activeRoster}
      AND ($3='faculty' OR (a.published_at IS NOT NULL AND (s.id IS NULL OR s.student_id=$2)))
-     AND ($5::uuid IS NULL OR f.id=$5)`, [scope.institution, scope.account, scope.role, assignment, id ?? null],
+     AND ($5::uuid IS NULL OR f.id=$5)
+     AND ($6::uuid[] IS NULL OR f.assignment_id=a.id OR f.submission_id=ANY($6))`,
+    [scope.institution, scope.account, scope.role, assignment, id ?? null, submissionIds ?? null],
   )).rows;
 }

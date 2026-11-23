@@ -15,7 +15,7 @@ Guardian access (GU) has a separate policy gate in every wave. Only verified rel
 
 ## Coordination decisions
 
-Academic course workspaces are the next independent Wave 2 implementation because current catalog and roster already supply the authority. Venue booking remains the first proposed CLUBVERSE extension; see [slice designs](CLUBVERSE_NEXT_SLICES.md). Each can be reviewed separately from the hosted foundation. A future wave can have a previously tested prerequisite on a feature branch. This does not move that wave onto the release branch.
+Academic course workspaces are the next independent Wave 2 implementation because current catalog and roster already supply the authority. Venue booking remains the first proposed CLUBVERSE extension; see [slice designs](CLUBVERSE_NEXT_SLICES.md). Each can be reviewed separately from the hosted foundation. Faculty mission control and evaluation queues (FC-001, FC-011) are tested on feature/faculty-command-center and await review. Their counts cover every offering with an active faculty roster, so an institution-approved definition of the current academic term should precede wider faculty use; structured rubrics (FC-010) and the feedback-drafting assistant (AGFT-004) should follow faculty feedback on the queue. A future wave can have a previously tested prerequisite on a feature branch. This does not move that wave onto the release branch.
 
 Source vocabulary has changed over time. The original eight product domains describe subject areas. Later OS names describe user workspaces that cross those areas. Retain both views, with shared identity and records. A prototype name confers no evidence of a working implementation. Operational GPS, model suggestions and policy-sensitive disclosure retain explicit gates.
 
