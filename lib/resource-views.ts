@@ -21,8 +21,10 @@ export async function eventBooking(scope:Scope,id:string) {
     if (!club.officer) return null;
     const canRequest = club.state === "active" && event.future && !["cancelled","completed","in_progress"].includes(event.state);
     const catalog = canRequest ? await client.query<Resource>(
-      `SELECT r.*,EXISTS (SELECT 1 FROM resource_booking b WHERE (b.institution_id,b.resource_id)=(r.institution_id,r.id)
-         AND b.state='confirmed' AND b.slot && tstzrange($2,$3,'[)')) AS busy
+      `SELECT r.*,(EXISTS (SELECT 1 FROM resource_booking b WHERE (b.institution_id,b.resource_id)=(r.institution_id,r.id)
+         AND b.state='confirmed' AND b.slot && tstzrange($2,$3,'[)'))
+         OR EXISTS (SELECT 1 FROM class_session s WHERE (s.institution_id,s.room_id)=(r.institution_id,r.id)
+           AND s.state IN ('published','conducted') AND s.slot && tstzrange($2,$3,'[)'))) AS busy
        FROM campus_resource r WHERE institution_id=$1 ORDER BY name,id LIMIT 100`,
       [scope.institution,event.starts_at,event.ends_at],
     ) : {rows:[]};

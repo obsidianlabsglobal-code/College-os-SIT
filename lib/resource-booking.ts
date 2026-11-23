@@ -115,6 +115,10 @@ export async function changeResource(scope: Scope, raw: unknown) {
           if (target === "confirmed") {
             acceptsBooking(event);
             if (club.state !== "active") throw unavailable();
+            const scheduled = await client.query(`SELECT 1 FROM resource_booking b JOIN class_session s
+              ON (s.institution_id,s.room_id)=(b.institution_id,b.resource_id) AND s.slot && b.slot
+              WHERE (b.institution_id,b.id)=($1,$2) AND s.state IN ('published','conducted') LIMIT 1`,key);
+            if (scheduled.rowCount) throw new WorkflowError("A scheduled class overlaps this booking. The request remains pending.");
           }
           const reason = "reason" in input ? input.reason : null;
           await client.query(
