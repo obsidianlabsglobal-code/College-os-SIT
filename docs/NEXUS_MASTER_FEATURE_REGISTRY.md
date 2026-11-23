@@ -40,7 +40,7 @@ Students locate authoritative course work and deadlines for their enrollment. St
 
 | ID | Capability | Functional workflow or acceptance outcome | Status | Evidence |
 | --- | --- | --- | --- | --- |
-| SA-001 | Student dashboard | Open current assignments and authorized service links. | Tested | R/X |
+| SA-001 | Student dashboard | Open the earliest outstanding assignment, own published feedback, or active courses from the student workspace. Navigate directly to eligible notices, community and service workflows. | Tested | R/X and [Student Today evidence](evidence/student-today/README.md) |
 | SA-002 | Course directory | Browse institution-published catalog entries with visibility rules. | Proposed | F |
 | SA-003 | Enrolled course workspaces | Open a roster-scoped offering and its assigned coursework. | Tested | W2 |
 | SA-004 | Academic schemes and terms | Read the offering’s current scheme and term. Cohort-specific eligibility policy remains a separate requirement. | Tested | W2 |

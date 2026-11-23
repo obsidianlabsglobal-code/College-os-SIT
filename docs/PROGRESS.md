@@ -23,3 +23,7 @@ GitHub main is f62828f with CI 45005295131. PRs #1 and #2 are merged. PR #3 rema
 The pinned main revision built and accepted all five fictional roles locally. Ten migrations applied and verified on rerun. Browser acceptance checked denied section and tenant access, exact private file content, published grades, request resolution and aggregate reports. Hosted Vercel verification and managed recovery remain outstanding.
 
 The [resource booking slice](RESOURCE_BOOKING.md) adds CL-035 and OP-008 evidence on its dedicated branch. All 477 original IDs survive. SA-023, GU-012 and CR-037 capture distinct master-plan requirements.
+
+## November 23 · Student Today integration candidate
+
+Main at 65d38cc contains Faculty Mission Control. integration/student-today reconciles booking PR #4 and experience PR #5 on a separate branch. All 477 main registry identifiers and the three additional booking-branch identifiers are present. The student priority opens a scoped assignment, falls back to published feedback or leads to active courses. Local production verification passed 17 database tests, 15 Chromium tests and the five-role release exercise with post-restart verification. GitHub had zero deployment records and zero release environments at inspection. [Screenshots and evidence](evidence/student-today/README.md).

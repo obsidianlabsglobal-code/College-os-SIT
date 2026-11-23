@@ -1,3 +1,5 @@
+import type { Icon } from "./experience/workspace-icon";
+import type { ComponentProps } from "react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { signOut } from "./actions/session";
@@ -24,6 +26,11 @@ const labels: Record<Destination, string> = {
   "/admin": "Academic setup and roles",
 };
 
+const icons: Record<Destination, ComponentProps<typeof Icon>["name"]> = {
+  "/": "home", "/grading": "check", "/notices": "notice", "/clubverse": "people",
+  "/aura": "spark", "/requests": "service", "/admin": "book",
+};
+
 export async function Chrome({ user, current, section = "/", children }: {
   user: { id: string; name: string };
   current: Scope | null;
@@ -42,7 +49,7 @@ export async function Chrome({ user, current, section = "/", children }: {
 
   return <div className={current ? "app-shell" : "app-shell app-shell-single"}>
     <header className="app-top">
-      <Link href={home} className="brand">NEXUS</Link>
+      <Link href={home} className="brand"><span aria-hidden="true" className="brand-mark">N</span>NEXUS</Link>
       {selected && <span className="institution-label">{selected.name}</span>}
       <div className="account-tools">
         {options.length > 1 && <form action={chooseWorkspace} className="workspace-form">
@@ -63,6 +70,7 @@ export async function Chrome({ user, current, section = "/", children }: {
     {current && <WorkspaceNavigation role={roleLabels[current.role]} items={destinations.map(destination => ({
       href: `${destination}?${query}`,
       label: labels[destination],
+      icon: icons[destination],
       active: destination === section,
     }))} />}
     <main className="app-main" id="main" tabIndex={-1}>{children}</main>

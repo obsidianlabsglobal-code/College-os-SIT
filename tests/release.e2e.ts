@@ -231,7 +231,7 @@ test("administrators configure academic records and manage delegated roles", asy
   await expect(grant.getByText("Ended",{ exact:true })).toBeVisible();
   await signOut(page);
   await signIn(page, "student");
-  await expect(page.getByRole("heading", { name: "Your campus, at a glance.", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Welcome, Asha.", exact: true })).toBeVisible();
   await expect(page.getByRole("combobox", { name: "Workspace" })).toHaveCount(0);
 });
 
@@ -486,9 +486,8 @@ test("course workspaces require the current offering roster", async ({page}) => 
 test("student home uses responsive layout, keyboard navigation and reduced motion",async ({page})=>{
   await page.emulateMedia({reducedMotion:"reduce",colorScheme:"dark"});
   await signIn(page,"student");
-  await expect(page.getByRole("heading",{name:"Your campus, at a glance."})).toBeVisible();
-  await expect(page.getByText(/^Welcome, Asha/)).toBeVisible();
-  const shortcut = page.getByRole("link",{name:"See what’s next"});
+  await expect(page.getByRole("heading",{name:"Welcome, Asha."})).toBeVisible();
+  const shortcut = page.getByRole("navigation",{name:"Academic summary"}).getByRole("link",{name:/Open assignments/});
   await shortcut.focus();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/#student-assignments$/);
@@ -505,6 +504,15 @@ test("student home uses responsive layout, keyboard navigation and reduced motio
   await expect(page.getByRole("heading",{name:"AURA activity"})).toBeVisible();
 });
 
+test("an unrelated institution receives the empty priority and a keyboard course shortcut", async ({ page }) => {
+  await signIn(page, "tenant");
+  const priority = page.getByRole("region", { name: "Next up" });
+  await expect(priority.getByText("No assignments awaiting submission")).toBeVisible();
+  await priority.getByRole("link", { name: "See my courses" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("region", { name: "My courses" })).toBeFocused();
+});
+
 test("student home shows a loading state and recovers after a database timeout",async ({page})=>{
   const migrationUrl = process.env.MIGRATION_DATABASE_URL;
   if (!migrationUrl || !["127.0.0.1","localhost"].includes(new URL(migrationUrl).hostname)) {
@@ -513,7 +521,7 @@ test("student home shows a loading state and recovers after a database timeout",
   const {Client} = await import("pg");
   const lock = new Client({connectionString:migrationUrl});
   await signIn(page,"student");
-  const home = page.getByRole("heading",{name:"Your campus, at a glance."});
+  const home = page.getByRole("heading",{name:"Welcome, Asha."});
   await expect(home).toBeVisible();
   await lock.connect();
   try {
