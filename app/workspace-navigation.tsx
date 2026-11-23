@@ -18,7 +18,7 @@ export function WorkspaceNavigation({ role, items }: {
     <nav id="workspace-navigation" aria-label="Campus workflows">
       <p className="sidebar-role">{role}</p>
       {items.map(item => <Link key={item.href} href={item.href}
-        aria-current={item.active ? "page" : undefined}><Icon name={item.icon} />{item.label === "CLUBVERSE" ? <><span className="nav-wide-label">CLUBVERSE</span><span className="nav-short-label">Clubs</span></> : <span>{item.label}</span>}</Link>)}
+        aria-current={item.active ? "page" : undefined}><Icon name={item.icon} />{["CLUBVERSE","Opportunities"].includes(item.label) ? <><span className="nav-wide-label">{item.label}</span><span className="nav-short-label">{item.label==="CLUBVERSE" ? "Clubs" : "Discover"}</span></> : <span>{item.label}</span>}</Link>)}
     </nav>
   </aside>;
 }

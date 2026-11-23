@@ -10,7 +10,7 @@ async function login(page:Page,alias:string) {
   await page.getByLabel("Email").fill(demoEmail(alias));
   await page.getByLabel("Password").fill(demoPassword);
   await page.getByRole("button",{name:"Sign in"}).click();
-  await page.getByRole("link",{name:"Opportunities",exact:true}).click();
+  await page.getByRole("link",{name:/^(Opportunities|Discover)$/}).click();
 }
 test("reviewer publishes and withdraws a listing found by an authorized student",async({page})=>{
   const title="Fictional scholarship "+randomUUID().slice(0,8);
@@ -36,6 +36,12 @@ test("reviewer publishes and withdraws a listing found by an authorized student"
   await expect(page.getByRole("heading",{name:title})).toBeVisible();
   await expect(page.getByRole("link",{name:"Official source · example.org"})).toHaveAttribute("href","https://example.org/award");
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(390);
+  if (process.env.NEXUS_DIRECTORY_SCREENSHOTS) {
+    for (const width of [390,1440]) {
+      await page.setViewportSize({width,height:900});
+      await page.screenshot({path:`${process.env.NEXUS_DIRECTORY_SCREENSHOTS}/directory-${width}.png`,fullPage:true});
+    }
+  }
   await expect(page.getByText("Withdraw listing")).toHaveCount(0);
   await login(page,"admin");
   const listing=page.getByRole("article").filter({has:page.getByRole("heading",{name:title})});
