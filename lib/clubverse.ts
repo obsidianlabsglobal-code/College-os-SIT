@@ -148,6 +148,16 @@ async function events(client: PoolClient, scope: Scope, access: Awaited<ReturnTy
     if (["published","registration_open"].includes(input.next) && !event.registration_time) throw new WorkflowError("The event start has passed.");
     if (input.next === "in_progress" && !event.started) throw new WorkflowError("The event has not started.");
     await client.query("UPDATE club_event SET state=$3,revision=revision+1,published_at=CASE WHEN $3='published' THEN clock_timestamp() ELSE published_at END WHERE institution_id=$1 AND id=$2", [...key,input.next]);
+    if (input.next === "cancelled") {
+      const {rows: bookings} = await client.query<{id:string;revision:number;requested_by:string}>(
+        `UPDATE resource_booking SET state='cancelled',reason='The event was cancelled.',
+         revision=revision+1,changed_at=clock_timestamp() WHERE (institution_id,event_id)=($1,$2)
+         AND state IN ('requested','confirmed') RETURNING id,revision,requested_by`,key,
+      );
+      for (const booking of bookings) {
+        await audit(client,scope,booking.id,"booking.cancelled",booking.revision,booking.requested_by);
+      }
+    }
     await audit(client,scope,input.id,`club.event_${input.next}`,event.revision+1);
     return input.id;
   }

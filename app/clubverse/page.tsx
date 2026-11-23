@@ -17,6 +17,7 @@ export default async function Clubverse({ searchParams }: { searchParams: Promis
   const admin = current.role === "admin";
   return <Chrome user={user} current={current} section="/clubverse">
     <PageHeader title="CLUBVERSE" />
+    <p><Link href={`/clubverse/booking?${query}`}>Resource bookings</Link></p>
     <div className="grid">
       <section className="panel stack">
         <h2>Explore communities</h2>

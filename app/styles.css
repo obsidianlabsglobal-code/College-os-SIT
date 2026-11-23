@@ -113,3 +113,20 @@ dd { margin-bottom: .5rem; }
 .submission-list li { display: grid; gap: var(--space-2) var(--space-3); align-items: center; }
 .submission-list li > .row { justify-content: flex-start; }
 @media (min-width: 40rem) { .submission-list li { grid-template-columns: minmax(10rem, 1fr) auto; } .submission-list li > .row { justify-content: flex-end; } }
+
+.app-top .brand { display: inline-flex; align-items: center; gap: .55rem; letter-spacing: .04em; color: var(--ink); }
+.brand-mark { display: grid; place-items: center; width: 1.85rem; height: 1.85rem; border-radius: .52rem;
+  background: linear-gradient(135deg,#173d30,#447658); color: white; font-weight: 800; }
+.app-sidebar nav a { gap: .65rem; }
+.app-sidebar nav a[aria-current] { background: var(--accent); color: var(--surface); }
+@media (width < 55rem) {
+  .app-sidebar nav { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(3.7rem,100%),1fr)); gap: .2rem; }
+  .app-sidebar nav a { flex-direction: column; justify-content: center; gap: .15rem; padding: .3rem .12rem;
+    text-align: center; font-size: .76rem; overflow-wrap: anywhere; line-height: 1.2; }
+}
+
+.nav-short-label { display: none; }
+@media (width < 55rem) {
+  .nav-wide-label { display: none; }
+  .nav-short-label { display: inline; }
+}

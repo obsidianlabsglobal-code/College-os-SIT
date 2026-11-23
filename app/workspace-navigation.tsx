@@ -1,11 +1,13 @@
 "use client";
 
+import { Icon } from "./experience/workspace-icon";
+import type { ComponentProps } from "react";
 import Link from "next/link";
 import { useState } from "react";
 
 export function WorkspaceNavigation({ role, items }: {
   role: string;
-  items: { href: string; label: string; active: boolean }[];
+  items: { href: string; label: string; icon:ComponentProps<typeof Icon>["name"]; active: boolean }[];
 }) {
   const [collapsed, setCollapsed] = useState(false);
   return <aside className="app-sidebar" data-collapsed={collapsed}>
@@ -16,7 +18,7 @@ export function WorkspaceNavigation({ role, items }: {
     <nav id="workspace-navigation" aria-label="Campus workflows">
       <p className="sidebar-role">{role}</p>
       {items.map(item => <Link key={item.href} href={item.href}
-        aria-current={item.active ? "page" : undefined}>{item.label}</Link>)}
+        aria-label={item.label} aria-current={item.active ? "page" : undefined}><Icon name={item.icon} />{item.label === "CLUBVERSE" ? <><span className="nav-wide-label">CLUBVERSE</span><span className="nav-short-label">Clubs</span></> : <span>{item.label}</span>}</Link>)}
     </nav>
   </aside>;
 }

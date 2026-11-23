@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { Chrome } from "../chrome";
-import { PageHeader } from "../page-header";
+import { ExperienceHeading, ExperienceStatus } from "../experience/heading";
 import { ActionForm } from "../forms";
 import { auraAction } from "../actions/aura";
 import { account, scope, workspaceQuery } from "../../lib/scope";
@@ -19,7 +19,7 @@ export default async function Aura({ searchParams }: { searchParams:Promise<Reco
   const [tasks,context] = await Promise.all([eventPlans(current),club.success ? clubView(current,club.data) : null]);
   const query = workspaceQuery(current);
   return <Chrome user={user} current={current} section="/aura">
-    <PageHeader title="AURA activity" context="Guided event planning · Deterministic mode" />
+    <ExperienceHeading title="AURA activity" context="Guided event planning · Deterministic mode" />
     <div className="grid">
       <section className="panel stack">
         <h2>Your event plans</h2>
@@ -29,7 +29,9 @@ export default async function Aura({ searchParams }: { searchParams:Promise<Reco
           if (!plan.success) return null;
           const awaiting = task.state === "awaiting_approval";
           return <article key={task.id} className="club-record stack">
-            <div><h3>{plan.data.title}</h3><span className="tag">{awaiting ? task.expired ? "Expired" : "Awaiting your confirmation" : task.state === "succeeded" ? "Event draft saved" : "Cancelled"}</span></div>
+            <div><h3>{plan.data.title}</h3><ExperienceStatus tone={awaiting && !task.expired ? "attention" : task.state === "succeeded" ? "complete" : "neutral"}>
+              {awaiting ? task.expired ? "Expired" : "Awaiting your confirmation" : task.state === "succeeded" ? "Event draft saved" : "Cancelled"}
+            </ExperienceStatus></div>
             <p>{plan.data.location} · {plan.data.capacity} places · {plan.data.audience === "club" ? "Club members" : "Eligible students"}</p>
             <p className="meta">Institution local time · {plan.data.starts.replace("T"," ")} to {plan.data.ends.replace("T"," ")}</p>
             <p className="prose-text">{plan.data.requirements}</p>

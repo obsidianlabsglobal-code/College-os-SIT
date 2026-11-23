@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { Chrome } from "../../chrome";
-import { PageHeader } from "../../page-header";
+import { ExperienceHeading } from "../../experience/heading";
 import { account, scope, workspaceQuery } from "../../../lib/scope";
 import { clubView } from "../../../lib/club-views";
 import { ClubForm, EventFields, stateText } from "../controls";
@@ -35,7 +35,7 @@ export default async function ClubHome({ params,searchParams }: {
   const date = new Intl.DateTimeFormat("en-IN",{ dateStyle:"medium",timeStyle:"short",timeZone:club.timezone });
   const query = workspaceQuery(current);
   return <Chrome user={user} current={current} section="/clubverse">
-    <PageHeader title={club.name} context={club.category} parent={{ href:`/clubverse?${query}`,label:"CLUBVERSE" }} />
+    <ExperienceHeading title={club.name} context={club.category} parent={{ href:`/clubverse?${query}`,label:"CLUBVERSE" }} />
     <div className="grid">
       <div className="stack">
         <section className="panel stack">
@@ -61,6 +61,7 @@ export default async function ClubHome({ params,searchParams }: {
             const attendance = registrations.filter(registration => registration.event_id === event.id);
             return <article key={event.id} id={`event-${event.id}`} className="club-record stack">
               <div><h3>{event.title}</h3><span className="tag">{stateText(event.state)}</span></div>
+              {officer && <Link href={`/clubverse/booking?${query}&event=${event.id}`}>Manage booking</Link>}
               <p>{event.location} · {date.format(event.starts_at)} – {date.format(event.ends_at)}</p>
               <p className="meta">Capacity {event.capacity} · {event.audience === "club" ? "Members only" : "Eligible students"}</p>
               <p className="prose-text">{event.requirements}</p>

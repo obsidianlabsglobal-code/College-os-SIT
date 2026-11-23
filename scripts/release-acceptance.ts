@@ -47,6 +47,7 @@ try {
   const request = page.getByRole("article").filter({hasText:title});
   const result = "Ready for fictional pickup";
   console.log(`Acceptance run ${run} (${mode})`);
+  let facultyAssignmentURL: string;
   await login("faculty");
   if (mode === "exercise") {
     await expect(link(title)).toHaveCount(0);
@@ -59,6 +60,7 @@ try {
     await button("Create draft").click();
     await button("Publish assignment").click();
     await expect(page.getByText("Published",{exact:true})).toBeVisible();
+    facultyAssignmentURL = page.url();
   }
   await login("student");
   const studentURL = await link(title).getAttribute("href");
@@ -76,7 +78,7 @@ try {
     await button("Submit assignment").click();
     await expect(page.getByRole("heading",{name:"Submitted"})).toBeVisible();
     await login("faculty");
-    await link(title).click();
+    await page.goto(facultyAssignmentURL!);
     await page.getByLabel("Marks",{exact:true}).fill("17");
     await page.getByLabel("Feedback").fill("The boundary is correct.");
     await button("Save grade draft").click();
@@ -85,7 +87,7 @@ try {
     await page.goto(studentURL);
     await expect(page.getByText("Feedback has yet to be published.")).toBeVisible();
     await login("faculty");
-    await link(title).click();
+    await page.goto(facultyAssignmentURL!);
     await button("Publish feedback").click();
     await expect(page.getByRole("heading",{name:"Published result · 17/20"})).toBeVisible();
   }

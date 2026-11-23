@@ -19,9 +19,13 @@ For a dedicated fictional release-candidate database, an authorized operator can
 
 ## Authenticated acceptance from the integration checkout
 
-The release runner exercises the unmodified Release 1 interface over HTTP(S). Use Node 24, npm ci and Playwright Chromium on the operator machine. Keep the deployed source pinned to green main. Select the dedicated fictional staging origin via RELEASE_URL, confirm its exact host via NEXUS_ACCEPTANCE_HOST and load NEXUS_DEMO_PASSWORD from the staging secret manager. If protected, supply VERCEL_AUTOMATION_BYPASS_SECRET for a same-origin bypass-cookie handshake. The protected-host handshake still needs hosted verification.
+The release runner exercises the academic and service-request workflows over HTTP(S). Use Node 24, npm ci and Playwright Chromium on the operator machine. Keep the deployed source pinned to green main. Select the dedicated fictional staging origin via RELEASE_URL, confirm its exact host via NEXUS_ACCEPTANCE_HOST and load NEXUS_DEMO_PASSWORD from the staging secret manager. If protected, supply VERCEL_AUTOMATION_BYPASS_SECRET for a same-origin bypass-cookie handshake. The protected-host handshake still needs hosted verification.
 
 1. Record the deployed commit and alias, migration ledger names and checksums (seven on Release 1), backup ID and the authorized fictional institution. Set NEXUS_ACCEPTANCE_RUN to a fresh unique identifier.
 2. Run `npx tsx scripts/release-acceptance.ts exercise` from the integration checkout. It creates identifiable fictional academic and service-request records, signs in five roles and two unauthorized personas, checks private bytes and persisted results. Operate below the auth rate limit and allow its window to elapse between exercises. Failure can leave partial fictional records. Preserve them and use a new identifier for a fresh exercise.
 3. Redeploy the same app revision. Run `npx tsx scripts/release-acceptance.ts verify` with the original run ID. This reads the existing workflow records and exercises authentication again.
 4. Restore the managed backup into an isolated instance with separate credentials. Check audit and migration counts against the snapshot, point a separate staging app at the restored instance, and repeat verify there. Record downtime, lost-write window, log access, outcomes and recovery owner before acceptance.
+
+## Current release checkpoint
+
+Confirm the exact current main SHA and its successful CI before dispatch. The runner also works from current main after the integration merge. Compare the migration ledger against the files at the pinned revision. The original seven-entry restore rehearsal was for e5d507d. Main at f62828f contains ten numbered migrations. Keep provider-approved backup and isolated restore evidence with the release record.

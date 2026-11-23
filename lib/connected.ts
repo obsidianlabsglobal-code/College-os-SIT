@@ -39,7 +39,7 @@ export async function noticeTargets(current: Scope) {
   )).rows;
 }
 
-export async function notices(current: Scope, filter: "all" | "published" | "draft") {
+export async function notices(current: Scope, filter: "all" | "published" | "draft", limit?: number) {
   return (await db.query<{ id: string; title: string; body: string; author: string; audience: string; published_at: Date | null }>(
     `SELECT n.id,n.title,n.body,u.name AS author,n.published_at,
       COALESCE(d.name,c.name || ' · ' || s.name,'Institution') AS audience
@@ -63,8 +63,8 @@ export async function notices(current: Scope, filter: "all" | "published" | "dra
             WHERE r.institution_id=$1 AND r.account_id=$2 AND r.role=$3 AND r.ended_at IS NULL
             AND (r.offering_id=n.offering_id OR rc.department_id=n.department_id)))
         ))
-      ) ORDER BY n.published_at DESC NULLS FIRST,n.id`,
-    [current.institution,current.account,current.role,filter],
+      ) ORDER BY n.published_at DESC NULLS FIRST,n.id LIMIT $5`,
+    [current.institution,current.account,current.role,filter,limit ?? null],
   )).rows;
 }
 
