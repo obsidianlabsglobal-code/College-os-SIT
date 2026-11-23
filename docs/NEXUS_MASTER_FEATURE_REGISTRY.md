@@ -424,12 +424,12 @@ Students, placement and research offices, opted-in mentors, approved alumni and 
 
 | ID | Capability | Functional workflow or acceptance outcome | Status | Evidence |
 | --- | --- | --- | --- | --- |
-| CR-001 | Internship search | Discover active verified internships. | Proposed | F |
+| CR-001 | Internship search | Discover active verified internships. | Tested | Staff-reviewed directory, lib/opportunities.ts and tests/opportunities.*. Eligibility is displayed for manual review. |
 | CR-002 | Jobs and placement opportunities | Search roles and approved placement drives. | Proposed | F |
 | CR-003 | Course discovery | Compare relevant courses with prerequisites and source links. | Proposed | F |
 | CR-004 | NPTEL and SWAYAM discovery | Discover verified listings through permitted interfaces. | Proposed | F |
-| CR-005 | Scholarships | Find applicable funding and application deadlines. | Proposed | F |
-| CR-006 | Competitions | Compare verified competition requirements. | Proposed | F |
+| CR-005 | Scholarships | Find applicable funding and application deadlines. | Tested | Staff-reviewed directory, lib/opportunities.ts and tests/opportunities.*. Eligibility is displayed for manual review. |
+| CR-006 | Competitions | Compare verified competition requirements. | Tested | Staff-reviewed directory, lib/opportunities.ts and tests/opportunities.*. Eligibility is displayed for manual review. |
 | CR-007 | Hackathons | Find challenges, deadlines and team eligibility. | Proposed | F |
 | CR-008 | Research opportunities | Find approved programs and openings. | Proposed | F |
 | CR-009 | Fellowships | Compare eligibility and funding terms. | Proposed | F |
