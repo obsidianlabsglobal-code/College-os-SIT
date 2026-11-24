@@ -1,5 +1,9 @@
 # Progress
 
+### November 24 · Staging isolation and direct academic answers
+
+The release candidate now checks independently configured remote database identities before runtime, migration and seed connections. AURA can answer next-class and pending-work questions from the current timetable and roster. Local five-role acceptance passed again on an independently restored database. See [test evidence](TEST_REPORT.md) and [staging setup](DEPLOYMENT.md). Dedicated managed PostgreSQL, Vercel and the GitHub environment are outstanding.
+
 ### November 23 · Academic and AURA runtime integration
 
 Reconciled the academic branch at 72d33c6, Claude runtime at 89f4cd8, and main at 5af9797 on integration/aura-academic-runtime. The new composer reads real academic data and keeps the approved deterministic CLUBVERSE workflow. Academic tool results refresh against live grants when reopened. Explicit consent gates free-text provider transfers. Duplicate requests share one operation, and a failed proposal-to-preview link rolls back its draft preview. The fixed-topic pilot remains available where free-text model mode is off.

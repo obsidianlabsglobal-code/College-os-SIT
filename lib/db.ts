@@ -1,6 +1,7 @@
+import { databaseConnection } from "./database-target";
 import { Pool, type PoolClient } from "pg";
 
-export const db = new Pool({ connectionString: process.env.DATABASE_URL, connectionTimeoutMillis: 2500, statement_timeout: 5000 });
+export const db = new Pool({ connectionString: databaseConnection("runtime"), connectionTimeoutMillis: 2500, statement_timeout: 5000 });
 
 export async function transaction<T>(run: (client: PoolClient) => Promise<T>): Promise<T> {
   const client = await db.connect();

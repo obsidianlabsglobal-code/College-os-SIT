@@ -90,8 +90,18 @@ test("admin publishes a timetable and faculty posts a corrected attendance recor
     await expect(summary.getByText(recorded!,{exact:true})).toBeVisible();
 
     await page.goto(`/aura?institution=${f.institution}&role=student`);
-    await page.getByRole("button",{name:"My attendance",exact:true}).click();
-    const response=page.getByRole("listitem",{name:"Request: My attendance"}).first();
+    const ask=page.getByLabel("Ask AURA");
+    await ask.fill("When is my next class?");
+    await ask.press("Enter");
+    const nextAnswer=page.getByRole("listitem",{name:"Request: When is my next class?"}).first();
+    await expect(nextAnswer.getByText("Model calls 0 · Tool operations 1")).toBeVisible();
+    await expect(nextAnswer.getByText(new RegExp(roomName))).toBeVisible();
+    await nextAnswer.getByRole("link",{name:course}).click();
+    await expect(page.getByRole("heading",{name:course+" class"})).toBeVisible();
+    await page.goto(`/aura?institution=${f.institution}&role=student`);
+    await ask.fill("What's my attendance percentage?");
+    await ask.press("Enter");
+    const response=page.getByRole("listitem",{name:"Request: What's my attendance percentage?"}).first();
     const source=response.getByRole("link",{name:new RegExp(course+".*100.0%")});
     await expect(source).toBeVisible();
     await source.click();
