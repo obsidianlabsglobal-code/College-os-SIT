@@ -1,4 +1,5 @@
 import "./environment";
+import { databaseConnection } from "../lib/database-target";
 import { betterAuth } from "better-auth";
 import { db } from "../lib/db";
 import { Client } from "pg";
@@ -18,7 +19,7 @@ async function main() {
   }
   if (!password) throw new Error("Set the fictional staging password.");
   const seeder = betterAuth({ database: db, emailAndPassword: { enabled: true }, rateLimit: { enabled: false } });
-  const client = new Client({ connectionString: migrationUrl });
+  const client = new Client({ connectionString: databaseConnection("migration") });
   await client.connect();
   try {
     if (remote) {

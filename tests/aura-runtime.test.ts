@@ -283,3 +283,18 @@ test("read history refreshes from the live roster after withdrawal",async()=>{
     await owner.query("UPDATE roster SET ended_at=NULL WHERE institution_id=$1 AND offering_id=$2 AND account_id=$3 AND role='student'",filter);
   }
 });
+
+test("pending work is a scoped direct read and omits submitted assignments",async()=>{
+  const {createAssignment,publishAssignment,submitAssignment}=await import("../lib/assignments");
+  const assignment=await createAssignment(faculty,{offering:fixtures.offering,title:"Unsubmitted "+randomUUID(),
+    description:"Fictional exercise",deadline:new Date(Date.now()+86_400_000).toISOString().slice(0,16),marks:5,file:null});
+  await publishAssignment(faculty,assignment);
+  const request=await ask(student,"What work is pending?");
+  assert.equal((await row(request)).model_calls,0);
+  assert.equal((await row(request)).capability,"list_pending_assignments");
+  const output=async()=>JSON.stringify((await auraRequest(student,request))?.result);
+  assert.ok((await output()).includes(assignment));
+  await submitAssignment(student,assignment,randomUUID(),"Completed the exercise.",null);
+  assert.ok(!(await output()).includes(assignment));
+  assert.equal(routeMessage("What work is pending?",capabilitiesFor("faculty").map(item=>item.name)).kind,"interpret");
+});

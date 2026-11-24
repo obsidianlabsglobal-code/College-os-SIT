@@ -46,6 +46,20 @@ export async function assignments(scope: Scope, id?: string, offering?: string) 
   return rows;
 }
 
+export async function pendingStudentAssignments(scope:Scope,limit:number) {
+  if (scope.role!=="student") return [];
+  if (!Number.isInteger(limit) || limit<1 || limit>100) throw new WorkflowError("Invalid result limit.");
+  return (await db.query<{id:string;title:string;course:string;deadline:Date;timezone:string}>(`
+    SELECT a.id,a.title,c.name AS course,a.deadline,i.timezone FROM assignment a
+    JOIN institution i ON i.id=a.institution_id
+    JOIN offering o ON (o.institution_id,o.id)=(a.institution_id,a.offering_id)
+    JOIN course c ON (c.institution_id,c.id)=(o.institution_id,o.course_id)
+    WHERE a.institution_id=$1 AND ${activeRoster} AND a.published_at IS NOT NULL AND a.deadline>=now()
+      AND NOT EXISTS (SELECT 1 FROM submission s WHERE
+        (s.institution_id,s.assignment_id,s.student_id)=(a.institution_id,a.id,$2))
+    ORDER BY a.deadline,a.id LIMIT $4`,[scope.institution,scope.account,scope.role,limit])).rows;
+}
+
 export async function studentAssignmentSummaries(scope: Scope) {
   if (scope.role !== "student") return [];
   const { rows } = await db.query<{
