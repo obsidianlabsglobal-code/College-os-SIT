@@ -3,7 +3,7 @@ import { WorkflowError } from "../assignments";
 import { officerClubs } from "../club-views";
 import { db, transaction } from "../db";
 import type { Scope } from "../scope";
-import { capabilitiesFor, findCapability, type CapabilityItem } from "./capabilities";
+import { admissionLimits as limits, capabilitiesFor, findCapability, type CapabilityItem } from "./capabilities";
 import { auraModelConfig, costMicros, micros, modelGate, type AuraModelConfig } from "./config";
 import { anthropicProvider, type ModelProvider, type ModelUsage } from "./provider";
 import { routeMessage } from "./router";
@@ -18,7 +18,7 @@ import { routeMessage } from "./router";
 type ActorScope = Scope & { role: "student" | "faculty" };
 export type AuraDeps = { provider?: ModelProvider; env?: NodeJS.ProcessEnv };
 
-const limits = { actorPerHour: 20, institutionPerHour: 300, modelCallsPerRequest: 3, toolCallsPerRequest: 5 } as const;
+
 const unavailable = () => new WorkflowError("AURA is unavailable for this workspace.");
 
 export const askInput = z.object({

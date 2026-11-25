@@ -493,8 +493,8 @@ Authenticated user and accountable tool owners. Route task from session → scop
 | ID | Capability | Functional workflow or acceptance outcome | Status | Evidence |
 | --- | --- | --- | --- | --- |
 | AI-001 | Agent gateway | Resolve user, tenant, active role and current club grant per tool. | Tested | A |
-| AI-002 | Agent registry | Declare deterministic planner version, tools, roles, timeout and authority. | Implemented | A |
-| AI-003 | Typed tool contracts | Validate event planning and event draft inputs and outputs. | Tested | A |
+| AI-002 | Agent registry | Declare planner and read tool versions, scopes, domain services, limits and confirmation boundaries. | Implemented | A; lib/aura/capabilities.ts |
+| AI-003 | Typed tool contracts | Validate event planning contracts and scoped read results, including timetable and pending work. | Tested | A; tests/aura-runtime.test.ts and tests/academic-day.e2e.ts |
 | AI-004 | Provider interface | Invoke a deterministic provider behind a bounded interface. | Tested | A |
 | AI-005 | Model-powered event suggestions | Generate grounded, editable suggestions with approved model, evaluation and spend caps. | In development | Structured event proposals exercised with a test provider. Live pilot pending. See AURA_ARCHITECTURE.md |
 | AI-006 | Agent activity center | Inspect own event plan states, tools and saved draft references. | Tested | A |

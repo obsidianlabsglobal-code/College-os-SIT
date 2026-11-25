@@ -49,3 +49,18 @@ An automated axe-core 4.10 scan (WCAG 2.0–2.2 A/AA rules) of mission control, 
 A production build of 5af9797 ran locally against a freshly migrated and seeded PostgreSQL 18.7 instance. The release operator runner exercised faculty publication, student submission, draft privacy, feedback publication, a resolved enrollment-letter request, department and institution reporting, and scoped attachment downloads. The same run passed after a database restart and through a separate app connected to a restored copy. All 12 migration names and checksums and the audit, attachment and booking counts matched at restore time.
 
 The updated runner additionally checks the exact persisted submission and feedback text and opens direct assignment URLs as two unrelated personas. During repeated exercises it hit the expected sign-in throttle. It now waits one configured window and retries a throttled sign-in once. The authenticated runner uses the ordinary login form throughout. The GitHub acceptance workflow defaults to verifying an existing run and can be dispatched for the fictional staging host after its environment is provisioned. Hosted HTTPS, provider-native backup recovery and Vercel deployment protection are pending.
+
+### November 24 · Dedicated-target controls and AURA academic lookups
+
+Local verification used Node 24, PostgreSQL 18.7, a restricted runtime login and fictional records. All 16 migrations applied and a second pass made no changes. Lint, type checking, the production build and the production dependency audit passed. An initial type error in the target validator's test environment signature was corrected before the final run.
+
+| Check | Result |
+| --- | --- |
+| `npm test` | 37 passed, including PostgreSQL workflows, connection configuration rejection, current permissions and pending work disappearing after submission. |
+| `npm run test:e2e` | 21 Chromium journeys passed, including mobile, keyboard and academic-day AURA navigation. |
+| `npx playwright test --config playwright.tutor.config.ts` | One isolated provider-fixture journey passed. No external model calls. |
+| Release acceptance | The five-role production-build exercise passed. A separate app process against an offline restore passed verify with the same run ID, `nov24-nexus-allowlist`. Verified scoped assignment and private file denial, exact feedback and file content, published grade and resolved request. |
+| Local restore | Compared all 16 migration names and checksums plus audit (8), attachment (1) and resource booking (0) counts before restored-instance sign-in. |
+| Pending work query | On a separate local fictional dataset containing 3,200 added assignments (3,000 expired), 30 serial warm reads returned 11 rows per query, median 5.36 ms and p95 17.92 ms. This measures the service on one local dataset. |
+
+Hosted HTTPS, managed pooling and TLS, Vercel redeployment, provider-native restore and institutional user validation remain pending.

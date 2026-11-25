@@ -1,7 +1,9 @@
+import { nextClass } from "../academic-day";
+import { eventInput } from "../club-contracts";
 import { db } from "../db";
 import { answerAcademic } from "./academic-tools";
 import { z } from "zod";
-import { studentAssignmentSummaries, assignments } from "../assignments";
+import { studentAssignmentSummaries, pendingStudentAssignments, assignments } from "../assignments";
 import { evaluationTotals } from "../faculty";
 import { notices, requests } from "../connected";
 import { clubs } from "../club-views";
@@ -25,10 +27,38 @@ const none = z.object({}).strict() as z.ZodType<Record<string, never>>;
 const limit = 10;
 const dateText = (value: Date, timezone = "Asia/Kolkata") =>
   new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: timezone }).format(value);
-const result = (summary: string, items: CapabilityItem[], source: string): CapabilityResult =>
-  ({ summary, items: items.slice(0, limit), source, checkedAt: new Date().toISOString() });
+const readOutput = z.object({
+  summary:z.string(), source:z.string(), checkedAt:z.iso.datetime(),
+  items:z.array(z.object({title:z.string(),detail:z.string(),href:z.string().regex(/^\/(?![\/\\])/).optional()}).strict()).max(limit),
+}).strict();
 
-export const capabilities = [
+export const admissionLimits = {actorPerHour:20,institutionPerHour:300,modelCallsPerRequest:3,toolCallsPerRequest:5} as const;
+const result = (summary: string, items: CapabilityItem[], source: string): CapabilityResult =>
+  readOutput.parse({ summary, items: items.slice(0, limit), source, checkedAt: new Date().toISOString() });
+
+const definitions = [
+  {
+    name:"get_next_class",label:"Next class",description:"Find the caller's current or next published class.",
+    roles:["student","faculty"],risk:"read",input:none,
+    async run(scope,query) {
+      const row=await nextClass(scope);
+      if (!row) return result("No upcoming published class.",[],"Your published timetable");
+      const {rows:[institution]}=await db.query<{timezone:string}>("SELECT timezone FROM institution WHERE id=$1",[scope.institution]);
+      return result(row.start.getTime()<=Date.now() ? "Your class is in progress." : "Your next scheduled class.",
+        [{title:row.course,detail:`${dateText(row.start,institution.timezone)} · ${row.room} · ${row.section}`,
+          href:`/timetable?${query}&session=${row.id}#class-details`}],"Your published timetable");
+    },
+  },
+  {
+    name:"list_pending_assignments",label:"Pending work",description:"Find published assignments still open for your submission, earliest deadline first.",
+    roles:["student"],risk:"read",input:none,
+    async run(scope,query) {
+      const rows=await pendingStudentAssignments(scope,limit+1);
+      return result(rows.length>limit ? `Your first ${limit} open assignments by deadline.` : rows.length ? `${rows.length} open and awaiting your submission.` : "No open assignments await your submission.",
+        rows.slice(0,limit).map(row=>({title:row.title,detail:`${row.course} · Due ${dateText(row.deadline,row.timezone)}`,
+          href:`/assignments/${row.id}?${query}`})),"Your active course assignments and submissions");
+    },
+  },
   ...(["timetable","attendance"] as const).map(tool=>({
     name:tool==="timetable" ? "list_my_timetable" as const : "list_my_attendance" as const,
     label:tool==="timetable" ? "My timetable" : "My attendance",
@@ -51,7 +81,7 @@ export const capabilities = [
         const open = rows.filter(row => row.accepting && !row.submitted);
         return result(
           rows.length ? `${rows.length} published assignment${rows.length === 1 ? "" : "s"}; ${open.length} open and not yet submitted.` : "You have no published assignments in your active courses.",
-          [...open, ...rows.filter(row => !open.includes(row))].map(row => ({
+          [...open, ...rows.filter(row => !row.accepting || row.submitted)].map(row => ({
             title: row.title,
             detail: `${row.course} · ${row.section} · Due ${dateText(row.deadline)} · ${row.submitted ? "Submitted" : row.accepting ? "Not submitted" : "Closed without submission"}`,
             href: `/assignments/${row.id}?${query}`,
@@ -128,7 +158,28 @@ export const capabilities = [
   },
 ] as const satisfies readonly Capability[];
 
-export type CapabilityName = typeof capabilities[number]["name"];
+export type CapabilityName = typeof definitions[number]["name"];
+const authority = {
+  get_next_class:["nextClass","Current enrollment or assigned instructor"],
+  list_my_timetable:["timetable","Current enrollment or assigned instructor"],
+  list_my_attendance:["attendanceSummary","Own recorded marks for current enrollment"],
+  list_my_assignments:["studentAssignmentSummaries / assignments","Current course roster"],
+  list_pending_assignments:["pendingStudentAssignments","Own unsubmitted work on current roster"],
+  list_published_feedback:["studentAssignmentSummaries","Own submission with released feedback"],
+  list_pending_evaluations:["evaluationTotals","Current teaching assignment"],
+  list_notices:["notices","Published notice addressed to current audience"],
+  list_my_requests:["requests","Current student and request owner"],
+  list_clubs:["clubs","Recognized community visible to current workspace"],
+  prepare_event_draft:["prepareEventPlan / decideEventPlan","Active club officer and owner of preview"],
+} satisfies Record<CapabilityName,[string,string]>;
+export const capabilities = definitions.map(tool=>({
+  ...tool,version:1,domainService:authority[tool.name][0],permission:authority[tool.name][1],
+  input:tool.risk==="read" ? none : eventInput.strict(),
+  output:tool.risk==="read" ? readOutput : z.uuid(),
+  approval:tool.risk==="read" ? "none" : "owner confirmation before saving private event draft",
+  modelCallsForToolExecution:0,rateLimits:admissionLimits,sqlStatementTimeoutMs:5000,
+  verification:tool.risk==="read" ? "Return current domain records and source links" : "Return committed draft ID",
+}));
 export const capabilityNames = capabilities.map(item => item.name) as [CapabilityName, ...CapabilityName[]];
 
 export function capabilitiesFor(role: Scope["role"]) {

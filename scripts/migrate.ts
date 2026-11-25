@@ -1,11 +1,12 @@
 import "./environment";
+import { databaseConnection } from "../lib/database-target";
 import { readdir, readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { Client } from "pg";
 
 async function main() {
   if (!process.env.MIGRATION_DATABASE_URL) throw new Error("Set MIGRATION_DATABASE_URL.");
-  const client = new Client({ connectionString: process.env.MIGRATION_DATABASE_URL });
+  const client = new Client({ connectionString: databaseConnection("migration") });
   await client.connect();
   try {
     await client.query("SELECT pg_advisory_lock(607146)");

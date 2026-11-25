@@ -4,6 +4,8 @@ import type { CapabilityName } from "./capabilities";
 // database with zero model calls. Anything longer, ambiguous or action-oriented is not guessed at here.
 
 const patterns: { capability: CapabilityName; pattern: RegExp }[] = [
+  { capability:"get_next_class",pattern:/^(?:(?:when|where) is (?:my |the )?|(?:when|where)'s (?:my |the )?|my )?next class[?.!]?$/ },
+  { capability:"list_pending_assignments",pattern:/^(?:what work is pending|(?:my )?pending work|what work is due)[?.!]?$/ },
   { capability: "list_my_timetable", pattern: /\btimetable\b/ },
   { capability: "list_my_attendance", pattern: /\battendance\b/ },
   { capability: "list_published_feedback", pattern: /\b(feedback|results?|marks|grades?|scores?)\b/ },
