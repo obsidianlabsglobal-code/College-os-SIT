@@ -66,3 +66,26 @@
 .loading { min-height: 16rem; background: var(--atmosphere); }
 .stats { grid-template-columns: repeat(2,minmax(0,1fr)); }
 @media (min-width: 48rem) { .stats { grid-template-columns: repeat(5,minmax(0,1fr)); } }
+
+/* Student Today: retain authentic links inside the Living Atmosphere layout. */
+.dashboard { display:grid; min-width:0; gap:inherit; }
+.intro { display:flex; align-items:end; justify-content:space-between; flex-wrap:wrap; gap:.85rem 1.2rem; }
+.intro h1 { font-size:clamp(2.25rem,4.1vw,3.6rem); letter-spacing:-.045em; }
+.introActions { display:flex; flex-wrap:wrap; gap:.55rem; align-items:center; }
+.introActions .primary { margin-top:0; }
+.focusButton { min-height:44px; padding:.45rem .85rem; border:1px solid var(--control-border); border-radius:var(--radius-control); background:var(--surface); color:var(--ink); font-weight:650; }
+.focusButton:hover,.focusButton[aria-pressed="true"] { background:var(--sage); }
+.announcer { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+.overline { color:var(--accent); letter-spacing:.11em; text-transform:uppercase; font-weight:750; }
+.priority .overline { font-size:var(--text-meta); }
+.timeline { display:grid; min-width:0; }
+.timeline > :global(.panel) { margin:0; height:100%; border-radius:var(--radius-panel); padding:clamp(1rem,2vw,1.5rem); }
+.aura { background:var(--surface); }
+.auraInset { background:linear-gradient(125deg,var(--lilac),var(--surface-elevated)); border-radius:var(--radius-panel); padding:.85rem; margin:.6rem 0 .25rem; }
+.stats a { grid-template-columns:minmax(0,1fr); align-content:start; gap:.28rem; }
+.stats a svg { box-sizing:content-box; background:var(--sage); padding:.33rem; border-radius:.55rem; }
+.stats a:nth-of-type(2) svg { background:var(--lilac); }
+.stats a:nth-of-type(4) svg { background:var(--peach); }
+.home[data-focus="on"] [data-focus-secondary] { display:none; }
+.home[data-focus="on"] .lead,.home[data-focus="on"] .content { grid-template-columns:minmax(0,1fr); }
+@media (min-width:48rem) { .stats { grid-template-columns:repeat(4,minmax(0,1fr)); } }
