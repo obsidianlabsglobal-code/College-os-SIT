@@ -37,7 +37,7 @@ for (const role of ["hod","admin","principal"] as const) {
     await expect(summary.getByRole("heading",{name:"Electronics and Communication Engineering"})).toBeVisible();
     await expect(summary.getByRole("heading",{name:"Mechanical Engineering"})).toHaveCount(role==="hod"?0:1);
     await expect(page.getByRole("heading",{name:"Your fee breakdown"})).toHaveCount(0);
-    await expect(page.getByRole("button",{name:/pay|charge|receipt/i})).toHaveCount(0);
+    await expect(page.getByRole("button",{name:/^(Pay now|Record payment|Issue receipt)$/i})).toHaveCount(0);
   });
 }
 for (const [person,role,inst] of [["faculty","faculty",fixtures.institution],["outsider","student",fixtures.institution],["tenant","student",fixtures.otherInstitution]] as const) {
@@ -47,3 +47,21 @@ for (const [person,role,inst] of [["faculty","faculty",fixtures.institution],["o
     expect((await page.goto(fees(role,inst)))?.status()).toBe(404);
   });
 }
+
+test("the fictional fee steward sees a review, not a payment or irreversible action",async ({page})=>{
+  test.skip(!enabled,"The fictional view must be explicitly enabled");
+  await signIn(page,"admin");
+  await page.goto(fees("admin"));
+  const review=page.getByRole("region",{name:"Rehearse a reconciliation"});
+  await review.getByRole("button",{name:"Review sample payment"}).click();
+  await expect(review.getByText(/14,000 before.*10,500 after/)).toBeVisible();
+  await review.getByRole("button",{name:"Confirm rehearsal review"}).click();
+  await expect(review.getByRole("status")).toContainText("Nothing was posted or saved.");
+  await review.getByLabel("Sample case").selectOption("duplicate");
+  await review.getByRole("button",{name:"Review sample payment"}).click();
+  await expect(review.getByRole("status")).toContainText("already recorded");
+  await expect(review.getByRole("button",{name:"Confirm rehearsal review"})).toHaveCount(0);
+  await review.getByLabel("Sample case").selectOption("mismatch");
+  await review.getByRole("button",{name:"Review sample payment"}).click();
+  await expect(review.getByRole("status")).toContainText("not matched");
+});

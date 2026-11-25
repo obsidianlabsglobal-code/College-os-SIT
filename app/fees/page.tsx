@@ -4,6 +4,8 @@ import { feesAggregateExample,feesPreviewAvailable,studentExample,studentTotals 
 import { Chrome } from "../chrome";
 import { ExperienceHeading } from "../experience/heading";
 import styles from "./fees.module.css";
+import { FeeRehearsal } from "./rehearsal";
+import { canReviewFees } from "../../lib/fee-reconciliation";
 
 const rupees = new Intl.NumberFormat("en-IN",{style:"currency",currency:"INR",maximumFractionDigits:0});
 const money = (value:number) => rupees.format(value);
@@ -14,6 +16,12 @@ export default async function Fees({searchParams}:{searchParams:Promise<Record<s
   const [user,current] = await Promise.all([account(),scope(params.institution,params.role)]);
   const role = current.role;
   if (role === "faculty" || !feesPreviewAvailable(current,user)) notFound();
+  // Explicit synthetic operator grant for this rehearsal. A real operator directory does not exist yet.
+  const rehearsal = role==="admin" && canReviewFees({role,account:user.id},
+    {institution:current.institution,department:"demo-eee",id:"fictional-statement"}, {
+      account:user.id,institution:current.institution,departments:["demo-eee"],expiresAt:2,
+      revokedAt:null,canReview:true,
+    },1); // Fixed clock for the non-persistent fictional rehearsal.
   const totals = role === "student" ? studentTotals : feesAggregateExample(role).reduce<{billed:number;paid:number}>(
     (sum,row)=>({billed:sum.billed+row.billed,paid:sum.paid+row.paid}),{billed:0,paid:0});
   return <Chrome user={user} current={current} section="/fees">
@@ -50,8 +58,9 @@ export default async function Fees({searchParams}:{searchParams:Promise<Record<s
         </dl>
       </li>)}</ul>
     </section>}
+    {rehearsal && <FeeRehearsal />}
     {role==="admin" && <section className="panel"><h2>Office workflow</h2>
-      <p>College, transport, hostel and other charges would be maintained by specifically authorized finance staff. Adding or reconciling payments, editing receipts and exporting records are not enabled in this preview.</p>
+      <p>College, transport, hostel and other charges would be maintained by specifically authorized finance staff. This preview can rehearse reconciliation decisions, but it cannot record payments, edit receipts or export records.</p>
     </section>}
   </Chrome>;
 }
