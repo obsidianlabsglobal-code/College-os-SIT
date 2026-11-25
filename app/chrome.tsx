@@ -10,6 +10,7 @@ import { signOut } from "./actions/session";
 import { WorkspaceNavigation } from "./workspace-navigation";
 import { chooseWorkspace } from "./actions/workspace";
 import { workspaces, workspaceQuery, type Scope } from "../lib/scope";
+import { feesPreviewAvailable } from "../lib/fees-preview";
 
 export const roleLabels = {
   student: "Student",
@@ -19,8 +20,9 @@ export const roleLabels = {
   principal: "Principal",
 } satisfies Record<Scope["role"], string>;
 
-type Destination = "/opportunities" | "/" | "/grading" | "/notices" | "/requests" | "/admin" | "/clubverse" | "/aura" | "/timetable";
+type Destination = "/fees" | "/opportunities" | "/" | "/grading" | "/notices" | "/requests" | "/admin" | "/clubverse" | "/aura" | "/timetable";
 const labels: Record<Destination, string> = {
+  "/fees": "Fees & dues",
   "/opportunities": "Opportunities",
   "/": "Overview",
   "/timetable": "Timetable",
@@ -33,13 +35,14 @@ const labels: Record<Destination, string> = {
 };
 
 const icons: Record<Destination, ComponentProps<typeof Icon>["name"]> = {
+  "/fees": "service",
   "/opportunities": "service",
   "/": "home", "/timetable": "calendar", "/grading": "check", "/notices": "notice", "/clubverse": "people",
   "/aura": "spark", "/requests": "service", "/admin": "book",
 };
 
 export async function Chrome({ user, current, section = "/", children }: {
-  user: { id: string; name: string };
+  user: { id: string; name: string; email?: string };
   current: Scope | null;
   section?: Destination;
   children: ReactNode;
@@ -55,6 +58,8 @@ export async function Chrome({ user, current, section = "/", children }: {
   if (current?.role === "student" || current?.role === "admin") destinations.push("/opportunities");
   if (current?.role === "admin") destinations.push("/admin");
   if (current?.role === "student" || current?.role === "faculty") destinations.push("/aura");
+
+  if (current && feesPreviewAvailable(current,user)) destinations.push("/fees");
 
   return <div className={current ? "app-shell" : "app-shell app-shell-single"}>
     <header className="app-top">

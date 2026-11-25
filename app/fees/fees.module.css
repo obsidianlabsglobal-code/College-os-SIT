@@ -1,0 +1,10 @@
+.hero { background:var(--atmosphere); margin-bottom:var(--space-4); }
+.hero h2 { font:500 clamp(1.55rem,3vw,2.4rem)/1.15 var(--font-display); margin-block:.55rem; }
+.metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,6.6rem),1fr)); gap:var(--space-2); margin-block:var(--space-2); }
+.metrics div { min-width:0; overflow-wrap:anywhere; }
+.metrics dt { color:var(--muted); font-size:var(--text-meta); }
+.metrics dd { margin:0; font-variant-numeric:tabular-nums; font-weight:650; }
+.hero .metrics dd { font:500 clamp(1.35rem,3vw,2rem)/1.22 var(--font-display); }
+.cards { display:grid; gap:var(--space-3); margin-top:var(--space-3); }
+.cards > li { padding:var(--space-3); border-radius:var(--radius-control); border:1px solid var(--border); background:var(--surface-elevated); min-width:0; overflow-wrap:anywhere; }
+@media(min-width:59rem){ .cards{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
