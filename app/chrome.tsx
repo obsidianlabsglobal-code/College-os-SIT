@@ -59,7 +59,8 @@ export async function Chrome({ user, current, section = "/", children }: {
   return <div className={current ? "app-shell" : "app-shell app-shell-single"}>
     <header className="app-top">
       <Link href={home} className="brand"><Brand /></Link>
-      {selected && <span className="institution-label">{selected.name} <span className="institution-role">· {roleLabels[selected.role]}</span></span>}
+      {selected && <span className="institution-label"><span className="workspace-crumb">Campus workspace / {labels[section]}</span>
+        {selected.name} <span className="institution-role">· {roleLabels[selected.role]}</span></span>}
       <div className="account-tools">
         {options.length > 1 && <form action={chooseWorkspace} className="workspace-form">
           <label><span className="sr-only">Workspace</span>

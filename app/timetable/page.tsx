@@ -51,7 +51,7 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
   const stateLabel = {draft:"Draft",published:"Scheduled",cancelled:"Cancelled",conducted:"Attendance recorded"};
   return <Chrome user={user} current={current} section="/timetable"><div className={styles.page}>
     <header className={styles.hero}>
-      <div><p className={styles.eyebrow}>Academic day</p><h1>Timetable</h1><p className="meta">Classes and attendance · {timezone}</p></div>
+      <div><p className={styles.eyebrow}>Campus and academics</p><h1>Timetable</h1><p className="meta">Classes and attendance · {timezone}</p></div>
       {current.role==="student" && <a className={styles.shortcut} href="#attendance">My attendance</a>}
     </header>
     {upcoming && <section className={`panel ${styles.next}`} aria-labelledby="next-class">

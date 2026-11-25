@@ -8,7 +8,7 @@ test("mobile themes, scoped More menu and a confirmed direct academic lookup", a
   await page.getByLabel("Email").fill(demoEmail("student"));
   await page.getByLabel("Password").fill(demoPassword);
   await page.getByRole("button",{name:"Sign in"}).click();
-  await expect(page.getByRole("heading",{name:"Welcome, Asha."})).toBeVisible();
+  await expect(page.getByRole("heading",{name:"Good to see you, Asha."})).toBeVisible();
   const theme=page.getByLabel("Appearance");
   await theme.selectOption("light");
   await page.reload();
@@ -52,11 +52,11 @@ test("Student Today focus mode preserves real tasks and restores campus context"
   await page.getByLabel("Email").fill(demoEmail("student"));
   await page.getByLabel("Password").fill(demoPassword);
   await page.getByRole("button",{name:"Sign in"}).click();
-  await expect(page.getByRole("heading",{name:"Welcome, Asha."})).toBeVisible();
+  await expect(page.getByRole("heading",{name:"Good to see you, Asha."})).toBeVisible();
   const focus=page.getByRole("button",{name:"Focus mode"});
   const summary=page.getByRole("navigation",{name:"Academic summary"});
   const work=page.getByRole("region",{name:"My assignments"});
-  const aura=page.getByRole("region",{name:"AURA at your side"});
+  const aura=page.getByRole("region",{name:"AURA assistant"});
   const schedule=page.getByRole("link",{name:"My timetable",exact:true}).first();
   await expect(schedule).toHaveAttribute("href",/\/timetable\?.*role=student/);
   await expect(summary.getByRole("link")).toHaveCount(4);

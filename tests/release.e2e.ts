@@ -243,7 +243,7 @@ test("administrators configure academic records and manage delegated roles", asy
   await expect(grant.getByText("Ended",{ exact:true })).toBeVisible();
   await signOut(page);
   await signIn(page, "student");
-  await expect(page.getByRole("heading", { name: "Welcome, Asha.", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Good to see you, Asha.", exact: true })).toBeVisible();
   await expect(page.getByRole("combobox", { name: "Workspace" })).toHaveCount(0);
 });
 
@@ -498,7 +498,7 @@ test("course workspaces require the current offering roster", async ({page}) => 
 test("student home uses responsive layout, keyboard navigation and reduced motion",async ({page})=>{
   await page.emulateMedia({reducedMotion:"reduce",colorScheme:"dark"});
   await signIn(page,"student");
-  await expect(page.getByRole("heading",{name:"Welcome, Asha."})).toBeVisible();
+  await expect(page.getByRole("heading",{name:"Good to see you, Asha."})).toBeVisible();
   const shortcut = page.getByRole("navigation",{name:"Academic summary"}).getByRole("link",{name:/Open assignments/});
   await shortcut.focus();
   await page.keyboard.press("Enter");
@@ -573,7 +573,7 @@ test("student home shows a loading state and recovers after a database timeout",
   const {Client} = await import("pg");
   const lock = new Client({connectionString:migrationUrl});
   await signIn(page,"student");
-  const home = page.getByRole("heading",{name:"Welcome, Asha."});
+  const home = page.getByRole("heading",{name:"Good to see you, Asha."});
   await expect(home).toBeVisible();
   await lock.connect();
   try {

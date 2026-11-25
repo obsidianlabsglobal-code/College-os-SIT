@@ -49,8 +49,9 @@ export async function StudentHome({current, name, timezone}:{current:Scope;name:
   })}</ul>;
   const history = assignments.filter(item=>!item.accepting || item.submitted);
   return <StudentHomeFocus timetableHref={`/timetable?${query}`} heading={<>
-      <p className={styles.date}><Icon name="calendar" />{today.format(new Date())} · Student</p>
-      <h1>{firstName ? `Welcome, ${firstName}.` : "Welcome back."}</h1>
+      <p className="app-kicker">Your campus at a glance</p>
+      <h1>{firstName ? `Good to see you, ${firstName}.` : "Welcome back."}</h1>
+      <p className={styles.date}>{today.format(new Date())} · Student workspace</p>
     </>}>
 
     {roomChanges.length>0&&<section className={`${styles.panel} ${styles.roomBrief}`} aria-labelledby="student-room-updates">
@@ -109,8 +110,8 @@ export async function StudentHome({current, name, timezone}:{current:Scope;name:
       <div className={styles.column} data-focus-secondary>
         <section className={`${styles.panel} ${styles.aura}`} aria-labelledby="student-aura-title">
           <div className={styles.sectionHead}>
-            <h2 id="student-aura-title"><Icon name="spark" />AURA at your side</h2>
-            <p>Check your timetable, attendance and published results against your current records.</p>
+            <h2 id="student-aura-title"><Icon name="spark" />AURA assistant</h2>
+            <p>Ask about your timetable, attendance or published feedback. Answers use your college records.</p>
           </div>
           <div className={styles.auraInset}><QuickLookup current={current} /></div>
           <Link className={styles.secondary} href={`/aura?${query}`}>Open AURA activity <span aria-hidden="true">→</span></Link>

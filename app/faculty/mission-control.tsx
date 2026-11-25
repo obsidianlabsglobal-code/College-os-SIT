@@ -26,11 +26,11 @@ export async function MissionControl({ current, timezone }: { current: Scope; ti
   return <div className={styles.workspace}>
     <div className={styles.lead}>
       <section className={`panel ${styles.hero}`} aria-labelledby="faculty-priority">
-        <p className={styles.eyebrow}>Faculty priority</p>
+        <p className={styles.eyebrow}>Your teaching workspace</p>
         <h2 id="faculty-priority">Teaching priorities</h2>
         <p className="meta">{totals.pending > 0 ? `${plural(totals.pending, "submission")} awaiting evaluation.` :
           totals.awaiting > 0 ? `${plural(totals.awaiting, "feedback draft")} ready for review before publication.` :
-          courses.length ? "Your evaluation queue is clear. Check today’s teaching schedule or plan an assignment." :
+          courses.length ? "No evaluations are waiting. View today’s classes or create an assignment." :
           "Your workspace has no active teaching assignments."}</p>
         <div className={styles.actions}>{totals.pending > 0 || totals.awaiting > 0
           ? <Link className={styles.primary} href={href("/grading", query, { status: totals.pending > 0 ? "pending" : "awaiting" })}>Go to evaluation queue</Link>
@@ -103,7 +103,7 @@ export async function MissionControl({ current, timezone }: { current: Scope; ti
 
     <div className="stack">
       <section className={`panel ${styles.aura}`} aria-labelledby="faculty-aura">
-        <h2 id="faculty-aura">AURA at your side</h2>
+        <h2 id="faculty-aura">AURA assistant</h2>
         <p className="meta">Look up your teaching schedule or evaluation queue from authorized records.</p>
         <QuickLookup current={current} />
       </section>
