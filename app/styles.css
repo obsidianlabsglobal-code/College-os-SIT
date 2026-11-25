@@ -112,6 +112,7 @@ input::placeholder, textarea::placeholder { color: var(--muted); }
 .table-scroll { max-width: 100%; }
 .department-report table { min-width: 38rem; }
 .department-report thead th { overflow-wrap: normal; }
+.department-report th:first-child { min-width: 11rem; }
 .metrics > div { padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--canvas); }
 .metrics dd { margin: 0; font-family: var(--font-display); }
 .field-status { min-block-size: 1.5em; }
