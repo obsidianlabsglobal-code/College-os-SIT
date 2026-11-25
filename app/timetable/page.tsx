@@ -40,25 +40,34 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
     const clock = new Intl.DateTimeFormat("en-GB",{timeZone:timezone,hour:"2-digit",minute:"2-digit",hourCycle:"h23"});
     return `${date.format(instant)}T${clock.format(instant)}`;
   };
+  const selectedOn = (localDay:string) => detail && date.format(detail.row.start) <= localDay &&
+    date.format(new Date(detail.row.finish.getTime()-1)) >= localDay;
+  const switchView = `${base}&day=${day}&view=${days===1?"week":"day"}` +
+    (detail && (days===1 || selectedOn(day)) ? `&session=${detail.row.id}` : "");
+  const upcomingLink = upcoming ? `${base}&day=${date.format(upcoming.start)}&view=day&session=${upcoming.id}#class-details` : "";
+  const periodLabel = new Intl.DateTimeFormat("en-IN", {weekday:"short",day:"numeric",month:"short",year:"numeric",timeZone:"UTC"});
   const stateLabel = {draft:"Draft",published:"Scheduled",cancelled:"Cancelled",conducted:"Attendance recorded"};
   return <Chrome user={user} current={current} section="/timetable"><div className={styles.page}>
-    <header className={styles.hero}><h1>Timetable</h1><p className="meta">Classes and attendance · {timezone}</p></header>
+    <header className={styles.hero}>
+      <div><p className={styles.eyebrow}>Academic day</p><h1>Timetable</h1><p className="meta">Classes and attendance · {timezone}</p></div>
+      {current.role==="student" && <a className={styles.shortcut} href="#attendance">My attendance</a>}
+    </header>
     {upcoming && <section className={`panel ${styles.next}`} aria-labelledby="next-class">
       <h2 id="next-class">{upcoming.start<=new Date() ? "Class in progress" : "Next class"}</h2>
-      <Link href={sessionLink(upcoming.id)}>{upcoming.course}</Link>
+      <Link href={upcomingLink}>{upcoming.course}</Link>
       <p className="meta">{date.format(upcoming.start)} · {time.format(upcoming.start)} · {upcoming.room}</p>
     </section>}
 
-    <div className={styles.planner}>
-      <section className="panel" aria-labelledby="class-schedule">
+    <div className={styles.planner} data-student={current.role==="student" ? "true" : undefined}>
+      <section className={`panel ${styles.schedule}`} aria-labelledby="class-schedule">
         <h2 id="class-schedule">Class schedule</h2>
-        <nav className="row" aria-label="Timetable period">
+        <nav className={styles.periodControls} aria-label="Timetable period">
           <Link href={`${base}&day=${offset(-days)}&view=${days===1?"day":"week"}`}>Previous {days===1?"day":"week"}</Link>
           <Link href={`${base}&day=${today}&view=day`}>Today</Link>
-          <Link href={`${base}&day=${day}&view=${days===1?"week":"day"}`}>{days===1?"Week view":"Day view"}</Link>
+          <Link href={switchView}>{days===1?"Week view":"Day view"}</Link>
           <Link href={`${base}&day=${offset(days)}&view=${days===1?"day":"week"}`}>Next {days===1?"day":"week"}</Link>
         </nav>
-        <p className="meta">{day}{days===7 ? ` to ${offset(6)}` : ""}</p>
+        <p className={styles.periodLabel}><span className="tag">{days===1 ? "Day" : "Week"}</span> <time dateTime={day}>{periodLabel.format(new Date(day))}</time>{days===7 && <> to <time dateTime={offset(6)}>{periodLabel.format(new Date(offset(6)))}</time></>}</p>
         {days === 7 && <details className={styles.weekCalendar}>
           <summary>Week calendar</summary>
           <ol className={styles.week} aria-label="Week calendar by day">
@@ -68,7 +77,7 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
                 date.format(new Date(session.finish.getTime()-1)) >= localDay);
               const label = new Intl.DateTimeFormat("en-IN",{weekday:"short",day:"numeric",month:"short",timeZone:"UTC"}).format(new Date(localDay));
               return <li key={localDay}>
-                <Link href={`${base}&day=${localDay}&view=day`} aria-current={localDay===today ? "date" : undefined}><time dateTime={localDay}>{label}</time></Link>
+                <Link href={`${base}&day=${localDay}&view=day` + (detail && selectedOn(localDay) ? `&session=${detail.row.id}` : "")} aria-current={localDay===today ? "date" : undefined}><time dateTime={localDay}>{label}</time></Link>
                 {records.length === 0 ? <span>No sessions</span> : <ul>{records.map(session=><li key={session.id}>
                   <Link href={sessionLink(session.id)}>{session.course}</Link>
                   <span>{time.format(session.start)} · {stateLabel[session.state]}</span>
@@ -85,6 +94,16 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
           </div>
         </li>)}</ol> : <p>No classes in this period.</p>}
       </section>
+    {current.role==="student" && <section id="attendance" className={`panel ${styles.attendance}`} tabIndex={-1} aria-labelledby="attendance-title">
+      <h2 id="attendance-title">My attendance</h2>
+      <p className="meta">Present marks divided by classes with a recorded mark for you. Cancelled and unrecorded classes are excluded.</p>
+      {summary.length ? <ul className="items">{summary.map(row=><li key={row.offering_id}>
+        <h3>{row.course} · {row.term}</h3><p className={styles.rate}>{attendancePercentage(row.present,row.recorded)}%</p>
+        <p>{row.present} of {row.recorded} recorded classes attended</p>
+        <meter min={0} max={row.recorded} value={row.present} aria-label={`Recorded attendance for ${row.course}`} />
+        <AttendanceForecast present={row.present} recorded={row.recorded} target={row.target} source={row.source} />
+      </li>)}</ul> : <p>No attendance recorded yet.</p>}
+    </section>}
       {current.role==="admin" && <section className="panel">
         <h2>Draft a weekly series</h2>
         {options.staff.length && options.rooms.length ? <ActionForm action={timetableAction} context={current} operation="draft" label="Create class draft">
@@ -108,7 +127,7 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
           </ActionForm>
         </details>)}
       </section>}
-      {detail && <section className="panel" style={recordTransition(current,"session",detail.row.id)} id="class-details" aria-labelledby="class-detail-title">
+      {detail && <section className={`panel ${styles.classDetail}`} style={recordTransition(current,"session",detail.row.id)} id="class-details" aria-labelledby="class-detail-title">
         <h2 id="class-detail-title">{detail.row.course} class</h2>
         <p>{date.format(detail.row.start)} · {time.format(detail.row.start)} – {time.format(detail.row.finish)} · {detail.row.room}</p>
         <p className="meta">{stateLabel[detail.row.state]}{detail.row.change_reason ? ` · ${detail.row.change_reason}` : ""}</p>
@@ -131,14 +150,5 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
           </details>)}
       </section>}
     </div>
-    {current.role==="student" && <section id="attendance" className="panel" aria-labelledby="attendance-title">
-      <h2 id="attendance-title">My attendance</h2>
-      <p className="meta">Present marks divided by classes with a recorded mark for you. Cancelled and unrecorded classes are excluded.</p>
-      {summary.length ? <ul className="items">{summary.map(row=><li key={row.offering_id}>
-        <h3>{row.course} · {row.term}</h3><p className={styles.rate}>{attendancePercentage(row.present,row.recorded)}%</p>
-        <p>{row.present} of {row.recorded} recorded classes attended</p>
-        <AttendanceForecast present={row.present} recorded={row.recorded} target={row.target} source={row.source} />
-      </li>)}</ul> : <p>No attendance recorded yet.</p>}
-    </section>}
   </div></Chrome>;
 }

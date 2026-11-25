@@ -8,6 +8,8 @@ import { ActionForm } from "../forms";
 import { workflow } from "../actions/workflow";
 import { assignmentStatus, formatDate, href, plural } from "./format";
 import { ProgressLine } from "./progress-line";
+import { Icon } from "../experience/workspace-icon";
+import styles from "./mission-control.module.css";
 
 // Faculty home. Every count below is read from PostgreSQL for the caller's current teaching roster.
 export async function MissionControl({ current, timezone }: { current: Scope; timezone: string }) {
@@ -21,10 +23,32 @@ export async function MissionControl({ current, timezone }: { current: Scope; ti
   ]);
   const query = workspaceQuery(current);
 
-  return <div className="grid faculty-workspace">
+  return <div className={styles.workspace}>
+    <div className={styles.lead}>
+      <section className={`panel ${styles.hero}`} aria-labelledby="faculty-priority">
+        <p className={styles.eyebrow}>Faculty priority</p>
+        <h2 id="faculty-priority">Give attention where it makes a difference.</h2>
+        <p className="meta">{totals.pending > 0 ? `${plural(totals.pending, "submission")} awaiting evaluation.` :
+          totals.awaiting > 0 ? `${plural(totals.awaiting, "feedback draft")} ready for review before publication.` :
+          courses.length ? "Your evaluation queue is clear. Check today’s teaching schedule or plan an assignment." :
+          "Your workspace has no active teaching assignments."}</p>
+        {totals.pending > 0 || totals.awaiting > 0
+          ? <Link className={styles.primary} href={href("/grading", query, { status: totals.pending > 0 ? "pending" : "awaiting" })}>Go to evaluation queue</Link>
+          : <Link className={styles.primary} href={href("/timetable", query, { view: "day" })}>Open teaching timetable</Link>}
+      </section>
+      <div className={styles.timeline}><ClassTimeline current={current} timezone={timezone} /></div>
+    </div>
+    <nav className={styles.summary} aria-label="Teaching overview">
+      <Link href={href("/grading", query, { status: "pending" })}><Icon name="check" /><span>Pending evaluations</span><strong>{totals.pending}</strong></Link>
+      <Link href={href("/grading", query, { status: "awaiting" })}><Icon name="book" /><span>Private feedback drafts</span><strong>{totals.awaiting}</strong></Link>
+      <a href="#next-work"><Icon name="notice" /><span>Unpublished assignments</span><strong>{unpublished.total}</strong></a>
+      <a href="#my-courses"><Icon name="people" /><span>Active teaching assignments</span><strong>{courses.length}</strong></a>
+    </nav>
+    <div className={styles.columns}>
     <div className="stack">
-      <section className="panel" aria-labelledby="next-work">
-        <h2 id="next-work">What needs your attention</h2>
+      <section className={`panel ${styles.priority}`} aria-labelledby="next-work">
+        <p className={styles.eyebrow}>Teaching priorities</p>
+        <h2 id="next-work" tabIndex={-1}>What needs your attention</h2>
         {!courses.length ? <p>You have no active teaching assignments in this workspace. An institution administrator assigns courses.</p> :
           <ul className="work-list">
             <li>
@@ -74,10 +98,13 @@ export async function MissionControl({ current, timezone }: { current: Scope; ti
     </div>
 
     <div className="stack">
-      <ClassTimeline current={current} timezone={timezone} />
-      <QuickLookup current={current} />
+      <section className={`panel ${styles.aura}`} aria-labelledby="faculty-aura">
+        <h2 id="faculty-aura">AURA at your side</h2>
+        <p className="meta">Look up your teaching schedule or evaluation queue from authorized records.</p>
+        <QuickLookup current={current} />
+      </section>
       <section className="panel" aria-labelledby="my-courses">
-        <h2 id="my-courses">My courses</h2>
+        <h2 id="my-courses" tabIndex={-1}>My courses</h2>
         {courses.length ? <ul className="items">{courses.map(course => {
           const work = totals.byOffering.get(course.id);
           return <li key={course.id}>
@@ -101,6 +128,7 @@ export async function MissionControl({ current, timezone }: { current: Scope; ti
           <label>Attachment (optional, PDF or TXT, 4 MiB)<input name="file" type="file" accept=".pdf,.txt" /></label>
         </ActionForm> : <p>No courses are currently assigned to you.</p>}
       </section>
+    </div>
     </div>
   </div>;
 }

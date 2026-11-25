@@ -34,3 +34,23 @@
 .week ul { margin-top: var(--space-2); }
 .week ul li { padding: var(--space-1); border-inline-start: 2px solid var(--accent); }
 .page .week ul a { border: 0; color: var(--accent); background: var(--tint); }
+
+.hero { display:flex; justify-content:space-between; align-items:end; flex-wrap:wrap; gap:var(--space-3); }
+.hero h1 { line-height:1.1; letter-spacing:-.04em; }
+.eyebrow { color:var(--accent); font-size:var(--text-meta); font-weight:750; letter-spacing:.11em; text-transform:uppercase; }
+.periodControls { display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-2); margin-block:var(--space-3); }
+.periodControls a,.shortcut { display:inline-flex; align-items:center; justify-content:center; min-height:44px;
+  padding:.4rem .75rem; background:var(--surface); color:var(--accent); border:1px solid var(--control-border);
+  border-radius:var(--radius-control); font-weight:650; text-decoration:none; font-size:var(--text-meta); }
+.periodControls a:hover,.shortcut:hover { background:var(--sage); }
+.periodLabel { display:flex; flex-wrap:wrap; align-items:center; gap:.35rem; margin-bottom:var(--space-2); font-variant-numeric:tabular-nums; }
+.schedule,.attendance { min-width:0; border-radius:var(--radius-panel); }
+.week > li { background:var(--surface-elevated); }
+.week a[aria-current="date"] { color:var(--accent); border-color:var(--accent); font-weight:700; }
+.attendance meter { display:block; inline-size:min(100%,18rem); margin-block:.25rem; }
+.attendance h2 { scroll-margin-block-start:var(--space-5); }
+.attendance { scroll-margin-block:1rem 6rem; }
+@media (min-width:65rem) {
+  .planner[data-student="true"] { grid-template-columns:minmax(0,1.55fr) minmax(0,1fr); }
+  .planner[data-student="true"] .classDetail { grid-column:1/-1; }
+}
