@@ -23,7 +23,3 @@
 .bulk a { text-decoration:none; }
 .review { padding:.68rem .85rem; border-inline-start:3px solid var(--accent); background:var(--canvas); scroll-margin-block:1rem; }
 .review h4 { font-weight:700; }
-.groupCopy { display:grid; gap:.55rem; background:var(--surface-elevated); border:1px solid var(--border); border-radius:var(--radius-panel); padding:var(--space-3); margin-block:var(--space-4); }
-.groupCopy h3 { font-weight:700; }
-.groupCopy summary { color:var(--accent); cursor:pointer; }
-.groupCopy textarea { font:inherit; font-size:var(--text-meta); }

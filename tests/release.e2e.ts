@@ -356,6 +356,7 @@ test("CLUBVERSE recognition, membership, event and leadership journeys persist",
   await page.getByLabel("Requirements and event plan").fill("Bring a laptop.");
   await page.getByRole("button",{ name:"Save event draft" }).click();
   await expect(event.locator(".tag")).toHaveText("draft");
+  await expect(event.getByRole("button",{name:"Copy event announcement"})).toHaveCount(0);
   await transition("pending_approval");
   await signOut(page);
 
@@ -370,6 +371,9 @@ test("CLUBVERSE recognition, membership, event and leadership journeys persist",
   await openClub();
   await transition("published");
   await transition("registration_open");
+  const announcement=event.getByRole("region",{name:"Event announcement"});
+  await announcement.getByText("Preview message",{exact:true}).click();
+  await expect(announcement.getByLabel("Message")).toHaveValue(/Location in the event listing: Electronics lab[\s\S]*Registration is open/);
   await signOut(page);
 
   await signIn(page,"student");
@@ -377,6 +381,7 @@ test("CLUBVERSE recognition, membership, event and leadership journeys persist",
   await openClub();
   await expect(page.getByRole("heading",{ name:"Member area" })).toBeVisible();
   await expect(page.getByRole("heading",{ name:"Organizer console" })).toHaveCount(0);
+  await expect(event.getByRole("button",{name:"Copy event announcement"})).toHaveCount(0);
   await event.getByRole("button",{ name:"Register for event" }).click();
   await expect(event.getByText("Registered · participation unverified")).toBeVisible();
   await signOut(page);

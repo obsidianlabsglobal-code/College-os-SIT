@@ -54,6 +54,9 @@ test("Campus Change Brief offers only eligible rooms, confirms one move and show
     await expect(dialog.getByText(new RegExp(good))).toBeVisible();
     await dialog.getByRole("button",{name:"Publish room change"}).click();
     await expect(page.getByRole("heading",{name:"Verified room change"})).toBeVisible();
+    const announcement=page.getByRole("region",{name:"Room-change announcement"});
+    await announcement.getByText("Preview message",{exact:true}).click();
+    await expect(announcement.getByLabel("Message")).toHaveValue(new RegExp("From: "+old+"\\nGo to: "+good));
 
     await stale.getByRole("button",{name:"Review room change"}).click();
     await stale.getByRole("dialog").getByRole("button",{name:"Publish room change"}).click();
@@ -72,6 +75,7 @@ test("Campus Change Brief offers only eligible rooms, confirms one move and show
       await expect(student.getByRole("region",{name:/Programming class/})).toBeFocused();
       await expect(student).toHaveURL(/day=\d{4}-\d{2}-\d{2}&view=day.*#class-details$/);
       await expect(student.getByRole("heading",{name:"Verified room change"})).toBeVisible();
+      await expect(student.getByRole("button",{name:"Copy room-change update"})).toHaveCount(0);
       await expect(student.getByText(/Timetable revision 2.*Fictional maintenance change/)).toBeVisible();
       await student.reload();
       await expect(student.getByText(new RegExp("Moved from "+old+" to "+good))).toBeVisible();

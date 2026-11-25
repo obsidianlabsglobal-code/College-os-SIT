@@ -19,11 +19,12 @@ export const roleLabels = {
   principal: "Principal",
 } satisfies Record<Scope["role"], string>;
 
-type Destination = "/opportunities" | "/" | "/grading" | "/notices" | "/requests" | "/admin" | "/clubverse" | "/aura" | "/timetable";
+type Destination = "/opportunities" | "/" | "/grading" | "/notices" | "/requests" | "/admin" | "/clubverse" | "/aura" | "/timetable" | "/letters";
 const labels: Record<Destination, string> = {
   "/opportunities": "Opportunities",
   "/": "Overview",
   "/timetable": "Timetable",
+  "/letters": "Letter drafts",
   "/grading": "Evaluation queue",
   "/notices": "Notices",
   "/clubverse": "CLUBVERSE",
@@ -35,7 +36,7 @@ const labels: Record<Destination, string> = {
 const icons: Record<Destination, ComponentProps<typeof Icon>["name"]> = {
   "/opportunities": "service",
   "/": "home", "/timetable": "calendar", "/grading": "check", "/notices": "notice", "/clubverse": "people",
-  "/aura": "spark", "/requests": "service", "/admin": "book",
+  "/aura": "spark", "/requests": "service", "/admin": "book", "/letters": "notice",
 };
 
 export async function Chrome({ user, current, section = "/", children }: {
@@ -55,6 +56,8 @@ export async function Chrome({ user, current, section = "/", children }: {
   if (current?.role === "student" || current?.role === "admin") destinations.push("/opportunities");
   if (current?.role === "admin") destinations.push("/admin");
   if (current?.role === "student" || current?.role === "faculty") destinations.push("/aura");
+
+  if (current) destinations.push("/letters");
 
   return <div className={current ? "app-shell" : "app-shell app-shell-single"}>
     <header className="app-top">

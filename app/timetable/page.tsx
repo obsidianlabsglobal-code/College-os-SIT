@@ -7,6 +7,8 @@ import { attendancePercentage,attendanceSummary,campusChangeAlternatives,nextCla
 import { ActionForm } from "../forms";
 import { Chrome } from "../chrome";
 import { attendanceGroupDraft } from "../../lib/attendance-group-draft";
+import { roomChangeMessage } from "../../lib/prepared-message";
+import { PreparedMessage } from "../experience/prepared-message";
 import { AttendanceGroupCopy } from "./attendance-group-copy";
 import { AttendanceForm } from "./attendance-form";
 import { planningOptions } from "../../lib/attendance-planning";
@@ -148,6 +150,11 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
           <h3>Verified room change</h3>
           <p>Moved from {changes[0].from_room_name} to {changes[0].to_room_name}. Go to {changes[0].current_room} at the displayed time.</p>
           <p className="meta">Timetable revision {changes[0].revision} · Published {date.format(changes[0].published_at)} at {time.format(changes[0].published_at)} · {changes[0].reason}</p>
+          {current.role==="admin"&&<PreparedMessage title="Room-change announcement" buttonLabel="Copy room-change update"
+            description="The published timetable is the source. Paste this only to the affected class or authorized staff channel."
+            message={roomChangeMessage({course:detail.row.course,section:detail.row.section,
+              date:periodLabel.format(new Date(date.format(detail.row.start))),time:`${time.format(detail.row.start)} (${timezone})`,
+              oldRoom:changes[0].from_room_name,newRoom:changes[0].to_room_name})}/>}
         </aside>}
         {current.role==="admin"&&detail.row.state==="published"&&detail.row.start>new Date()&&<details>
           <summary>Campus Change Brief: replace the room</summary>
