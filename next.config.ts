@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 const config: NextConfig = {
+  env: { NEXUS_BUILD_REVISION: process.env.NEXUS_BUILD_REVISION ?? "" },
   experimental: { serverActions: { bodySizeLimit: "4400kb" } },
   agentRules: false,
   async headers() {

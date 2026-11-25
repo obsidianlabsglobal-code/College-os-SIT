@@ -42,6 +42,7 @@ jobs:
       - name: Build the Vercel release artifact
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          NEXUS_BUILD_REVISION: ${{ github.sha }}
         run: |
           test -n "$VERCEL_TOKEN"
           npx --yes vercel@66.6.0 pull --yes --environment=production --token="$VERCEL_TOKEN"
@@ -63,9 +64,17 @@ jobs:
         env:
           HEALTH_BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: |
-          curl_flags=(--fail --silent --show-error)
+          curl_flags=(--fail --silent --show-error --connect-timeout 5 --max-time 15)
           if [ -n "$HEALTH_BYPASS" ]; then
             curl_flags+=(-H "x-vercel-protection-bypass: $HEALTH_BYPASS")
           fi
-          curl "${curl_flags[@]}" --retry 5 --retry-all-errors "${RELEASE_URL%/}/api/health" | jq -e '.status == "ok"'
+          matched=
+          for attempt in {1..12}; do
+            if curl "${curl_flags[@]}" "${RELEASE_URL%/}/api/health" | jq -e --arg revision "$GITHUB_SHA" '.status == "ok" and .revision == $revision' >/dev/null; then
+              matched=yes
+              break
+            fi
+            sleep 5
+          done
+          test "$matched" = yes || { echo "The staging alias is not serving the healthy release revision." >&2; exit 1; }
           curl "${curl_flags[@]}" --retry 2 "${RELEASE_URL%/}/login" | grep -q 'Sign in'
