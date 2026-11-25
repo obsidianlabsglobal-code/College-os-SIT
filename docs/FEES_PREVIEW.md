@@ -22,3 +22,9 @@ The next production increment is a reviewed import from an SIT-approved ledger: 
 ### Batch rehearsal
 
 The signed-in fictional operator can load one built-in CSV, review the ready rows and exceptions, and demonstrate an allocation correction. The importer validates the whole file, uses stable sample student keys, flags both sides of same-channel duplicate references, and projects balances in source order without writing to the ledger. A correction keeps the original line and records its reason with the proposed revised allocation; it cannot change the received amount or silently match an unknown student. Preview and correction history are browser-memory only; they are not durable audit records. No upload control or posting exists. A production import needs separately authorized inputs, attribution, persistence, locking/revalidation, unique transaction IDs, and independent posting policy.
+
+### Durable approval rehearsal
+
+The dedicated signed-in fictional office profile submits exactly one server-generated corrected example. PostgreSQL stores its original allocation, correction reason, projected balance, evidence fingerprint and submitting account. A separate designated fictional HOD profile reviews that exact fingerprint and confirms it; the database rejects approval by the submitter and duplicate approvals. Existing membership and fixture authorization are checked again at the write. The runtime can only insert or read these review tables, not edit or delete past evidence. The independent approval is approval of the rehearsal, not of a charge or payment.
+
+Use a fresh fictional database to repeat the same template from the beginning. Approval of the five-row practice batch is not supported. This milestone still intentionally has no production finance grant directory, import endpoint, posting command, payment gateway or real ledger.

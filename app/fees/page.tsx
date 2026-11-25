@@ -4,6 +4,7 @@ import { feesAggregateExample,feesPreviewAvailable,studentExample,studentTotals 
 import { Chrome } from "../chrome";
 import { ExperienceHeading } from "../experience/heading";
 import styles from "./fees.module.css";
+import { FeeReviewRecord } from "./review-record";
 import { FeeRehearsal } from "./rehearsal";
 import { FeeBatchRehearsal } from "./batch-rehearsal";
 import { canReviewFees } from "../../lib/fee-reconciliation";
@@ -59,6 +60,7 @@ export default async function Fees({searchParams}:{searchParams:Promise<Record<s
         </dl>
       </li>)}</ul>
     </section>}
+    <FeeReviewRecord current={current} user={user} />
     {rehearsal && <><FeeBatchRehearsal /><FeeRehearsal /></>}
     {role==="admin" && <section className="panel"><h2>Office workflow</h2>
       <p>College, transport, hostel and other charges would be maintained by specifically authorized finance staff. This preview can rehearse reconciliation decisions, but it cannot record payments, edit receipts or export records.</p>
