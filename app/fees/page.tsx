@@ -5,6 +5,7 @@ import { Chrome } from "../chrome";
 import { ExperienceHeading } from "../experience/heading";
 import styles from "./fees.module.css";
 import { FeeRehearsal } from "./rehearsal";
+import { FeeBatchRehearsal } from "./batch-rehearsal";
 import { canReviewFees } from "../../lib/fee-reconciliation";
 
 const rupees = new Intl.NumberFormat("en-IN",{style:"currency",currency:"INR",maximumFractionDigits:0});
@@ -58,7 +59,7 @@ export default async function Fees({searchParams}:{searchParams:Promise<Record<s
         </dl>
       </li>)}</ul>
     </section>}
-    {rehearsal && <FeeRehearsal />}
+    {rehearsal && <><FeeBatchRehearsal /><FeeRehearsal /></>}
     {role==="admin" && <section className="panel"><h2>Office workflow</h2>
       <p>College, transport, hostel and other charges would be maintained by specifically authorized finance staff. This preview can rehearse reconciliation decisions, but it cannot record payments, edit receipts or export records.</p>
     </section>}

@@ -65,3 +65,23 @@ test("the fictional fee steward sees a review, not a payment or irreversible act
   await review.getByRole("button",{name:"Review sample payment"}).click();
   await expect(review.getByRole("status")).toContainText("not matched");
 });
+
+test("sample fee batch separates exceptions and keeps the original allocation after a correction",async ({page})=>{
+  test.skip(!enabled,"The fictional view must be explicitly enabled");
+  await signIn(page,"admin");
+  await page.goto(fees("admin"));
+  const batch=page.getByRole("region",{name:"Review a sample fee import"});
+  await batch.getByRole("button",{name:"Load sample batch"}).click();
+  await expect(batch.getByRole("status")).toHaveText("1 ready for review · 4 need attention");
+  await expect(batch.getByText(/no exact roster match/i)).toBeVisible();
+  await expect(batch.getByText(/duplicate reference in this batch/i)).toHaveCount(2);
+  await batch.getByRole("button",{name:"Apply sample allocation correction"}).click();
+  await expect(batch.getByRole("status")).toHaveText("2 ready for review · 3 need attention");
+  const row=batch.getByRole("heading",{name:/Row 3 · DEMO-202/}).locator("..");
+  await row.getByText("Original allocation and correction history").click();
+  await expect(row.getByText(/Original: transport.*3,000/)).toBeVisible();
+  await expect(row.getByText(/Correction 1: Fictional source note/)).toBeVisible();
+  await expect(row.getByText(/6,500\.00 after/)).toBeVisible();
+  await batch.getByRole("button",{name:"Reset sample batch"}).click();
+  await expect(batch.getByRole("button",{name:"Load sample batch"})).toBeVisible();
+});
