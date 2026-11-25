@@ -28,7 +28,12 @@ const workspace = (role: string) => `institution=${fixtures.institution}&role=${
 test("faculty mission control leads from pending work through the evaluation queue to publication", async ({ page }) => {
   const title = `Queue journey ${randomUUID().slice(0, 8)}`;
   await signIn(page, "faculty");
+  await page.setViewportSize({width:390,height:844});
   await expect(page.getByRole("heading", { name: "What needs your attention" })).toBeVisible();
+  const create = page.getByRole("link", { name: "Create assignment", exact:true });
+  await expect(create).toBeInViewport();
+  await create.press("Enter");
+  await expect(page.getByRole("heading", {name:"Create assignment",exact:true})).toBeFocused();
   await page.getByRole("textbox", { name: "Title", exact: true }).fill(title);
   await page.getByLabel("Instructions").fill("Trace the loop invariant.");
   const deadline = new Intl.DateTimeFormat("sv-SE", { dateStyle: "short", timeStyle: "short", timeZone: "Asia/Kolkata" })
@@ -51,7 +56,7 @@ test("faculty mission control leads from pending work through the evaluation que
   const forged = await page.goto(`/grading?${workspace("faculty")}`);
   expect(forged?.status()).toBe(404);
   await page.goto(`/?${workspace("student")}`);
-  await page.getByRole("link", { name: title }).click();
+  await page.getByRole("region", {name:"My assignments",exact:true}).getByRole("link", { name: title,exact:true }).click();
   await page.getByLabel("Response").fill("The invariant holds before and after each iteration.");
   await page.getByRole("button", { name: "Submit assignment" }).click();
   await expect(page.getByRole("heading", { name: "Submitted" })).toBeVisible();

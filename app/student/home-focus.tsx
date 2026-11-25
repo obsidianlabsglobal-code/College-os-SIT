@@ -20,7 +20,7 @@ export function StudentHomeFocus({heading, timetableHref, children}: {
         <a href={timetableHref} className={styles.primary}>My timetable</a>
       </div>
       <p role="status" className={styles.announcer}>
-        {focused ? "Focus mode on. Showing priority, assignments and courses." : ""}
+        {focused ? "Focus mode on. Showing next class, coursework, confirmed room changes and courses." : ""}
       </p>
     </header>
     <div id={region} className={styles.dashboard}>{children}</div>

@@ -55,7 +55,7 @@ test("faculty, student and HOD use the persisted assignment workflow", async ({ 
   await page.getByRole("link",{name:"Introduction to Programming · Section A · Term 1"}).click();
   await expect(page.getByRole("heading",{name:"Course assignments"})).toBeVisible();
   await expect(page.getByText(/Fictional Engineering Scheme/)).toBeVisible();
-  await page.getByRole("link",{ name:title }).click();
+  await page.getByRole("link",{ name:title,exact:true }).click();
   await expect(page.getByRole("heading",{ name:title, exact:true })).toBeVisible();
   const studentUrl = page.url();
   const download = page.waitForEvent("download");
@@ -83,6 +83,7 @@ test("faculty, student and HOD use the persisted assignment workflow", async ({ 
   await signOut(page);
 
   await signIn(page,"student");
+  await page.getByText(/Submitted and past assignments/).click();
   await expect(homeAssignment.getByText("Submitted",{exact:true})).toBeVisible();
   await page.goto(studentUrl);
   await expect(page.getByText("Feedback has yet to be published.")).toBeVisible();
@@ -102,6 +103,7 @@ test("faculty, student and HOD use the persisted assignment workflow", async ({ 
   await signOut(page);
 
   await signIn(page,"student");
+  await page.getByText(/Submitted and past assignments/).click();
   await expect(homeAssignment.getByText("Result published",{exact:true})).toBeVisible();
   await page.goto(studentUrl);
   await expect(page.getByRole("heading",{ name:"Published result · 18/20" })).toBeVisible();
@@ -501,7 +503,7 @@ test("student home uses responsive layout, keyboard navigation and reduced motio
   await shortcut.focus();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/#student-assignments$/);
-  await expect(page.getByRole("region",{name:"Your next best moves"})).toBeFocused();
+  await expect(page.getByRole("region",{name:"My assignments"})).toBeFocused();
   const intro = page.getByRole("heading",{level:1});
   expect(await intro.evaluate(node=>getComputedStyle(node.parentElement!).animationName)).toBe("none");
   const summary = page.getByRole("navigation",{name:"Academic summary"});
@@ -516,7 +518,7 @@ test("student home uses responsive layout, keyboard navigation and reduced motio
 
 test("an unrelated institution receives the empty priority and a keyboard course shortcut", async ({ page }) => {
   await signIn(page, "tenant");
-  const priority = page.getByRole("region", { name: "Next up" });
+  const priority = page.getByRole("region", { name: "Assignments", exact:true });
   await expect(priority.getByText("No assignments awaiting submission")).toBeVisible();
   await priority.getByRole("link", { name: "See my courses" }).focus();
   await page.keyboard.press("Enter");
@@ -549,10 +551,10 @@ test("Student Today links to the most recently released feedback", async ({ page
              ($1,$2,2,9,'Private correction draft',NULL)`, [fixtures.otherInstitution,...submissions]);
 
     await signIn(page, "tenant");
-    const priority = page.getByRole("region", {name:"Next up"});
+    const priority = page.getByRole("region", {name:"Feedback is ready", exact:true});
     await expect(priority).toContainText("Latest released feedback");
     await expect(page.getByRole("link", {name:/Published results/})).toHaveAttribute("href", new RegExp(latest));
-    await priority.getByRole("link", {name:"Read feedback"}).click();
+    await priority.getByRole("link", {name:"Latest released feedback"}).click();
     await expect(page.getByRole("heading", {name:"Published result · 8/10"})).toBeVisible();
     await expect(page.getByText("Private correction draft")).toHaveCount(0);
   } finally {

@@ -23,7 +23,7 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
   const time = new Intl.DateTimeFormat("en-IN",{timeZone:timezone,hour:"numeric",minute:"2-digit"});
   const today = date.format(new Date());
   const day = z.iso.date().safeParse(params.day).data ?? today;
-  const days = params.view==="day" ? 1 : 7;
+  const days = params.view==="week" ? 7 : 1;
   const selectedID = z.uuid().safeParse(params.session);
   if (params.session && !selectedID.success) notFound();
   const [sessions,upcoming,summary,options,detail,targets] = await Promise.all([
@@ -43,8 +43,9 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
   };
   const selectedOn = (localDay:string) => detail && date.format(detail.row.start) <= localDay &&
     date.format(new Date(detail.row.finish.getTime()-1)) >= localDay;
-  const switchView = `${base}&day=${day}&view=${days===1?"week":"day"}` +
-    (detail && (days===1 || selectedOn(day)) ? `&session=${detail.row.id}` : "");
+  const switchDay = days===7 && detail && !selectedOn(day) ? date.format(detail.row.start) : day;
+  const switchView = `${base}&day=${switchDay}&view=${days===1?"week":"day"}` +
+    (detail ? `&session=${detail.row.id}` : "");
   const upcomingLink = upcoming ? `${base}&day=${date.format(upcoming.start)}&view=day&session=${upcoming.id}#class-details` : "";
   const periodLabel = new Intl.DateTimeFormat("en-IN", {weekday:"short",day:"numeric",month:"short",year:"numeric",timeZone:"UTC"});
   const stateLabel = {draft:"Draft",published:"Scheduled",cancelled:"Cancelled",conducted:"Attendance recorded"};
@@ -63,15 +64,15 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
       <section className={`panel ${styles.schedule}`} aria-labelledby="class-schedule">
         <h2 id="class-schedule">Class schedule</h2>
         <nav className={styles.periodControls} aria-label="Timetable period">
-          <Link href={`${base}&day=${offset(-days)}&view=${days===1?"day":"week"}`}>Previous {days===1?"day":"week"}</Link>
+          <Link href={`${base}&day=${offset(-days)}&view=${days===1?"day":"week"}`}>Previous {days===1?"day":"7 days"}</Link>
           <Link href={`${base}&day=${today}&view=day`}>Today</Link>
-          <Link href={switchView}>{days===1?"Week view":"Day view"}</Link>
-          <Link href={`${base}&day=${offset(days)}&view=${days===1?"day":"week"}`}>Next {days===1?"day":"week"}</Link>
+          <Link href={switchView}>{days===1?"Next 7 days":"Day view"}</Link>
+          <Link href={`${base}&day=${offset(days)}&view=${days===1?"day":"week"}`}>Next {days===1?"day":"7 days"}</Link>
         </nav>
-        <p className={styles.periodLabel}><span className="tag">{days===1 ? "Day" : "Week"}</span> <time dateTime={day}>{periodLabel.format(new Date(day))}</time>{days===7 && <> to <time dateTime={offset(6)}>{periodLabel.format(new Date(offset(6)))}</time></>}</p>
+        <p className={styles.periodLabel}><span className="tag">{days===1 ? "Day" : "7-day window"}</span> <time dateTime={day}>{periodLabel.format(new Date(day))}</time>{days===7 && <> to <time dateTime={offset(6)}>{periodLabel.format(new Date(offset(6)))}</time></>}</p>
         {days === 7 && <details className={styles.weekCalendar}>
-          <summary>Week calendar</summary>
-          <ol className={styles.week} aria-label="Week calendar by day">
+          <summary>7-day calendar</summary>
+          <ol className={styles.week} aria-label="7-day calendar by day">
             {Array.from({length:7}, (_, index) => {
               const localDay = offset(index);
               const records = sessions.filter(session => date.format(session.start) <= localDay &&
@@ -128,9 +129,9 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
           </ActionForm>
         </details>)}
       </section>}
-      {detail && <section className={`panel ${styles.classDetail}`} style={recordTransition(current,"session",detail.row.id)} id="class-details" aria-labelledby="class-detail-title">
+      {detail && <section className={`panel ${styles.classDetail}`} style={recordTransition(current,"session",detail.row.id)} id="class-details" tabIndex={-1} aria-labelledby="class-detail-title">
         <h2 id="class-detail-title">{detail.row.course} class</h2>
-        <p>{date.format(detail.row.start)} · {time.format(detail.row.start)} – {time.format(detail.row.finish)} · {detail.row.room}</p>
+        <p><time dateTime={detail.row.start.toISOString()}>{periodLabel.format(new Date(date.format(detail.row.start)))} · {time.format(detail.row.start)}</time> – {time.format(detail.row.finish)} · <strong>{detail.row.room}</strong></p>
         <p className="meta">{stateLabel[detail.row.state]}{detail.row.change_reason ? ` · ${detail.row.change_reason}` : ""}</p>
         {changes[0]&&<aside aria-label="Verified room change">
           <h3>Verified room change</h3>
@@ -141,7 +142,8 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
           <summary>Campus Change Brief: replace the room</summary>
           <p className="meta">Time and teacher stay the same. Choices are preapproved room alternatives with sufficient recorded seats and no current schedule or confirmed-booking conflict.</p>
           {alternatives.length?<ActionForm action={timetableAction} context={current} operation="move-room" label="Review room change"
-            confirmation={`This updates the published timetable from ${detail.row.room} to the selected room. The time is unchanged. No external message is sent.`}>
+            confirmationTitle="Review room change" confirmationLabel="Publish room change"
+            confirmation={`${detail.row.course} · ${date.format(detail.row.start)}, ${time.format(detail.row.start)}. The timetable will change from ${detail.row.room} to the selected room for ${alternatives[0].affected} active students. The class time and teacher stay the same. No external message is sent.`}>
             <input type="hidden" name="session" value={detail.row.id}/>
             <input type="hidden" name="revision" value={detail.row.revision}/>
             <p>Active students affected: {alternatives[0].affected}. The assigned teacher is unchanged.</p>

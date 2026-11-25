@@ -23,3 +23,5 @@
 .primary { display:inline-flex; align-items:center; min-height:44px; padding:.4rem .85rem; background:var(--accent); color:var(--on-accent); border-radius:var(--radius-control); font-weight:650; text-decoration:none; }
 .primary:hover { background:var(--accent-hover); }
 @media(min-width:58rem){ .lead { grid-template-columns:minmax(0,1.65fr) minmax(0,1fr); } }
+.actions { display:flex; align-items:center; flex-wrap:wrap; gap:var(--space-2); }
+.actions :global(.button) { text-decoration:none; }

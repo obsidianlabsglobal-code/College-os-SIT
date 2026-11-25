@@ -28,49 +28,55 @@ export async function StudentHome({current, name, timezone}:{current:Scope;name:
   const open = assignments.filter(item=>item.accepting && !item.submitted);
   const recorded = attendance.reduce((sum,row) => sum + row.recorded, 0);
   const present = attendance.reduce((sum,row) => sum + row.present, 0);
-  const classFirst = upcoming && (!open[0] || upcoming.start <= open[0].deadline);
   const published = assignments.flatMap(item => item.result_published_at
     ? [{ id: item.id, title: item.title, course: item.course, publishedAt: item.result_published_at }]
     : []);
   const latestFeedback = published.sort((a,b) => b.publishedAt.getTime() - a.publishedAt.getTime())[0];
-  const priorityTransition = classFirst ? recordTransition(current,"session",upcoming.id) :
-    open[0] || latestFeedback ? recordTransition(current,"assignment",(open[0] ?? latestFeedback).id) : undefined;
-  const ordered = [...open,...assignments.filter(item=>!item.accepting || item.submitted)];
+  const coursework = open[0] ?? latestFeedback;
+  const classHref = (id:string,start:Date) =>
+    `/timetable?${query}&day=${new Intl.DateTimeFormat("sv-SE",{dateStyle:"short",timeZone:timezone}).format(start)}&view=day&session=${id}#class-details`;
   const firstName = name.trim().split(/\s+/)[0];
+  const assignmentList = (items:typeof assignments) => <ul className={styles.list}>{items.map(item=>{
+    const status = item.result_published_at ? "Result published" : item.submitted ? "Submitted" : item.accepting ? "Ready to submit" : "Deadline passed";
+    return <li key={item.id} id={`student-assignment-${item.id}`} tabIndex={-1}>
+      <div>
+        <Link className={styles.record} href={`/assignments/${item.id}?${query}`}>{item.title}</Link>
+        <p>{item.course} · {item.section}</p>
+        <p>Due <time dateTime={item.deadline.toISOString()}>{deadline.format(item.deadline)}</time></p>
+      </div>
+      <span className={styles.status} data-tone={item.submitted ? "complete" : item.accepting ? "open" : "neutral"}>{status}</span>
+    </li>;
+  })}</ul>;
+  const history = assignments.filter(item=>!item.accepting || item.submitted);
   return <StudentHomeFocus timetableHref={`/timetable?${query}`} heading={<>
       <p className={styles.date}><Icon name="calendar" />{today.format(new Date())} · Student</p>
       <h1>{firstName ? `Welcome, ${firstName}.` : "Welcome back."}</h1>
-      <p>Your classes, priorities and campus life, in one place.</p>
     </>}>
 
-    {roomChanges.length>0&&<section className={styles.panel} aria-labelledby="student-room-updates">
-      <h2 id="student-room-updates">Confirmed room changes</h2>
+    {roomChanges.length>0&&<section className={`${styles.panel} ${styles.roomBrief}`} aria-labelledby="student-room-updates">
+      <h2 id="student-room-updates"><Icon name="notice" />Confirmed room changes</h2>
       <ul className={styles.list}>{roomChanges.map(change=><li key={change.id}><div>
-        <Link className={styles.record} href={`/timetable?${query}&session=${change.id}#class-details`}>{change.course}: moved to {change.current_room}</Link>
+        <a className={styles.record} href={classHref(change.id,change.start)}>{change.course}: moved to {change.current_room}</a>
         <p>{deadline.format(change.start)} · Previously {change.from_room_name} · Published timetable</p>
       </div></li>)}</ul>
     </section>}
     <div className={styles.lead}>
-      <section className={styles.priority} style={priorityTransition} aria-labelledby="next-up">
-        <p className={styles.overline}>Your next best move</p>
-        <h2 id="next-up"><Icon name="book" />{classFirst ? "Next class" : "Next up"}</h2>
-        {classFirst ? <>
-          <strong>{upcoming.course}</strong><p>{upcoming.start <= new Date() ? "Class in progress" : "Next class"} · {deadline.format(upcoming.start)} · {upcoming.room}</p>
-          <a className={styles.primary} href={`/timetable?${query}&session=${upcoming.id}#class-details`} aria-label={`Open class details for ${upcoming.course}`}>Open class details <span aria-hidden="true">→</span></a>
-        </> : open[0] ? <>
-          <strong>{open[0].title}</strong>
-          <p>{open[0].course} · Due <time dateTime={open[0].deadline.toISOString()}>{deadline.format(open[0].deadline)}</time></p>
-          <a className={styles.primary} href={`/assignments/${open[0].id}?${query}`}>Open assignment <span aria-hidden="true">→</span></a>
-        </> : latestFeedback ? <>
-          <strong>Feedback is ready</strong><p>{latestFeedback.title} · {latestFeedback.course}</p>
-          <a className={styles.primary} href={`/assignments/${latestFeedback.id}?${query}`}>Read feedback <span aria-hidden="true">→</span></a>
-        </> : <>
-          <strong>No assignments awaiting submission</strong>
-          <a className={styles.primary} href="#student-courses">See my courses <span aria-hidden="true">↓</span></a>
-        </>}
+      <section className={styles.priority} style={upcoming ? recordTransition(current,"session",upcoming.id) : undefined} aria-label="Next class">
+        <h2><Icon name="calendar" />{upcoming && upcoming.start <= new Date() ? "Class in progress" : "Next class"}</h2>
+        {upcoming ? <>
+          <a className={styles.priorityLink} href={classHref(upcoming.id,upcoming.start)}>{upcoming.course}<Icon name="chevron" /></a>
+          <p><time dateTime={upcoming.start.toISOString()}>{deadline.format(upcoming.start)}</time> · <b>{upcoming.room}</b></p>
+        </> : <><strong>No upcoming classes</strong><p>Check your timetable for published sessions.</p></>}
       </section>
-      <div className={styles.timeline} data-focus-secondary><ClassTimeline current={current} timezone={timezone} /></div>
+      <section className={`${styles.priority} ${styles.coursework}`} style={coursework ? recordTransition(current,"assignment",coursework.id) : undefined} aria-labelledby="next-coursework">
+        <h2 id="next-coursework"><Icon name="book" />{open[0] ? "Due next" : latestFeedback ? "Feedback is ready" : "Assignments"}</h2>
+        {coursework ? <>
+          <a className={styles.priorityLink} href={`/assignments/${coursework.id}?${query}`}>{coursework.title}<Icon name="chevron" /></a>
+          <p>{coursework.course}{open[0] && <> · Due <time dateTime={open[0].deadline.toISOString()}>{deadline.format(open[0].deadline)}</time></>}</p>
+        </> : <><strong>You’re caught up</strong><p>No assignments awaiting submission.</p><a className={styles.secondary} href="#student-courses">See my courses</a></>}
+      </section>
     </div>
+    <div className={styles.timeline} data-focus-secondary><ClassTimeline current={current} timezone={timezone} /></div>
       <nav className={styles.stats} aria-label="Academic summary" data-focus-secondary>
         <h2><Icon name="check" />At a glance</h2>
         <a href="#student-assignments"><Icon name="book" /><span>Open assignments</span><strong>{open.length}</strong></a>
@@ -79,28 +85,17 @@ export async function StudentHome({current, name, timezone}:{current:Scope;name:
         <Link href={`/opportunities?${query}`}><Icon name="spark" /><span>Open opportunities</span><strong>{opportunityCount}</strong></Link>
       </nav>
 
-    {upcoming && !classFirst && <section className={styles.panel} aria-label="Next class">
-      <h2>Next class</h2><Link className={styles.record} href={`/timetable?${query}&session=${upcoming.id}#class-details`}>{upcoming.course}</Link>
-      <p className="meta">{deadline.format(upcoming.start)} · {upcoming.room}</p>
-    </section>}
     <div className={styles.content}>
       <div className={styles.column}>
         <section id="student-assignments" tabIndex={-1} className={styles.panel} aria-labelledby="student-actions-title">
           <div className={styles.sectionHead}>
-            <h2 id="student-actions-title"><Icon name="check" />Your next best moves</h2>
-            <p>Open assignments come first, ordered by deadline.</p>
+            <h2 id="student-actions-title"><Icon name="check" />My assignments</h2>
+            <p>Open assignments are ordered by deadline.</p>
           </div>
-          {ordered.length ? <ul className={styles.list}>{ordered.map(item=>{
-            const status = item.result_published_at ? "Result published" : item.submitted ? "Submitted" : item.accepting ? "Ready to submit" : "Deadline passed";
-            return <li key={item.id} id={`student-assignment-${item.id}`} tabIndex={-1}>
-              <div>
-                <Link className={styles.record} href={`/assignments/${item.id}?${query}`}>{item.title}</Link>
-                <p>{item.course} · {item.section}</p>
-                <p>Due <time dateTime={item.deadline.toISOString()}>{deadline.format(item.deadline)}</time></p>
-              </div>
-              <span className={styles.status} data-tone={item.submitted ? "complete" : item.accepting ? "open" : "neutral"}>{status}</span>
-            </li>;
-          })}</ul> : <p className={styles.empty}>No assignments have been published for your courses yet.</p>}
+          {assignments.length ? <>
+            {open.length ? assignmentList(open) : <p className={styles.empty}>No assignments awaiting submission.</p>}
+            {history.length>0 && <details className={styles.history}><summary>Submitted and past assignments ({history.length})</summary>{assignmentList(history)}</details>}
+          </> : <p className={styles.empty}>No assignments have been published for your courses yet.</p>}
         </section>
 
         <section id="student-courses" tabIndex={-1} className={styles.panel} aria-labelledby="student-courses-title">

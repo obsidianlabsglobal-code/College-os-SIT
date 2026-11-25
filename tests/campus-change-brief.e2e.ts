@@ -48,14 +48,15 @@ test("Campus Change Brief offers only eligible rooms, confirms one move and show
     await room.selectOption(target);
     await page.getByLabel("Public reason for room change").fill("Fictional maintenance change.");
     await page.getByRole("button",{name:"Review room change"}).click();
-    const dialog=page.getByRole("dialog");
+    const dialog=page.getByRole("dialog",{name:"Review room change"});
+    await expect(dialog.getByText(/active students.*teacher stay the same.*No external message/)).toBeVisible();
     await expect(dialog.getByText(new RegExp(old))).toBeVisible();
     await expect(dialog.getByText(new RegExp(good))).toBeVisible();
-    await dialog.getByRole("button",{name:"Confirm change"}).click();
+    await dialog.getByRole("button",{name:"Publish room change"}).click();
     await expect(page.getByRole("heading",{name:"Verified room change"})).toBeVisible();
 
     await stale.getByRole("button",{name:"Review room change"}).click();
-    await stale.getByRole("dialog").getByRole("button",{name:"Confirm change"}).click();
+    await stale.getByRole("dialog").getByRole("button",{name:"Publish room change"}).click();
     await expect(stale.getByText("This class changed. Refresh before saving.")).toBeVisible();
     await stale.close();
 
@@ -64,7 +65,12 @@ test("Campus Change Brief offers only eligible rooms, confirms one move and show
       const student=await c.newPage();await signIn(student,"student");
       const updates=student.getByRole("region",{name:"Confirmed room changes"});
       await expect(updates.getByRole("link",{name:new RegExp(good)})).toBeVisible();
-      await updates.getByRole("link",{name:new RegExp(good)}).click();
+      await student.getByRole("button",{name:"Focus mode"}).press("Enter");
+      const update = updates.getByRole("link",{name:new RegExp(good)});
+      await expect(update).toBeVisible();
+      await update.press("Enter");
+      await expect(student.getByRole("region",{name:/Programming class/})).toBeFocused();
+      await expect(student).toHaveURL(/day=\d{4}-\d{2}-\d{2}&view=day.*#class-details$/);
       await expect(student.getByRole("heading",{name:"Verified room change"})).toBeVisible();
       await expect(student.getByText(/Timetable revision 2.*Fictional maintenance change/)).toBeVisible();
       await student.reload();

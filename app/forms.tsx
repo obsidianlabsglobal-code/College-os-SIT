@@ -7,7 +7,7 @@ import type { Scope } from "../lib/scope";
 import type { ActionState } from "./actions/workflow";
 
 export function ActionForm({
-  action, context, operation, children, label, secondary = false, confirmation,
+  action, context, operation, children, label, secondary = false, confirmation, confirmationTitle = "Review access change", confirmationLabel = "Confirm change",
 }: {
   action: (state: ActionState, form: FormData) => Promise<ActionState>;
   context?: Pick<Scope, "institution" | "role">;
@@ -16,6 +16,8 @@ export function ActionForm({
   label: string;
   secondary?: boolean;
   confirmation?: string;
+  confirmationTitle?: string;
+  confirmationLabel?: string;
 }) {
   const ready = useClientReady();
   const [state, invoke, pending] = useActionState(action, {});
@@ -42,7 +44,7 @@ export function ActionForm({
         <div><button className={secondary ? "button secondary" : "button"}>{pending ? "Saving…" : label}</button></div>
       </fieldset>
       {confirmation && <dialog className="review-dialog" ref={review} aria-labelledby={reviewId}>
-        <h2 id={reviewId}>Review access change</h2>
+        <h2 id={reviewId}>{confirmationTitle}</h2>
         <p>{confirmation}</p>
         {values.length > 0 && <p className="review-selection">{values.join(" · ")}</p>}
         <div className="row">
@@ -53,7 +55,7 @@ export function ActionForm({
             if (!form || !form.reportValidity()) return;
             authorizedSubmit.current = true;
             form.requestSubmit();
-          }}>Confirm change</button>
+          }}>{confirmationLabel}</button>
         </div>
       </dialog>}
       {!pending && state.error && <p className="error" role="alert">{state.error}</p>}

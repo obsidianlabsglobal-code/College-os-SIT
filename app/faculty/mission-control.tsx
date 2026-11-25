@@ -27,14 +27,18 @@ export async function MissionControl({ current, timezone }: { current: Scope; ti
     <div className={styles.lead}>
       <section className={`panel ${styles.hero}`} aria-labelledby="faculty-priority">
         <p className={styles.eyebrow}>Faculty priority</p>
-        <h2 id="faculty-priority">Give attention where it makes a difference.</h2>
+        <h2 id="faculty-priority">Teaching priorities</h2>
         <p className="meta">{totals.pending > 0 ? `${plural(totals.pending, "submission")} awaiting evaluation.` :
           totals.awaiting > 0 ? `${plural(totals.awaiting, "feedback draft")} ready for review before publication.` :
           courses.length ? "Your evaluation queue is clear. Check today’s teaching schedule or plan an assignment." :
           "Your workspace has no active teaching assignments."}</p>
-        {totals.pending > 0 || totals.awaiting > 0
+        <div className={styles.actions}>{totals.pending > 0 || totals.awaiting > 0
           ? <Link className={styles.primary} href={href("/grading", query, { status: totals.pending > 0 ? "pending" : "awaiting" })}>Go to evaluation queue</Link>
-          : <Link className={styles.primary} href={href("/timetable", query, { view: "day" })}>Open teaching timetable</Link>}
+          : null}
+          <Link className={totals.pending || totals.awaiting ? "button secondary" : styles.primary}
+            href={href("/timetable", query, { view: "day" })}>Today’s timetable</Link>
+          {courses.length>0 && <a className="button secondary" href="#create-assignment">Create assignment</a>}
+        </div>
       </section>
       <div className={styles.timeline}><ClassTimeline current={current} timezone={timezone} /></div>
     </div>
@@ -117,7 +121,7 @@ export async function MissionControl({ current, timezone }: { current: Scope; ti
         })}</ul> : <p>No active course assignments are available for this workspace.</p>}
       </section>
       <section className="panel" aria-labelledby="create-assignment">
-        <h2 id="create-assignment">Create assignment</h2>
+        <h2 id="create-assignment" tabIndex={-1}>Create assignment</h2>
         {courses.length ? <ActionForm action={workflow} context={current} operation="create" label="Create draft">
           <label>Course and section<select name="offering" required>{courses.map(course => <option key={course.id} value={course.id}>{course.label}</option>)}</select></label>
           <label>Title<input name="title" required maxLength={160} /></label>
