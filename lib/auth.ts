@@ -6,7 +6,11 @@ export const auth = betterAuth({
   emailAndPassword: { enabled: true, disableSignUp: true },
   advanced: {
     ipAddress: {
-      ipAddressHeaders: process.env.VERCEL ? ["x-vercel-forwarded-for"] : ["x-forwarded-for"],
+      // The small fictional pilot uses Better Auth's database-backed shared
+      // path bucket rather than interpreting externally supplied proxy headers.
+      // Do not set disableIpTracking: Better Auth would skip rate limiting.
+      ipAddressHeaders: process.env.NEXUS_FICTIONAL_PILOT === "true"
+        ? [] : process.env.VERCEL ? ["x-vercel-forwarded-for"] : ["x-forwarded-for"],
     },
   },
   rateLimit: {

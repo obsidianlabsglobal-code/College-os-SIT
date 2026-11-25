@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: nexus-sit-fictional-pilot
+    runtime: node
+    branch: release/nexus-sit-free-pilot
+    plan: free
+    region: singapore
+    autoDeployTrigger: 'off'
+    healthCheckPath: /api/health
+    buildCommand: npm ci --include=dev && node --import tsx scripts/render-pilot.ts build
+    startCommand: node --import tsx scripts/render-pilot.ts start
+    envVars:
+      - key: NEXUS_FICTIONAL_PILOT
+        value: 'true'
+      - key: AURA_MODEL_ENABLED
+        value: 'false'
+      - key: DATABASE_URL
+        sync: false
+      - key: NEXUS_RUNTIME_TARGET
+        sync: false
+      - key: BETTER_AUTH_URL
+        sync: false
+      - key: BETTER_AUTH_SECRET
+        generateValue: true

@@ -6,6 +6,9 @@ import { Chrome } from "../chrome";
 import { ActionForm } from "../forms";
 import { catalog } from "../actions/catalog";
 import { institution } from "../actions/institution";
+import { studentAdmission } from "../actions/student-admission";
+import { studentAdmissions } from "../../lib/student-admission";
+import { onboardingPreviewEnabled } from "../../lib/onboarding-preview";
 import { delegatedRoles, institutionCatalog } from "../../lib/institution";
 
 type Option = { id: string; name: string };
@@ -19,10 +22,13 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   const [selection,user] = await Promise.all([searchParams,account()]);
   const current = await scope(selection.institution,selection.role);
   if (current.role !== "admin") notFound();
-  const [data, setup] = await Promise.all([adminCatalog(current),institutionCatalog(current)]);
+  const preview = onboardingPreviewEnabled();
+  const [data, setup, admissions] = await Promise.all([
+    adminCatalog(current), institutionCatalog(current), preview ? studentAdmissions(current) : [],
+  ]);
   return <Chrome user={user} current={current} section="/admin">
     <PageHeader title="Academic setup" parent={{ href: `/?${workspaceQuery(current)}`, label: "Workspace" }} />
-    <nav className="section-jumps" aria-label="Academic setup sections"><a href="#admin-catalog">Courses and sections</a><a href="#admin-rosters">Course rosters</a><a href="#admin-structure">Departments, schemes and terms</a><a href="#admin-access">Role assignments</a></nav>
+    <nav className="section-jumps" aria-label="Academic setup sections"><a href="#admin-catalog">Courses and sections</a><a href="#admin-rosters">Course rosters</a><a href="#admin-structure">Departments, schemes and terms</a><a href="#admin-access">Role assignments</a>{preview && <a href="#student-admission">Student admissions preview</a>}</nav>
     <div className="grid">
       <section className="panel stack">
         <h2 id="admin-catalog" tabIndex={-1}>Courses and sections</h2>
@@ -83,6 +89,24 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
           </ActionForm>}
         </li>)}</ul>
       </section>
+      {preview && <section className="panel stack">
+        <h2 id="student-admission" tabIndex={-1}>Student admissions preview</h2>
+        <p>Record eligibility for fictional students only. This cannot create an account or grant workspace access.</p>
+        <ActionForm action={studentAdmission} context={current} operation="approve" label="Save fictional approval">
+          <label>Fictional student email<input name="email" type="email" maxLength={254} placeholder="example@nexus.example.invalid" required /></label>
+          <Choices label="Admission section" field="section" options={data.sections} />
+          <Choices label="Admission term" field="term" options={data.terms} />
+        </ActionForm>
+        {!admissions.length && <p>No fictional approvals yet.</p>}
+        <ul className="items">{admissions.map(entry => <li key={entry.id}>
+          <strong>{entry.email}</strong><p className="meta">{entry.section} · {entry.term}</p>
+          {entry.revoked_at ? <span className="tag">Revoked</span> :
+            <ActionForm action={studentAdmission} context={current} operation="revoke" label="Revoke approval" secondary
+              confirmation="Revoke this fictional student's approval. This does not change any existing accounts.">
+              <input type="hidden" name="admission" value={entry.id} />
+            </ActionForm>}
+        </li>)}</ul>
+      </section>}
     </div>
   </Chrome>;
 }

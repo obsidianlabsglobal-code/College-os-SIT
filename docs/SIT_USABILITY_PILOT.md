@@ -1,0 +1,24 @@
+# SIT usability pilot
+
+Test with a small invited group and fictional records. This is not an official SIT system, a live class workflow, or a place to upload campus files. Do not collect student IDs, institutional credentials, real attendance, grades or personal data. Keep AURA provider calls off. A real-data rollout is a separate decision requiring institutional authorization and operational sign-off.
+
+## Prepare the pilot
+
+1. Use a new Neon Free project named `nexus-sit-pilot` for this test only. Choose a nearby available region. Do not attach an existing client database. On the isolated project, create a database named `nexus` and a login named `nexus_app` with no owner, administrative or elevated role memberships. Give it a new random password through the provider's secret controls. Use the database owner only for migration and controlled seeding. Verify `btree_gist` can be installed before proceeding.
+2. Copy the known runtime and migration endpoint identities from that project. Follow the [database allowlist rules](DEPLOYMENT.md#dedicated-database-allowlist). Use separate secret connection URLs with `sslmode=verify-full`; use a direct endpoint for migrations. Keep the migration password and the operator demo password out of the web service.
+3. Apply and rerun the migrations from the reviewed release on the isolated database. Seed fictional data with the existing operator command, the host confirmation and a new staging-only demo password. Never reuse the default sample password. Keep the seeded high-privilege accounts operator-only.
+4. Create a **Free** Render Web Service in a separate workspace without a payment method. Use the settings in [render.yaml](../render.yaml), including manual deploys and the pilot branch. For a Blueprint, select that branch and switch off Blueprint Auto Sync. Configure the restricted database URL, the separately checked runtime target, the exact provider-generated HTTPS origin as `BETTER_AUTH_URL`, and a generated auth secret. If the service name changes because its hostname is taken, use the service's actual published origin. Do not add model keys or migration credentials.
+5. Deploy the reviewed SHA. Confirm the hosted health response reports that SHA, TLS and sign-in work, public sign-up is disabled, and the fictional pilot notice is visible. Run [hosted acceptance](DEPLOYMENT.md#authenticated-acceptance) with the full SHA and fictional credentials before inviting anyone. Pilot mode ignores client IP headers and applies the existing database-backed shared sign-in limit (20 attempts per minute across the whole pilot). Confirm the shared bucket is present after hosted sign-in. Stagger sign-ins if needed. This is appropriate for the small scheduled cohort, not campus-wide traffic. The prototype may take around a minute to wake after idle; do not disable the health or release checks to hide a cold start.
+
+### Fill the walkthrough with sample records
+
+After migrating and seeding the isolated fictional database, run `scripts/seed-walkthrough.sql` as the approved database owner connected to that exact project. The script checks the migration count, the exact fictional institutions, fictional account domains and the expected role assignments before writing. It does not create sign-ins or update existing records. The fixed fixture IDs make a replay safe; a replay does not move the original dates.
+
+Use the student preview to open **Timetable**, **My attendance**, **Notices**, **CLUBVERSE**, **Opportunities**, and **Voltage divider mini-lab**. Use the faculty fixture to review **Circuit sketch checkpoint** in the evaluation queue and see the **Maker Studio** booking in the custodian queue. The club event, opportunity, deadlines and attendance target are examples and not SIT policies or announcements.
+
+## Run the first session
+
+- Start with three students and one faculty member who agree to participate. This is a target, not a list of invitees. Have the organizer provision unique, least-privilege fictional sign-ins and share credentials privately. If those are not yet provisioned, run a moderated walkthrough with the organizer controlling the account; do not hand out the shared operator password or enroll testers in an official system.
+- Ask students to find their next class, open an assignment, submit a fictional answer, and find published feedback. Ask faculty to locate a pending submission, grade it and publish feedback; use only a designated fictional course and sample work.
+- Record completion, time, where they hesitated, and whether they could explain what happened. Use tester codes rather than names in the notes. Do not record the screen or collect identifiable feedback without consent.
+- Revoke the test sign-ins and sessions after the trial. Keep only agreed, de-identified findings. Treat a small usability test as evidence about specific workflows, not as confirmation that the whole system is ready for campus-wide use.

@@ -3,11 +3,14 @@ import { chromium, expect } from "@playwright/test";
 import { setTimeout as delay } from "node:timers/promises";
 import { randomUUID } from "node:crypto";
 import { demoEmail, demoPassword, fixtures } from "./fixtures";
+import { assertReleaseHealth, isReleaseRevision } from "../lib/release-revision";
 
 const url = new URL(process.env.RELEASE_URL ?? "");
 const local = ["localhost","127.0.0.1"].includes(url.hostname);
 if (url.href !== url.origin + "/" || (!local && url.protocol !== "https:") ||
     process.env.NEXUS_ACCEPTANCE_HOST !== url.host) throw Error("Confirm the exact fictional staging host.");
+const revision = process.env.NEXUS_EXPECTED_REVISION;
+if ((!local || revision !== undefined) && !isReleaseRevision(revision)) throw Error("Set the full expected Git commit SHA.");
 const password = local ? demoPassword : process.env.NEXUS_DEMO_PASSWORD;
 if (!password || (!local && (password.length < 24 || password === demoPassword))) throw Error("Set the fictional staging password.");
 const run = process.env.NEXUS_ACCEPTANCE_RUN ?? randomUUID();
@@ -20,11 +23,18 @@ const browser = await chromium.launch({executablePath:process.env.CHROMIUM_PATH}
 try {
   const context = await browser.newContext({baseURL:url.origin,serviceWorkers:"block"});
   const bypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
-  if (bypass) {
-    const handshake = await context.request.get(new URL("/api/health",url).href,{
-      maxRedirects:0, headers:{"x-vercel-protection-bypass":bypass,"x-vercel-set-bypass-cookie":"true"},
+  const checkHealth = async (establishProtection = false) => {
+    const response = await context.request.get(new URL("/api/health",url).href,{
+      maxRedirects:0,
+      headers:establishProtection && bypass ? {"x-vercel-protection-bypass":bypass,"x-vercel-set-bypass-cookie":"true"} : {},
     });
-    if (handshake.status() >= 400 || !(await context.cookies()).length) throw Error("Staging protection handshake failed.");
+    const payload = response.status() === 200 ? await response.json().catch(() => null) : null;
+    assertReleaseHealth(response.status(),payload,revision);
+  };
+  await checkHealth(Boolean(bypass));
+  if (bypass) {
+    if (!(await context.cookies(url.origin)).length) throw Error("Staging protection handshake failed.");
+    await checkHealth();
   }
   await context.route("**/*", async route => {
     if (new URL(route.request().url()).origin !== url.origin) return route.abort();
@@ -142,7 +152,8 @@ try {
   await login("principal");
   await expect(page.getByRole("heading",{name:"Institution activity"})).toBeVisible();
   expect(Number(await page.locator("dt").filter({hasText:"Published results"}).locator("xpath=following-sibling::dd[1]").innerText())).toBeGreaterThan(0);
-  console.log(`Verified five roles, section and tenant denials, exact private file, published grade and resolved request for ${run}.`);
+  await checkHealth();
+  console.log(`Verified five roles, section and tenant denials, exact private file, published grade and resolved request for ${run}${revision ? ` on ${revision}` : ""}.`);
 } finally {
   await browser.close();
 }
