@@ -9,6 +9,7 @@ import { notices } from "../../lib/connected";
 import { workspaceQuery, type Scope } from "../../lib/scope";
 import { Icon } from "../experience/workspace-icon";
 import styles from "./home.module.css";
+import { StudentHomeFocus } from "./home-focus";
 
 export function StudentHomeLoading() {
   return <div className={styles.home} role="status">
@@ -36,15 +37,15 @@ export async function StudentHome({current, name, timezone}:{current:Scope;name:
     open[0] || latestFeedback ? recordTransition(current,"assignment",(open[0] ?? latestFeedback).id) : undefined;
   const ordered = [...open,...assignments.filter(item=>!item.accepting || item.submitted)];
   const firstName = name.trim().split(/\s+/)[0];
-  return <div className={styles.home}>
-    <header className={styles.intro}>
+  return <StudentHomeFocus timetableHref={`/timetable?${query}`} heading={<>
       <p className={styles.date}><Icon name="calendar" />{today.format(new Date())} · Student</p>
       <h1>{firstName ? `Welcome, ${firstName}.` : "Welcome back."}</h1>
-      <p>Your campus, at a glance.</p>
-    </header>
+      <p>Your classes, priorities and campus life, in one place.</p>
+    </>}>
 
     <div className={styles.lead}>
       <section className={styles.priority} style={priorityTransition} aria-labelledby="next-up">
+        <p className={styles.overline}>Your next best move</p>
         <h2 id="next-up"><Icon name="book" />{classFirst ? "Next class" : "Next up"}</h2>
         {classFirst ? <>
           <strong>{upcoming.course}</strong><p>{upcoming.start <= new Date() ? "Class in progress" : "Next class"} · {deadline.format(upcoming.start)} · {upcoming.room}</p>
@@ -61,15 +62,14 @@ export async function StudentHome({current, name, timezone}:{current:Scope;name:
           <a className={styles.primary} href="#student-courses">See my courses <span aria-hidden="true">↓</span></a>
         </>}
       </section>
-      <ClassTimeline current={current} timezone={timezone} />
+      <div className={styles.timeline} data-focus-secondary><ClassTimeline current={current} timezone={timezone} /></div>
     </div>
-      <nav className={styles.stats} aria-label="Academic summary">
+      <nav className={styles.stats} aria-label="Academic summary" data-focus-secondary>
         <h2><Icon name="check" />At a glance</h2>
-        <a href="#student-assignments"><span>Open assignments</span><strong>{open.length}</strong></a>
-        <a href="#student-courses"><span>My courses</span><strong>{courses.length}</strong></a>
-        <a href={latestFeedback ? `/assignments/${latestFeedback.id}?${query}` : "#student-assignments"}><span>Published results</span><strong>{published.length}</strong></a>
-        <Link href={`/timetable?${query}#attendance`}><span>Recorded attendance</span><strong>{recorded ? attendancePercentage(present,recorded)+"%" : "—"}</strong><small>{recorded ? `${present} of ${recorded} recorded` : "No marks recorded"}</small></Link>
-        <Link href={`/opportunities?${query}`}><span>Open opportunities</span><strong>{opportunityCount}</strong></Link>
+        <a href="#student-assignments"><Icon name="book" /><span>Open assignments</span><strong>{open.length}</strong></a>
+        <a href={latestFeedback ? `/assignments/${latestFeedback.id}?${query}` : "#student-assignments"}><Icon name="check" /><span>Published results</span><strong>{published.length}</strong></a>
+        <Link href={`/timetable?${query}#attendance`}><Icon name="calendar" /><span>Recorded attendance</span><strong>{recorded ? attendancePercentage(present,recorded)+"%" : "—"}</strong><small>{recorded ? `${present} of ${recorded} recorded` : "No marks recorded"}</small></Link>
+        <Link href={`/opportunities?${query}`}><Icon name="spark" /><span>Open opportunities</span><strong>{opportunityCount}</strong></Link>
       </nav>
 
     {upcoming && !classFirst && <section className={styles.panel} aria-label="Next class">
@@ -104,7 +104,15 @@ export async function StudentHome({current, name, timezone}:{current:Scope;name:
         </section>
       </div>
 
-      <div className={styles.column}>
+      <div className={styles.column} data-focus-secondary>
+        <section className={`${styles.panel} ${styles.aura}`} aria-labelledby="student-aura-title">
+          <div className={styles.sectionHead}>
+            <h2 id="student-aura-title"><Icon name="spark" />AURA at your side</h2>
+            <p>Check your timetable, attendance and published results against your current records.</p>
+          </div>
+          <div className={styles.auraInset}><QuickLookup current={current} /></div>
+          <Link className={styles.secondary} href={`/aura?${query}`}>Open AURA activity <span aria-hidden="true">→</span></Link>
+        </section>
         <section className={styles.panel} aria-labelledby="student-notices-title">
           <div className={styles.sectionHead}><h2 id="student-notices-title"><Icon name="notice" />Campus notices</h2></div>
           {updates.length ? <ul className={styles.list}>{updates.map(notice=><li key={notice.id}>
@@ -120,15 +128,7 @@ export async function StudentHome({current, name, timezone}:{current:Scope;name:
           <Link href={`/clubverse?${query}`}><Icon name="people" />Discover communities <span aria-hidden="true">→</span></Link>
           <Link href={`/requests?${query}`}><Icon name="service" />Request an enrollment letter <span aria-hidden="true">→</span></Link>
         </nav>
-        <section className={`${styles.panel} ${styles.aura}`} aria-labelledby="student-aura-title">
-          <div className={styles.sectionHead}>
-            <h2 id="student-aura-title"><Icon name="spark" />AURA</h2>
-            <p>Check your timetable, attendance and published results against your current records.</p>
-          </div>
-          <QuickLookup current={current} />
-          <Link className={styles.secondary} href={`/aura?${query}`}>Open AURA activity <span aria-hidden="true">→</span></Link>
-        </section>
       </div>
     </div>
-  </div>;
+  </StudentHomeFocus>;
 }

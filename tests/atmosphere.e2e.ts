@@ -38,3 +38,38 @@ test("mobile themes, scoped More menu and a confirmed direct academic lookup", a
   await expect(receipt).toContainText("Model calls 0 · Tool operations 1");
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(320);
 });
+
+test("Student Today focus mode preserves real tasks and restores campus context", async ({page},testInfo) => {
+  await page.setViewportSize({width:390,height:844});
+  await page.emulateMedia({reducedMotion:"reduce"});
+  await page.goto("/login");
+  await page.getByLabel("Email").fill(demoEmail("student"));
+  await page.getByLabel("Password").fill(demoPassword);
+  await page.getByRole("button",{name:"Sign in"}).click();
+  await expect(page.getByRole("heading",{name:"Welcome, Asha."})).toBeVisible();
+  const focus=page.getByRole("button",{name:"Focus mode"});
+  const summary=page.getByRole("navigation",{name:"Academic summary"});
+  const work=page.getByRole("region",{name:"Your next best moves"});
+  const aura=page.getByRole("region",{name:"AURA at your side"});
+  const schedule=page.getByRole("link",{name:"My timetable",exact:true}).first();
+  await expect(schedule).toHaveAttribute("href",/\/timetable\?.*role=student/);
+  await expect(summary.getByRole("link")).toHaveCount(4);
+  await expect(aura).toBeVisible();
+  await focus.focus();
+  await focus.press("Enter");
+  await expect(focus).toHaveAttribute("aria-pressed","true");
+  await expect(focus).toBeFocused();
+  await expect(summary).toBeHidden();
+  await expect(aura).toBeHidden();
+  await expect(work).toBeVisible();
+  await expect(work.getByRole("link").first()).toHaveAttribute("href",/\/assignments\//);
+  await focus.press("Space");
+  await expect(focus).toHaveAttribute("aria-pressed","false");
+  await expect(aura).toBeVisible();
+  await expect(summary).toBeVisible();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(390);
+  await page.screenshot({path:testInfo.outputPath("student-today-mobile.png"),fullPage:true});
+  await page.setViewportSize({width:1440,height:900});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(1440);
+  await page.screenshot({path:testInfo.outputPath("student-today-desktop.png"),fullPage:true});
+});
