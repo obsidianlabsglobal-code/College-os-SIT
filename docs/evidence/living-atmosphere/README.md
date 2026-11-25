@@ -1,6 +1,6 @@
 # Living Atmosphere browser evidence
 
-The production application was captured with fictional institutional records. The comparison baseline was main at `88609cf`. The candidate source was `5e7b0a9`, which includes main through PR #13.
+The production application was captured with fictional institutional records. The comparison baseline was main at `88609cf`. The candidate source was `57669bf`, which includes main through PR #13.
 
 | Evidence | What it covers |
 | --- | --- |
