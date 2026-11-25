@@ -1,3 +1,5 @@
+import { QuickLookup } from "../aura/quick-lookup";
+import { ClassTimeline } from "../experience/class-timeline";
 import Link from "next/link";
 import { assignmentProgress, evaluationTotals } from "../../lib/faculty";
 import { offerings } from "../../lib/assignments";
@@ -19,7 +21,7 @@ export async function MissionControl({ current, timezone }: { current: Scope; ti
   ]);
   const query = workspaceQuery(current);
 
-  return <div className="grid">
+  return <div className="grid faculty-workspace">
     <div className="stack">
       <section className="panel" aria-labelledby="next-work">
         <h2 id="next-work">What needs your attention</h2>
@@ -72,6 +74,8 @@ export async function MissionControl({ current, timezone }: { current: Scope; ti
     </div>
 
     <div className="stack">
+      <ClassTimeline current={current} timezone={timezone} />
+      <QuickLookup current={current} />
       <section className="panel" aria-labelledby="my-courses">
         <h2 id="my-courses">My courses</h2>
         {courses.length ? <ul className="items">{courses.map(course => {

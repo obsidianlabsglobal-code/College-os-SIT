@@ -1,9 +1,10 @@
+import { Brand } from "../experience/brand";
 import { ActionForm } from "../forms";
 import { signIn } from "../actions/session";
 
 export default function LoginPage() {
   return <div className="shell">
-    <header className="top"><span className="brand">NEXUS</span><span className="meta">Obsidian Labs</span></header>
+    <header className="top"><span className="brand"><Brand /></span><span className="meta">Obsidian Labs</span></header>
     <main className="login" id="main">
       <div className="hero"><h1>Sign in</h1><p className="meta">College OS · Academic workspace</p></div>
       <section className="panel">

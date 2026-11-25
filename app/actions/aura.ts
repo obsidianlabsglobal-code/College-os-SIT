@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { eventInput } from "../../lib/club-contracts";
-import { scope } from "../../lib/scope";
+import { redirect } from "next/navigation";
+import { scope, workspaceQuery } from "../../lib/scope";
 import { decideEventPlan, prepareEventPlan } from "../../lib/aura/tasks";
 import { askAura } from "../../lib/aura/assistant";
 import { WorkflowError } from "../../lib/assignments";
@@ -34,4 +35,19 @@ export async function auraAction(_state: ActionState, form: FormData): Promise<A
   revalidatePath("/","layout");
   if (operation === "ask") return { message: "Done. The answer is at the top of your conversation." };
   return { message:operation === "preview" || operation === "proposal" ? "Preview saved for your confirmation." : operation === "confirm" ? "Event draft saved." : "Preview cancelled." };
+}
+
+export async function quickLookup(_state: ActionState, form: FormData): Promise<ActionState> {
+  const actor = await scope(form.get("institution"),form.get("role"));
+  const lookup = z.enum(["My timetable","My assignments","My attendance"]).safeParse(form.get("lookup"));
+  if (!lookup.success || !["student","faculty"].includes(actor.role) ||
+      (lookup.data === "My attendance" && actor.role !== "student")) return {error:"Choose a lookup available in this workspace."};
+  let request: string;
+  try {
+    request = await askAura(actor, {message:lookup.data,nonce:form.get("nonce"),allowModel:false});
+  } catch (error) {
+    if (error instanceof WorkflowError) return {error:error.message};
+    return {error:"The lookup could not be confirmed. Check AURA activity before retrying."};
+  }
+  redirect(`/aura?${workspaceQuery(actor)}#aura-request-${request}`);
 }

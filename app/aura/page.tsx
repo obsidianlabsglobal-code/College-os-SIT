@@ -1,3 +1,4 @@
+import { ReceiptFocus } from "./receipt-focus";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { randomUUID } from "node:crypto";
@@ -46,6 +47,7 @@ function Evidence({ request }: { request: AuraRequest }) {
   const result = request.result ?? {};
   return <div className={styles.evidence}>
     {typeof result.source === "string" && <span>Source: {result.source}{typeof result.checkedAt === "string" ? ` · checked ${time(result.checkedAt)}` : ""}</span>}
+    {request.capability && <span>Capability · <code>{request.capability}</code></span>}
     <span>Model calls {request.model_calls} · Tool operations {request.tool_calls}</span>
     {request.usage.map((call, index) => <span key={index}>
       {call.model} · {call.status}{call.input_tokens !== null ? ` · ${call.input_tokens} input / ${call.output_tokens} output tokens` : ""}
@@ -90,7 +92,7 @@ function RequestCard({ request, current, query }: { request: AuraRequest; curren
   const route = badge(request);
   const state = stateText(request);
   const reply = typeof result.reply === "string" && result.reply ? result.reply : null;
-  return <li className={styles.card} aria-label={`Request: ${request.message}`}>
+  return <li id={`aura-request-${request.id}`} tabIndex={-1} className={styles.card} aria-label={`Request: ${request.message}`}>
     <p className={styles.ask}>“{request.message}”</p>
     <div className={styles.badges}>
       <span className={styles.badge} data-tone={route.tone}>{route.text}</span>
@@ -144,6 +146,7 @@ export default async function Aura({ searchParams }: { searchParams: Promise<Rec
         <section aria-labelledby="aura-conversation" className="stack">
           <h2 id="aura-conversation">AURA activity</h2>
           {!requests.length && <p className="meta">No requests yet. Try one of the suggestions above.</p>}
+          <ReceiptFocus latest={requests[0]?.id} />
           <ol className={styles.thread}>{requests.map(request => <RequestCard key={request.id} request={request} current={current} query={query} />)}</ol>
         </section>
         {tasks.some(task => !linked.has(task.id)) && <section className="panel stack" aria-labelledby="aura-event-plans">

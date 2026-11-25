@@ -49,3 +49,7 @@ GitHub reported zero deployments. Creating the release environment returned HTTP
 ### November 23 · Verified opportunity directory
 
 Branch feature/verified-opportunity-directory extends CR-001, CR-005 and CR-006. Fictional-data tests cover administrator publication, replay, withdrawal, expiry, active membership, cross-institution denial, type filtering, search and pagination. On the current main baseline 21 service tests and 18 Chromium journeys passed. The mobile and desktop student captures in docs/evidence/opportunity-directory show a fictional scholarship. A focused mobile check passed again after shortening the mobile navigation label. Official-source verification is a human responsibility. Hosted acceptance, provider feeds and student applications are pending.
+
+### November 25 · Living Atmosphere
+
+PR #14 delivers the shared forest navigation, saved appearance preferences, Student Today priorities, faculty teaching context, tighter report hierarchy, guarded administrator access confirmation, timetable grid and contextual academic lookup. The branch incorporates PR #13 and uses the existing authorized workflows and 480 recorded feature IDs. The [comparison package](evidence/living-atmosphere/README.md) contains actual fictional-data browser captures. Hosted acceptance and independent experience review are open.

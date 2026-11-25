@@ -1,12 +1,15 @@
-# Information architecture
+# Workspace navigation
 
-| Workspace | Current navigation | Next destinations when their workflows exist |
+| Workspace | Authenticated destinations | Overview action |
 | --- | --- | --- |
-| Student | Overview with assignment details, Notices, Service requests | Campus Transport, Academics as a dedicated destination, Calendar, opportunities, campus life, profile settings |
-| Faculty | Overview with assignment creation and grading, Notices | My Courses, Submissions to Review, calendar, support and reports |
-| HOD | Overview with scoped department activity, Notices | Department academics, pending work, resources and reports |
-| Principal | Overview with institution aggregates, Notices | Departments, operations, reports and pending decisions |
-| Administrator | Overview, Notices, Service requests, Academic setup and roles | People and Roles, catalog and roster subnavigation, Transport Administration and audit |
-| Transport operator | Planned | Assigned trips and stationary operations, with no access to unrelated operations |
+| Student | Overview, timetable, notices, CLUBVERSE, service requests, opportunities, AURA | Open the earliest actionable class or assignment, see published feedback and recorded attendance |
+| Faculty | Overview, timetable, evaluation queue, notices, CLUBVERSE, AURA | Review submissions, publish prepared feedback and consult today’s classes |
+| Department head | Overview, timetable, notices | Read department-scoped academic activity and definitions |
+| Principal | Overview, notices | Read institution aggregates and their definitions |
+| Institution administrator | Overview, timetable, notices, CLUBVERSE, service requests, opportunities, academic setup and roles | Open the current service queue, manage catalogs and review access changes |
 
-Keep existing routes and their authorized workspace query. Only valid active memberships can populate workspace choices. The explicit switch action validates the choice before storing a 30-day server cookie. Explicit URLs take precedence and access is rechecked. An obsolete saved preference falls back to an active workspace. Brand and breadcrumb links retain current scope. Desktop has a collapsible sidebar, and small screens have a sticky navigation row. Search, reminders and notifications are staged until they can carry approved data and actions.
+The shell builds links with the selected institution and role. The workspace picker lists active grants and its action validates the selection before storing the preference. Direct links are checked again on the server. Mobile More contains the same authorized secondary destinations as the desktop rail.
+
+Assignment, course, club, event and session detail links originate from permitted records. Attendance and session detail share the timetable route. Student and faculty academic lookup opens an AURA sheet and returns a focused request receipt. Directory filtering and event proposal workflows retain their existing routes.
+
+Guardian, Learning Studio, transport tracking and Campus Explore remain future destinations. A command palette and unread badges need corresponding search permissions and stored notification state.

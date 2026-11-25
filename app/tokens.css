@@ -1,29 +1,62 @@
 :root {
-  color-scheme: light;
-  --canvas: #f8f7f4;
-  --surface: #fff;
-  --ink: #222923;
-  --muted: #505b53;
-  --border: #dce2db;
-  --control-border: #778378;
-  --accent: #315c4b;
-  --accent-hover: #254839;
-  --tint: #e7efe8;
-  --danger: #912d2d;
-  --focus: #315c4b;
-  --font-body: system-ui, "Noto Sans Kannada", sans-serif;
+  color-scheme: light dark;
+  --canvas: light-dark(#f8f7f4, #14201b);
+  --surface: light-dark(#fff, #1d2923);
+  --surface-elevated: light-dark(#fffefd, #233229);
+  --ink: light-dark(#1d2b23, #f0f4ef);
+  --text: var(--ink);
+  --muted: light-dark(#546359, #bcc9bf);
+  --border: light-dark(#d9e0d7, #435448);
+  --control-border: light-dark(#748478, #84998a);
+  --accent: light-dark(#315c4b, #a6dfbd);
+  --accent-hover: light-dark(#254839, #c4eed2);
+  --on-accent: light-dark(#fff, #14271c);
+  --forest: #204537;
+  --rail-text: #edf5ec;
+  --rail-muted: #c5d8cb;
+  --rail-hover: #325745;
+  --sage: light-dark(#e4efdf, #294132);
+  --lilac: light-dark(#eee8f5, #393247);
+  --peach: light-dark(#f9e9d9, #48392e);
+  --tint: var(--sage);
+  --danger: light-dark(#922e31, #ffb9be);
+  --warning: light-dark(#743c10, #ffd39f);
+  --info: light-dark(#544372, #d8c8ff);
+  --focus: light-dark(#245a43, #adf0c9);
+  --focus-width: 3px;
+  --font-body: Inter, system-ui, "Noto Sans Kannada", sans-serif;
+  --font-display: "Instrument Serif", Georgia, "Noto Serif Kannada", serif;
   --text-meta: .875rem;
-  --text-heading: clamp(1.9rem, 4vw, 2.75rem);
+  --text-heading: clamp(2rem, 3.8vw, 3.3rem);
   --space-1: .25rem;
   --space-2: .5rem;
   --space-3: .75rem;
   --space-4: 1rem;
   --space-5: 1.5rem;
   --space-6: 2rem;
-  --radius-control: .5rem;
-  --radius-panel: .9rem;
-  --elevation-panel: 0 1px 2px #2229230a;
+  --space-7: 2.5rem;
+  --space-8: 3rem;
+  --space-9: 4rem;
+  --radius-control: .68rem;
+  --radius-panel: 1.12rem;
+  --radius-sheet: 1.5rem;
+  --radius-pill: 999px;
+  --elevation-panel: 0 2px 6px #172b1c08, 0 8px 24px #172b1c04;
+  --elevation-overlay: 0 18px 56px #14231c30;
+  --motion-press: 95ms;
   --motion-fast: 140ms;
-  --motion-easing: ease-out;
-  --focus-width: 3px;
+  --motion-menu: 160ms;
+  --motion-reveal: 200ms;
+  --motion-drawer: 240ms;
+  --motion-easing: cubic-bezier(.2,.75,.25,1);
+  --atmosphere: radial-gradient(ellipse at 95% 0%, var(--lilac), transparent 60%),
+    linear-gradient(115deg, var(--sage), var(--surface-elevated) 75%, var(--peach));
+}
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="system"] { color-scheme: dark; }
+}
+@media (prefers-color-scheme: light) {
+  :root[data-theme="system"] { color-scheme: light; }
 }

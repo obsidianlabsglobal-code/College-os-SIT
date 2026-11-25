@@ -1,3 +1,7 @@
+import { cookies } from "next/headers";
+import { Brand } from "./experience/brand";
+import { ThemePicker } from "./experience/theme";
+import { themePreference } from "./experience/theme-preference";
 import type { Icon } from "./experience/workspace-icon";
 import type { ComponentProps } from "react";
 import Link from "next/link";
@@ -40,7 +44,7 @@ export async function Chrome({ user, current, section = "/", children }: {
   section?: Destination;
   children: ReactNode;
 }) {
-  const options = await workspaces(user.id);
+  const [options, preferences] = await Promise.all([workspaces(user.id), cookies()]);
   const selected = options.find(option => option.id === current?.institution && option.role === current.role);
   const query = current ? workspaceQuery(current) : "";
   const home = query ? `/?${query}` : "/";
@@ -54,8 +58,8 @@ export async function Chrome({ user, current, section = "/", children }: {
 
   return <div className={current ? "app-shell" : "app-shell app-shell-single"}>
     <header className="app-top">
-      <Link href={home} className="brand"><span aria-hidden="true" className="brand-mark">N</span>NEXUS</Link>
-      {selected && <span className="institution-label">{selected.name}</span>}
+      <Link href={home} className="brand"><Brand /></Link>
+      {selected && <span className="institution-label">{selected.name} <span className="institution-role">· {roleLabels[selected.role]}</span></span>}
       <div className="account-tools">
         {options.length > 1 && <form action={chooseWorkspace} className="workspace-form">
           <label><span className="sr-only">Workspace</span>
@@ -68,6 +72,7 @@ export async function Chrome({ user, current, section = "/", children }: {
           </label>
           <button className="button secondary">Switch</button>
         </form>}
+        <ThemePicker initial={themePreference(preferences.get("nexus_theme")?.value)} />
         <span className="account-name">{user.name}</span>
         <form action={signOut}><button className="button secondary">Sign out</button></form>
       </div>
