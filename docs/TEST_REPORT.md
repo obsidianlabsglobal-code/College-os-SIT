@@ -64,3 +64,9 @@ Local verification used Node 24, PostgreSQL 18.7, a restricted runtime login and
 | Pending work query | On a separate local fictional dataset containing 3,200 added assignments (3,000 expired), 30 serial warm reads returned 11 rows per query, median 5.36 ms and p95 17.92 ms. This measures the service on one local dataset. |
 
 Hosted HTTPS, managed pooling and TLS, Vercel redeployment, provider-native restore and institutional user validation remain pending.
+
+### November 25 · Living Atmosphere
+
+Candidate `5e7b0a9` passed lint, TypeScript, production build, and 38 PostgreSQL and service tests. A fresh PostgreSQL 18 database applied all 16 migrations, reapplied the migration command with no pending files, and seeded fictional records. The production dependency audit reported zero vulnerabilities. The local release acceptance script verified all five roles, section and tenant denials, exact private file content, published grades and the resolved request through a new application process using the same database.
+
+The [visual evidence](evidence/living-atmosphere/README.md) includes the 72 authenticated candidate captures, 20 baseline captures and lab measurements. An axe-core 4.10.3 scan sampled the primary workspaces in both themes. The report's local browser measurements do not establish field Core Web Vitals or manual assistive-technology acceptance.

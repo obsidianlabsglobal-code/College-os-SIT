@@ -1,7 +1,9 @@
-# NEXUS design system
+# NEXUS Living Atmosphere
 
-Implemented foundations live in `app/tokens.css`, `app/styles.css`, `app/chrome.tsx`, `app/workspace-navigation.tsx`, `app/page-header.tsx`, and `app/forms.tsx`. See [design audit](DESIGN_AUDIT.md) for the baseline.
+Use the semantic tokens in `app/tokens.css`. Body text, controls and comparison metrics use the UI sans stack and tabular numbers. The editorial serif is reserved for display headings. Font stacks include Kannada fallbacks and use locally available fonts. Ivory and forest establish the page hierarchy. Sage, lilac and peach group related content. Every status has a text label.
 
-Use warm canvas, white operational surfaces, deep green interactive emphasis, restrained elevation, and compact sans-serif headings. Reserve semantic colors for actions and status, with a text equivalent. Body typography uses system fonts with a Kannada fallback. Kannada localization and glyph coverage still need device validation. Keep numbers tabular when comparing report metrics and use locale-aware time in institutional contexts.
+The shared shell exposes institution, workspace, account controls and appearance. Appearance supports System, Light and Dark, with a validated cookie read on the server. It has no effect on authorization. Concentrate the next actionable record in the priority panel, show its source and link directly to it. Keep longer lists and secondary work below the first decision. Reuse the timeline, metric links, native forms and dialog components for these patterns.
 
-The shared shell, scoped navigation, breadcrumb/page header, and existing action form are available now. Existing panel, button, tag, and table styles use shared tokens. Extract card, data table, metrics, state feedback, and confirmation components when migrating their consumers. Use native form controls and established accessible dialog and tabs primitives when an actual interaction needs them. Command search, notifications, charts, and map panels require working consumers and data contracts first.
+At narrow widths the menu shows up to four primary routes and a More button for remaining authorized destinations. Dialogs retain native modal semantics and visible close controls. The timetable includes a chronological text list alongside its visual grid. Empty states distinguish missing records from a measured zero.
+
+See the [route map](INFORMATION_ARCHITECTURE.md), [motion rules](MOTION_SPEC.md) and [browser evidence](evidence/living-atmosphere/README.md).

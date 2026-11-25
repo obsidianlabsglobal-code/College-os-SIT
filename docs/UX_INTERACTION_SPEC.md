@@ -1,7 +1,9 @@
-# UX interaction specification
+# Workspace interactions
 
-Implemented navigation exposes an active state and a scope-preserving breadcrumb. Preserve discoverable keyboard focus, a skip link and direct sign-out. Native fields keep their semantics. Pending mutations disable controls, and status or error text remains associated with the form. Retain the existing release workflow states and validation.
+A visible skip link moves keyboard focus to the main content. Breadcrumbs and record links carry the active institutional workspace. Mobile users can open More with the keyboard, dismiss it with Escape and return to its trigger. Appearance changes persist across reloads.
 
-Next dashboard pass: prioritize upcoming and completed assignments and published feedback for students. Prioritize submitted work without a draft, and drafts awaiting publication for faculty. Document HOD turnaround and principal count definitions beside their views. Elevate the admin request queue and explain what role and roster changes affect before confirmation. Derive every item from authorized records. Keep date windows, unread state, and alerts absent until data semantics are established.
+Student Today prioritizes an upcoming class or an open assignment using its timestamp. A student with neither can open the latest published feedback if available. Faculty sees work awaiting evaluation and drafts awaiting publication as separate states. Leaders see aggregate definitions. Administrators review the selected values and consequences before granting or ending access through the guarded forms.
 
-Use confirmation for consequential permissions and disruptive trip transitions. Preserve focus on cancel and completion. Prefer a text route summary and ordered stops as the transport interaction baseline. Maps can enhance location context after the same scoped read model is available.
+The shared action form disables controls while pending and exposes the actual server outcome. Cancelling an access review leaves the form editable. Confirmation submits to the original authorized action. AURA quick lookup offers named academic reads. Execution is recorded by the existing service, followed by navigation to the result. Event proposal review and human approval remain separate steps.
+
+See [motion](MOTION_SPEC.md) for focus and transition behavior and [evidence](evidence/living-atmosphere/README.md) for checks and open acceptance gates.
