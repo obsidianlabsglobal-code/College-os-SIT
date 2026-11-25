@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { account,scope,workspaceQuery,workspaces } from "../../lib/scope";
-import { attendancePercentage,attendanceSummary,nextClass,sessionDetail,timetable,timetableOptions } from "../../lib/academic-day";
+import { attendancePercentage,attendanceSummary,campusChangeAlternatives,nextClass,sessionDetail,timetable,timetableOptions,upcomingRoomChanges } from "../../lib/academic-day";
 import { ActionForm } from "../forms";
 import { Chrome } from "../chrome";
 import { AttendanceForm } from "./attendance-form";
@@ -31,6 +31,7 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
     attendanceSummary(current),timetableOptions(current),selectedID.success ? sessionDetail(current,selectedID.data) : null,planningOptions(current),
   ]);
   if (selectedID.success && !detail) notFound();
+  const [alternatives,changes] = detail ? await Promise.all([campusChangeAlternatives(current,detail.row.id),upcomingRoomChanges(current,detail.row.id)]) : [[],[]];
   const query = workspaceQuery(current);
   const base = `/timetable?${query}`;
   const period = `${base}&day=${day}&view=${days===1 ? "day" : "week"}`;
@@ -131,6 +132,26 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
         <h2 id="class-detail-title">{detail.row.course} class</h2>
         <p>{date.format(detail.row.start)} · {time.format(detail.row.start)} – {time.format(detail.row.finish)} · {detail.row.room}</p>
         <p className="meta">{stateLabel[detail.row.state]}{detail.row.change_reason ? ` · ${detail.row.change_reason}` : ""}</p>
+        {changes[0]&&<aside aria-label="Verified room change">
+          <h3>Verified room change</h3>
+          <p>Moved from {changes[0].from_room_name} to {changes[0].to_room_name}. Go to {changes[0].current_room} at the displayed time.</p>
+          <p className="meta">Timetable revision {changes[0].revision} · Published {date.format(changes[0].published_at)} at {time.format(changes[0].published_at)} · {changes[0].reason}</p>
+        </aside>}
+        {current.role==="admin"&&detail.row.state==="published"&&detail.row.start>new Date()&&<details>
+          <summary>Campus Change Brief: replace the room</summary>
+          <p className="meta">Time and teacher stay the same. Choices are preapproved room alternatives with sufficient recorded seats and no current schedule or confirmed-booking conflict.</p>
+          {alternatives.length?<ActionForm action={timetableAction} context={current} operation="move-room" label="Review room change"
+            confirmation={`This updates the published timetable from ${detail.row.room} to the selected room. The time is unchanged. No external message is sent.`}>
+            <input type="hidden" name="session" value={detail.row.id}/>
+            <input type="hidden" name="revision" value={detail.row.revision}/>
+            <p>Active students affected: {alternatives[0].affected}. The assigned teacher is unchanged.</p>
+            <label>Replacement room<select name="room" required defaultValue="">
+              <option value="" disabled>Choose an approved room</option>
+              {alternatives.map(room=><option key={room.id} value={room.id}>{room.name} · {room.location} · {room.capacity} seats</option>)}
+            </select></label>
+            <label>Public reason for room change<input name="reason" maxLength={500} required /></label>
+          </ActionForm>:<p>No approved alternative with sufficient recorded capacity is currently available.</p>}
+        </details>}
         {current.role==="student" && detail.row.attendance && <p>Your attendance: {detail.row.attendance}</p>}
         {current.role==="faculty" && detail.row.finish<=new Date() && detail.learners.length>0 &&
           <AttendanceForm key={`${detail.row.id}:${detail.row.revision}`} current={{institution:current.institution,role:current.role}} session={detail.row.id}

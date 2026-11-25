@@ -14,6 +14,7 @@ const command = z.discriminatedUnion("operation",[
   z.object({operation:z.literal("publish"),session:id,revision}),
   z.object({operation:z.literal("cancel"),session:id,revision,reason}),
   z.object({operation:z.literal("move"),session:id,revision,reason,start:wallTime,end:wallTime}),
+  z.object({operation:z.literal("move-room"),session:id,revision,reason,room:id}),
   z.object({operation:z.literal("attendance"),session:id,revision,reason:z.string().trim().max(500),
     marks:z.array(z.object({student:z.string().min(1).max(100),status})).min(1).max(500)}),
 ]);
@@ -91,6 +92,47 @@ export async function sessionDetail(scope:Scope, session:string) {
     ? await roll(db,scope,row.id,row.offering_id)
     : [];
   return {row, learners};
+}
+
+type RoomChange={id:string;course:string;current_room:string;from_room_name:string;to_room_name:string;reason:string;published_at:Date;start:Date;revision:number};
+export async function upcomingRoomChanges(scope:Scope,session?:string){
+  const {rows}=await db.query<RoomChange>(`SELECT s.id,c.name AS course,room.name AS current_room,x.from_room_name,x.to_room_name,
+    x.reason,x.published_at,lower(s.slot) AS start,x.revision FROM class_room_change x
+    JOIN class_session s ON (s.institution_id,s.id,s.room_id)=(x.institution_id,x.session_id,x.to_room_id)
+    JOIN offering o ON (o.institution_id,o.id)=(s.institution_id,s.offering_id)
+    JOIN course c ON (c.institution_id,c.id)=(o.institution_id,o.course_id)
+    JOIN campus_resource room ON (room.institution_id,room.id)=(s.institution_id,s.room_id)
+    WHERE s.institution_id=$1 AND ${readable} AND s.state='published' AND upper(s.slot)>now()
+      AND x.revision=s.revision AND ($4::uuid IS NULL OR s.id=$4)
+    ORDER BY lower(s.slot),s.id LIMIT 5`,[scope.institution,scope.account,scope.role,session??null]);
+  return rows;
+}
+
+type RoomAlternative={id:string;name:string;location:string;capacity:number;affected:number};
+const roomAlternativesQuery=`
+  WITH active_roster AS (
+    SELECT count(DISTINCT r.account_id)::int AS affected
+    FROM class_session s JOIN roster r ON (s.institution_id,s.offering_id)=(r.institution_id,r.offering_id)
+    JOIN membership m ON (m.institution_id,m.account_id,m.role)=(r.institution_id,r.account_id,r.role)
+    WHERE s.institution_id=$1 AND s.id=$4 AND r.role='student' AND r.ended_at IS NULL AND m.ended_at IS NULL
+  )
+  SELECT room.id,room.name,room.location,room.capacity,active_roster.affected
+  FROM class_session s
+  JOIN teaching_room_alternative alt ON (alt.institution_id,alt.source_room_id)=(s.institution_id,s.room_id)
+  JOIN campus_resource room ON (room.institution_id,room.id)=(alt.institution_id,alt.replacement_room_id)
+  CROSS JOIN active_roster
+  WHERE s.institution_id=$1 AND s.id=$4 AND $3='admin' AND ${membership("s")} AND s.state='published'
+    AND lower(s.slot)>now() AND room.kind='room' AND room.capacity>=greatest(active_roster.affected,1)
+    AND ($5::uuid IS NULL OR room.id=$5)
+    AND NOT EXISTS (SELECT 1 FROM class_session other WHERE other.institution_id=s.institution_id AND other.room_id=room.id
+      AND other.state IN ('published','conducted') AND other.slot && s.slot)
+    AND NOT EXISTS (SELECT 1 FROM resource_booking b WHERE b.institution_id=s.institution_id AND b.resource_id=room.id
+      AND b.state='confirmed' AND b.slot && s.slot)
+  ORDER BY room.capacity,room.name,room.id LIMIT 3`;
+
+export async function campusChangeAlternatives(scope:Scope,session:string){
+  if(scope.role!=="admin")return [];
+  return (await db.query<RoomAlternative>(roomAlternativesQuery,[scope.institution,scope.account,scope.role,session,null])).rows;
 }
 
 type Learner = {student:string;name:string;status:"present"|"absent"|null};
@@ -239,6 +281,23 @@ export async function changeClass(scope:Scope,raw:unknown) {
       }
 
       if (session.state!=="published" || !session.future) throw unavailable();
+      if (input.operation==="move-room") {
+        await lockFaculty(client,institution,session.offering_id,session.faculty_id);
+        await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1,0))",[`booking:${institution}:${input.room}`]);
+        const {rows:[room]}=await client.query<RoomAlternative>(roomAlternativesQuery,[institution,scope.account,scope.role,session.id,input.room]);
+        if(!room)throw new WorkflowError("That room is no longer an approved, available alternative with sufficient recorded capacity. Refresh to review again.");
+        const saved=await client.query(`INSERT INTO class_room_change (institution_id,session_id,revision,from_room_id,to_room_id,
+          from_room_name,to_room_name,reason,actor_id)
+          SELECT $1,$2,$3,old.id,new.id,old.name,new.name,$6,$7 FROM campus_resource old JOIN campus_resource new ON old.institution_id=new.institution_id
+          WHERE old.institution_id=$1 AND old.id=$4 AND new.id=$5`,[institution,session.id,session.revision+1,session.room_id,input.room,input.reason,scope.account]);
+        if(saved.rowCount!==1)throw unavailable();
+        const updated=await client.query(`UPDATE class_session SET room_id=$3,change_reason=$4,revision=revision+1
+          WHERE institution_id=$1 AND id=$2 AND lower(slot)>clock_timestamp()`,[institution,session.id,input.room,input.reason]);
+        if(updated.rowCount!==1)throw unavailable();
+        await audit(client,scope,session.id,"class.room_changed",session.revision+1);
+        return session.id;
+      }
+
       if (input.operation==="move") {
         await lockFaculty(client,institution,session.offering_id,session.faculty_id);
         const [slot] = await scheduleSlots(client,institution,input.start,input.end,1);

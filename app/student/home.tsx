@@ -2,7 +2,7 @@ import { recordTransition } from "../experience/record-transition";
 import { QuickLookup } from "../aura/quick-lookup";
 import { ClassTimeline } from "../experience/class-timeline";
 import { openOpportunityCount } from "../../lib/opportunities";
-import { nextClass, attendanceSummary, attendancePercentage } from "../../lib/academic-day";
+import { nextClass, attendanceSummary, attendancePercentage, upcomingRoomChanges } from "../../lib/academic-day";
 import Link from "next/link";
 import { offerings, studentAssignmentSummaries } from "../../lib/assignments";
 import { notices } from "../../lib/connected";
@@ -18,9 +18,9 @@ export function StudentHomeLoading() {
 }
 
 export async function StudentHome({current, name, timezone}:{current:Scope;name:string;timezone:string}) {
-  const [assignments, courses, updates, upcoming, attendance, opportunityCount] = await Promise.all([
+  const [assignments, courses, updates, upcoming, attendance, opportunityCount, roomChanges] = await Promise.all([
     studentAssignmentSummaries(current), offerings(current), notices(current,"published",3), nextClass(current),
-    attendanceSummary(current), openOpportunityCount(current),
+    attendanceSummary(current), openOpportunityCount(current), upcomingRoomChanges(current),
   ]);
   const query = workspaceQuery(current);
   const today = new Intl.DateTimeFormat("en-IN",{weekday:"long",day:"numeric",month:"long",timeZone:timezone});
@@ -43,6 +43,13 @@ export async function StudentHome({current, name, timezone}:{current:Scope;name:
       <p>Your classes, priorities and campus life, in one place.</p>
     </>}>
 
+    {roomChanges.length>0&&<section className={styles.panel} aria-labelledby="student-room-updates">
+      <h2 id="student-room-updates">Confirmed room changes</h2>
+      <ul className={styles.list}>{roomChanges.map(change=><li key={change.id}><div>
+        <Link className={styles.record} href={`/timetable?${query}&session=${change.id}#class-details`}>{change.course}: moved to {change.current_room}</Link>
+        <p>{deadline.format(change.start)} · Previously {change.from_room_name} · Published timetable</p>
+      </div></li>)}</ul>
+    </section>}
     <div className={styles.lead}>
       <section className={styles.priority} style={priorityTransition} aria-labelledby="next-up">
         <p className={styles.overline}>Your next best move</p>
