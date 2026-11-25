@@ -1,5 +1,7 @@
 "use client";
 
+import { useClientReady } from "./experience/use-client-ready";
+
 import { Icon } from "./experience/workspace-icon";
 import type { ComponentProps } from "react";
 import Link from "next/link";
@@ -17,18 +19,19 @@ function DestinationLink({ item, secondary = false, onNavigate }: {
 }
 
 export function WorkspaceNavigation({ role, items }: { role: string; items: Destination[] }) {
+  const ready = useClientReady();
   const [collapsed, setCollapsed] = useState(false);
   const sheet = useRef<HTMLDialogElement>(null);
   const secondary = items.slice(4);
   return <aside className="app-sidebar" data-collapsed={collapsed}>
     <button className="button secondary sidebar-toggle" type="button" aria-controls="workspace-navigation"
-      aria-expanded={!collapsed} onClick={() => setCollapsed(value => !value)}>
+      aria-expanded={!collapsed} disabled={!ready} onClick={() => setCollapsed(value => !value)}>
       {collapsed ? "Show navigation" : "Hide navigation"}
     </button>
     <nav id="workspace-navigation" aria-label="Campus workflows">
       <p className="sidebar-role">{role}</p>
       {items.map((item, index) => <DestinationLink key={item.href} item={item} secondary={index >= 4} />)}
-      {secondary.length > 0 && <button type="button" className="more-trigger" aria-haspopup="dialog"
+      {secondary.length > 0 && <button type="button" className="more-trigger" aria-haspopup="dialog" disabled={!ready}
         data-current={secondary.some(item=>item.active)} onClick={() => sheet.current?.showModal()}>
         <span aria-hidden="true">•••</span>More
       </button>}

@@ -1,12 +1,10 @@
 "use client";
 
-import { useActionState, useId, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useClientReady } from "./experience/use-client-ready";
+
+import { useActionState, useId, useRef, useState, type ReactNode } from "react";
 import type { Scope } from "../lib/scope";
 import type { ActionState } from "./actions/workflow";
-
-const subscribe = () => () => undefined;
-const clientReady = () => true;
-const serverReady = () => false;
 
 export function ActionForm({
   action, context, operation, children, label, secondary = false, confirmation,
@@ -19,7 +17,7 @@ export function ActionForm({
   secondary?: boolean;
   confirmation?: string;
 }) {
-  const ready = useSyncExternalStore(subscribe, clientReady, serverReady);
+  const ready = useClientReady();
   const [state, invoke, pending] = useActionState(action, {});
   const review = useRef<HTMLDialogElement>(null);
   const authorizedSubmit = useRef(false);
