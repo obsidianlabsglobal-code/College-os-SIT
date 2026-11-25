@@ -22,9 +22,10 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   const [data, setup] = await Promise.all([adminCatalog(current),institutionCatalog(current)]);
   return <Chrome user={user} current={current} section="/admin">
     <PageHeader title="Academic setup" parent={{ href: `/?${workspaceQuery(current)}`, label: "Workspace" }} />
+    <nav className="section-jumps" aria-label="Academic setup sections"><a href="#admin-catalog">Courses and sections</a><a href="#admin-rosters">Course rosters</a><a href="#admin-structure">Departments, schemes and terms</a><a href="#admin-access">Role assignments</a></nav>
     <div className="grid">
       <section className="panel stack">
-        <h2>Courses and sections</h2>
+        <h2 id="admin-catalog" tabIndex={-1}>Courses and sections</h2>
         <ActionForm action={catalog} context={current} operation="course" label="Add course">
           <Choices label="Department" field="department" options={data.departments} />
           <label>Course name<input name="name" maxLength={120} required /></label>
@@ -39,7 +40,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
         </ActionForm>
       </section>
       <section className="panel stack">
-        <h2>Course rosters</h2>
+        <h2 id="admin-rosters" tabIndex={-1}>Course rosters</h2>
         <ActionForm action={catalog} context={current} operation="add-roster" label="Add to roster">
           <Choices label="Offering" field="offering" options={data.offerings} />
           <Choices label="Person" field="account" options={Array.from(new Map(data.people.map(person => [person.id,person])).values())} />
@@ -48,7 +49,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
         {!data.roster.length && <p>No roster entries yet.</p>}
         <ul className="items">{data.roster.map(entry => <li key={`${entry.offering_id}-${entry.account_id}-${entry.role}`}>
           <strong>{entry.person}</strong> · {entry.role}<p className="meta">{entry.offering}</p>
-          {entry.ended_at ? <span className="tag">Ended</span> : <ActionForm action={catalog} context={current} operation="end-roster" label="End access" secondary>
+          {entry.ended_at ? <span className="tag">Ended</span> : <ActionForm action={catalog} context={current} operation="end-roster" confirmation={`End ${entry.person}’s ${entry.role} access to ${entry.offering}. The course history is retained.`} label="End access" secondary>
             <input type="hidden" name="offering" value={entry.offering_id} />
             <input type="hidden" name="account" value={entry.account_id} />
             <input type="hidden" name="roster-role" value={entry.role} />
@@ -56,7 +57,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
         </li>)}</ul>
       </section>
       <section className="panel stack">
-        <h2>Departments, schemes and terms</h2>
+        <h2 id="admin-structure" tabIndex={-1}>Departments, schemes and terms</h2>
         <ActionForm action={institution} context={current} operation="department" label="Add department">
           <label>Department name<input name="name" maxLength={120} required /></label>
         </ActionForm>
@@ -69,15 +70,15 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
         </ActionForm>
       </section>
       <section className="panel stack">
-        <h2>Role assignments</h2>
-        <ActionForm action={institution} context={current} operation="grant" label="Assign role">
+        <h2 id="admin-access" tabIndex={-1}>Role assignments</h2>
+        <ActionForm action={institution} context={current} operation="grant" confirmation="Grant the selected person access to this workspace for the institution shown above." label="Assign role">
           <Choices label="Person" field="account" options={Array.from(new Map(setup.grants.map(grant => [grant.account_id,{ id: grant.account_id, name: grant.account_name }])).values())} />
           <Choices label="Role" field="grant-role" options={delegatedRoles.map(role => ({ id: role, name: role === "hod" ? "Department head" : role[0].toUpperCase() + role.slice(1) }))} />
           <Choices label="Department (HOD only)" field="department" options={data.departments} required={false} />
         </ActionForm>
         <ul className="items">{setup.grants.map(grant => <li key={grant.id}>
           <strong>{grant.account_name}</strong> · {grant.role}{grant.department && ` · ${grant.department}`}
-          {grant.ended_at ? <span className="tag">Ended</span> : grant.role !== "admin" && <ActionForm action={institution} context={current} operation="end" label="End role" secondary>
+          {grant.ended_at ? <span className="tag">Ended</span> : grant.role !== "admin" && <ActionForm action={institution} context={current} operation="end" confirmation={`End ${grant.account_name}’s ${grant.role} workspace access${grant.department ? " for "+grant.department : ""}.`} label="End role" secondary>
             <input type="hidden" name="membership" value={grant.id} />
           </ActionForm>}
         </li>)}</ul>

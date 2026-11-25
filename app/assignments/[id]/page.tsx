@@ -1,3 +1,4 @@
+import { recordTransition } from "../../experience/record-transition";
 import { PageHeader } from "../../page-header";
 import { randomUUID } from "node:crypto";
 import { notFound } from "next/navigation";
@@ -46,7 +47,7 @@ export default async function Detail({ params, searchParams }: { params: Promise
     <PageHeader title={assignment.title} context={`${assignment.course} · ${assignment.section}`}
       parent={{ href: `/?${query}`, label: "Assignments" }} />
     <div className="grid">
-      <section className="panel stack" aria-label="Assignment details">
+      <section className="panel stack" style={recordTransition(current,"assignment",id)} aria-label="Assignment details">
         <div><span className="tag">{assignment.published_at ? "Published" : "Draft"}</span></div>
         <dl><dt>Deadline</dt><dd>{deadline} ({assignment.timezone})</dd><dt>Maximum marks</dt><dd>{assignment.max_marks}</dd></dl>
         <div><h2>Instructions</h2><p className="prose-text">{assignment.description}</p></div>

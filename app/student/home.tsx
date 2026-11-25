@@ -1,4 +1,8 @@
-import { nextClass } from "../../lib/academic-day";
+import { recordTransition } from "../experience/record-transition";
+import { QuickLookup } from "../aura/quick-lookup";
+import { ClassTimeline } from "../experience/class-timeline";
+import { openOpportunityCount } from "../../lib/opportunities";
+import { nextClass, attendanceSummary, attendancePercentage } from "../../lib/academic-day";
 import Link from "next/link";
 import { offerings, studentAssignmentSummaries } from "../../lib/assignments";
 import { notices } from "../../lib/connected";
@@ -13,17 +17,23 @@ export function StudentHomeLoading() {
 }
 
 export async function StudentHome({current, name, timezone}:{current:Scope;name:string;timezone:string}) {
-  const [assignments, courses, updates, upcoming] = await Promise.all([
+  const [assignments, courses, updates, upcoming, attendance, opportunityCount] = await Promise.all([
     studentAssignmentSummaries(current), offerings(current), notices(current,"published",3), nextClass(current),
+    attendanceSummary(current), openOpportunityCount(current),
   ]);
   const query = workspaceQuery(current);
   const today = new Intl.DateTimeFormat("en-IN",{weekday:"long",day:"numeric",month:"long",timeZone:timezone});
   const deadline = new Intl.DateTimeFormat("en-IN",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit",timeZone:timezone});
   const open = assignments.filter(item=>item.accepting && !item.submitted);
+  const recorded = attendance.reduce((sum,row) => sum + row.recorded, 0);
+  const present = attendance.reduce((sum,row) => sum + row.present, 0);
+  const classFirst = upcoming && (!open[0] || upcoming.start <= open[0].deadline);
   const published = assignments.flatMap(item => item.result_published_at
     ? [{ id: item.id, title: item.title, course: item.course, publishedAt: item.result_published_at }]
     : []);
   const latestFeedback = published.sort((a,b) => b.publishedAt.getTime() - a.publishedAt.getTime())[0];
+  const priorityTransition = classFirst ? recordTransition(current,"session",upcoming.id) :
+    open[0] || latestFeedback ? recordTransition(current,"assignment",(open[0] ?? latestFeedback).id) : undefined;
   const ordered = [...open,...assignments.filter(item=>!item.accepting || item.submitted)];
   const firstName = name.trim().split(/\s+/)[0];
   return <div className={styles.home}>
@@ -34,34 +44,38 @@ export async function StudentHome({current, name, timezone}:{current:Scope;name:
     </header>
 
     <div className={styles.lead}>
-      <section className={styles.priority} aria-labelledby="next-up">
-        <h2 id="next-up"><Icon name="book" />Next up</h2>
-        {open[0] ? <>
+      <section className={styles.priority} style={priorityTransition} aria-labelledby="next-up">
+        <h2 id="next-up"><Icon name="book" />{classFirst ? "Next class" : "Next up"}</h2>
+        {classFirst ? <>
+          <strong>{upcoming.course}</strong><p>{upcoming.start <= new Date() ? "Class in progress" : "Next class"} · {deadline.format(upcoming.start)} · {upcoming.room}</p>
+          <a className={styles.primary} href={`/timetable?${query}&session=${upcoming.id}#class-details`} aria-label={`Open class details for ${upcoming.course}`}>Open class details <span aria-hidden="true">→</span></a>
+        </> : open[0] ? <>
           <strong>{open[0].title}</strong>
           <p>{open[0].course} · Due <time dateTime={open[0].deadline.toISOString()}>{deadline.format(open[0].deadline)}</time></p>
-          <Link className={styles.primary} href={`/assignments/${open[0].id}?${query}`}>Open assignment <span aria-hidden="true">→</span></Link>
+          <a className={styles.primary} href={`/assignments/${open[0].id}?${query}`}>Open assignment <span aria-hidden="true">→</span></a>
         </> : latestFeedback ? <>
           <strong>Feedback is ready</strong><p>{latestFeedback.title} · {latestFeedback.course}</p>
-          <Link className={styles.primary} href={`/assignments/${latestFeedback.id}?${query}`}>Read feedback <span aria-hidden="true">→</span></Link>
+          <a className={styles.primary} href={`/assignments/${latestFeedback.id}?${query}`}>Read feedback <span aria-hidden="true">→</span></a>
         </> : <>
           <strong>No assignments awaiting submission</strong>
           <a className={styles.primary} href="#student-courses">See my courses <span aria-hidden="true">↓</span></a>
         </>}
       </section>
+      <ClassTimeline current={current} timezone={timezone} />
+    </div>
       <nav className={styles.stats} aria-label="Academic summary">
         <h2><Icon name="check" />At a glance</h2>
         <a href="#student-assignments"><span>Open assignments</span><strong>{open.length}</strong></a>
         <a href="#student-courses"><span>My courses</span><strong>{courses.length}</strong></a>
         <a href={latestFeedback ? `/assignments/${latestFeedback.id}?${query}` : "#student-assignments"}><span>Published results</span><strong>{published.length}</strong></a>
+        <Link href={`/timetable?${query}#attendance`}><span>Recorded attendance</span><strong>{recorded ? attendancePercentage(present,recorded)+"%" : "—"}</strong><small>{recorded ? `${present} of ${recorded} recorded` : "No marks recorded"}</small></Link>
+        <Link href={`/opportunities?${query}`}><span>Open opportunities</span><strong>{opportunityCount}</strong></Link>
       </nav>
-    </div>
 
-    {upcoming && <section className={styles.panel} aria-labelledby="student-next-class">
-      <h2 id="student-next-class"><Icon name="calendar" />{upcoming.start<=new Date() ? "Class in progress" : "Next class"}</h2>
-      <Link className={styles.record} href={`/timetable?${query}&session=${upcoming.id}#class-details`}>{upcoming.course}</Link>
-      <p className="meta"><time dateTime={upcoming.start.toISOString()}>{deadline.format(upcoming.start)}</time> · {upcoming.room}</p>
+    {upcoming && !classFirst && <section className={styles.panel} aria-label="Next class">
+      <h2>Next class</h2><Link className={styles.record} href={`/timetable?${query}&session=${upcoming.id}#class-details`}>{upcoming.course}</Link>
+      <p className="meta">{deadline.format(upcoming.start)} · {upcoming.room}</p>
     </section>}
-
     <div className={styles.content}>
       <div className={styles.column}>
         <section id="student-assignments" tabIndex={-1} className={styles.panel} aria-labelledby="student-actions-title">
@@ -109,8 +123,9 @@ export async function StudentHome({current, name, timezone}:{current:Scope;name:
         <section className={`${styles.panel} ${styles.aura}`} aria-labelledby="student-aura-title">
           <div className={styles.sectionHead}>
             <h2 id="student-aura-title"><Icon name="spark" />AURA</h2>
-            <p>Review your event plans. Club organizers can prepare a guided draft from their club workspace.</p>
+            <p>Check your timetable, attendance and published results against your current records.</p>
           </div>
+          <QuickLookup current={current} />
           <Link className={styles.secondary} href={`/aura?${query}`}>Open AURA activity <span aria-hidden="true">→</span></Link>
         </section>
       </div>

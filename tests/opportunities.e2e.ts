@@ -1,3 +1,4 @@
+import { openWorkflow } from "./workspace-navigation";
 import "../scripts/environment";
 import { test,expect,type Page } from "@playwright/test";
 import { randomUUID } from "node:crypto";
@@ -10,7 +11,7 @@ async function login(page:Page,alias:string) {
   await page.getByLabel("Email").fill(demoEmail(alias));
   await page.getByLabel("Password").fill(demoPassword);
   await page.getByRole("button",{name:"Sign in"}).click();
-  await page.getByRole("link",{name:/^(Opportunities|Discover)$/}).click();
+  await openWorkflow(page,"Opportunities");
 }
 test("reviewer publishes and withdraws a listing found by an authorized student",async({page})=>{
   const title="Fictional scholarship "+randomUUID().slice(0,8);

@@ -1,3 +1,4 @@
+import { recordTransition } from "../experience/record-transition";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -58,6 +59,24 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
           <Link href={`${base}&day=${offset(days)}&view=${days===1?"day":"week"}`}>Next {days===1?"day":"week"}</Link>
         </nav>
         <p className="meta">{day}{days===7 ? ` to ${offset(6)}` : ""}</p>
+        {days === 7 && <details className={styles.weekCalendar}>
+          <summary>Week calendar</summary>
+          <ol className={styles.week} aria-label="Week calendar by day">
+            {Array.from({length:7}, (_, index) => {
+              const localDay = offset(index);
+              const records = sessions.filter(session => date.format(session.start) <= localDay &&
+                date.format(new Date(session.finish.getTime()-1)) >= localDay);
+              const label = new Intl.DateTimeFormat("en-IN",{weekday:"short",day:"numeric",month:"short",timeZone:"UTC"}).format(new Date(localDay));
+              return <li key={localDay}>
+                <Link href={`${base}&day=${localDay}&view=day`} aria-current={localDay===today ? "date" : undefined}><time dateTime={localDay}>{label}</time></Link>
+                {records.length === 0 ? <span>No sessions</span> : <ul>{records.map(session=><li key={session.id}>
+                  <Link href={sessionLink(session.id)}>{session.course}</Link>
+                  <span>{time.format(session.start)} · {stateLabel[session.state]}</span>
+                </li>)}</ul>}
+              </li>;
+            })}
+          </ol>
+        </details>}
         {sessions.length ? <ol className={styles.timeline}>{sessions.map(item=><li className={styles.session} key={item.id}>
           <time dateTime={item.start.toISOString()}>{date.format(item.start)}<br/>{time.format(item.start)} – {time.format(item.finish)}</time>
           <div><Link href={sessionLink(item.id)}>{item.course}</Link>
@@ -89,7 +108,7 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
           </ActionForm>
         </details>)}
       </section>}
-      {detail && <section className="panel" id="class-details" aria-labelledby="class-detail-title">
+      {detail && <section className="panel" style={recordTransition(current,"session",detail.row.id)} id="class-details" aria-labelledby="class-detail-title">
         <h2 id="class-detail-title">{detail.row.course} class</h2>
         <p>{date.format(detail.row.start)} · {time.format(detail.row.start)} – {time.format(detail.row.finish)} · {detail.row.room}</p>
         <p className="meta">{stateLabel[detail.row.state]}{detail.row.change_reason ? ` · ${detail.row.change_reason}` : ""}</p>

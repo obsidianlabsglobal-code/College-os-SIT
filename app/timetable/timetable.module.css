@@ -20,3 +20,17 @@
 
 .page nav a { display: inline-flex; align-items: center; min-height: 44px; }
 .page summary { cursor: pointer; min-height: 44px; align-content: center; }
+.week { display: grid; grid-template-columns: repeat(auto-fit,minmax(5.75rem,1fr)); gap: var(--space-1); margin-block: var(--space-4); }
+.page .week a { display: grid; gap: var(--space-1); align-content: center; padding: var(--space-2); border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--canvas); text-decoration: none; }
+.week a[aria-current], .week a:hover { background: var(--sage); }
+.week span { font-size: .75rem; color: var(--muted); }
+.week time { font-size: var(--text-meta); font-weight: 650; }
+.next { background: var(--atmosphere); }
+.weekCalendar > summary { color: var(--accent); font-weight: 650; }
+.week { list-style: none; grid-template-columns: repeat(auto-fit,minmax(min(100%,8rem),1fr)); }
+.week > li { min-width: 0; padding: var(--space-2); border: 1px solid var(--border); border-radius: var(--radius-control); }
+.week a { font-size: var(--text-meta); }
+.week li > span { display: block; padding: var(--space-1); }
+.week ul { margin-top: var(--space-2); }
+.week ul li { padding: var(--space-1); border-inline-start: 2px solid var(--accent); }
+.page .week ul a { border: 0; color: var(--accent); background: var(--tint); }

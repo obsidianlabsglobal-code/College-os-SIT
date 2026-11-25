@@ -201,3 +201,16 @@ test("notices, service transitions and leadership aggregates enforce scopes", as
   assert.deepEqual(await institutionSummary({ ...principal, institution:f.otherInstitution }),[]);
   await assert.rejects(changeInstitution(admin,{ operation:"grant", account:tenant.account, role:"faculty" }),/No change/);
 });
+
+test("admin overview counts only current requests in the granted institution", async () => {
+  const {adminRequestSummary} = await import("../lib/reporting");
+  const admin=viewer("admin","admin");
+  const before=await adminRequestSummary(admin);
+  assert.ok(before);
+  await createRequest(viewer("student","student"),"Fictional enrollment letter for the overview test");
+  const after=await adminRequestSummary(admin);
+  assert.equal(after?.submitted,before.submitted+1);
+  assert.equal(after?.in_review,before.in_review);
+  assert.equal(await adminRequestSummary({...admin,institution:f.otherInstitution}),null);
+  assert.equal(await adminRequestSummary(viewer("student","student")),null);
+});

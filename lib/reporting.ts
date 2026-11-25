@@ -30,3 +30,14 @@ export async function institutionSummary(scope: Scope) {
      WHERE i.id=$1 AND m.account_id=$2 AND m.role='principal' AND m.ended_at IS NULL`, [scope.institution, scope.account],
   )).rows;
 }
+
+export async function adminRequestSummary(scope: Scope) {
+  if (scope.role !== "admin") return null;
+  const result = await db.query<{ submitted:number; in_review:number }>(
+    `SELECT count(r.id) FILTER (WHERE r.status='submitted')::int AS submitted,
+            count(r.id) FILTER (WHERE r.status='in_progress')::int AS in_review
+       FROM membership m LEFT JOIN service_request r ON r.institution_id=m.institution_id
+      WHERE m.institution_id=$1 AND m.account_id=$2 AND m.role='admin' AND m.ended_at IS NULL
+      GROUP BY m.id`, [scope.institution,scope.account]);
+  return result.rows[0] ?? null;
+}

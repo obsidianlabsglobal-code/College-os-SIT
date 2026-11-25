@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { test,before,after } from "node:test";
 import { randomUUID } from "node:crypto";
 import { Pool } from "pg";
-import { changeOpportunity,directoryFilters,opportunities } from "../lib/opportunities";
+import { changeOpportunity,directoryFilters,opportunities,openOpportunityCount } from "../lib/opportunities";
 import { db } from "../lib/db";
 import { fixtures,demoEmail } from "../scripts/fixtures";
 import type { Scope } from "../lib/scope";
@@ -21,6 +21,8 @@ after(async()=>{await Promise.all([db.end(),owner.end()]);});
 
 test("reviewed opportunities have scoped publication, date and category filters, audit and withdrawal",async()=>{
   const admin=actors.get("admin")!, student=actors.get("student")!, tenant=actors.get("tenant")!;
+  const initialCount=await openOpportunityCount(student);
+  const tenantCount=await openOpportunityCount(tenant);
   const title="Fictional "+randomUUID();
   const input={id:randomUUID(),operation:"publish",kind:"scholarship",title,sponsor:"Example Foundation",eligibility:"First-year students",source:"https://example.org/award",verified:"on",deadline:"2099-12-01"};
   const filter={query:title,page:1};
@@ -30,6 +32,8 @@ test("reviewed opportunities have scoped publication, date and category filters,
     await assert.rejects(changeOpportunity(admin,{...input,...override}));
   const attempts=await Promise.allSettled([changeOpportunity(admin,input),changeOpportunity(admin,input)]);
   assert.equal(attempts.filter(r=>r.status==="fulfilled").length,1);
+  assert.equal(await openOpportunityCount(student),initialCount+1);
+  assert.equal(await openOpportunityCount(tenant),tenantCount);
   assert.equal((await opportunities(student,filter)).rows[0].status,"Open");
   assert.equal((await opportunities(tenant,filter)).rows.length,0);
   assert.equal((await opportunities(student,{...filter,page:2})).rows.length,0);
@@ -46,5 +50,6 @@ test("reviewed opportunities have scoped publication, date and category filters,
   await changeOpportunity(admin,{...input,id:expired});
   await owner.query("UPDATE opportunity_listing SET deadline='2000-01-01' WHERE id=$1",[expired]);
   assert.equal((await opportunities(student,filter)).rows.length,0);
+  assert.equal(await openOpportunityCount(student),initialCount);
   assert.equal((await opportunities(admin,filter)).rows.find(r=>r.id===expired)?.status,"Expired");
 });

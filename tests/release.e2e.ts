@@ -1,3 +1,4 @@
+import { openWorkflow } from "./workspace-navigation";
 import { expect, test, type Page } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { demoEmail, demoPassword } from "../scripts/fixtures";
@@ -147,14 +148,14 @@ test("a course notice and enrollment letter request reach the right users", asyn
   await expect(page).toHaveURL(/#notice-/);
   await expect(page.getByRole("heading",{ name:title })).toBeVisible();
   await page.getByRole("link",{ name:"Workspace" }).click();
-  await page.getByRole("link",{ name:"Service requests" }).click();
+  await openWorkflow(page,"Service requests");
   await page.getByLabel("Purpose and delivery needs").fill(request);
   await page.getByRole("button",{ name:"Submit request" }).click();
   await expect(page.getByText(request)).toBeVisible();
   await signOut(page);
 
   await signIn(page,"admin");
-  await page.getByRole("link",{ name:"Service requests" }).click();
+  await openWorkflow(page,"Service requests");
   const record = page.getByRole("article").filter({ hasText:request });
   await record.getByRole("button",{ name:"Start review" }).click();
   await record.getByLabel("Outcome").fill("Letter is ready at the academic office.");
@@ -163,7 +164,7 @@ test("a course notice and enrollment letter request reach the right users", asyn
   await signOut(page);
 
   await signIn(page,"student");
-  await page.getByRole("link",{ name:"Service requests" }).click();
+  await openWorkflow(page,"Service requests");
   await expect(record.getByText("Letter is ready at the academic office.")).toBeVisible();
   await signOut(page);
 
@@ -208,12 +209,20 @@ test("administrators configure academic records and manage delegated roles", asy
   const row = page.getByRole("listitem").filter({ hasText:label });
   await expect(row.getByText("Asha Sen",{ exact:true })).toBeVisible();
   await row.getByRole("button",{ name:"End access" }).click();
+  await page.getByRole("dialog",{name:"Review access change"}).getByRole("button",{name:"Confirm change"}).click();
   await expect(row.getByText("Ended",{ exact:true })).toBeVisible();
 
   await rolePerson.selectOption({ label:"Asha Sen" });
   await page.getByRole("combobox",{ name:"Role", exact:true }).selectOption("hod");
   await page.getByRole("combobox",{ name:"Department (HOD only)", exact:true }).selectOption({ label:`Engineering ${suffix}` });
   await page.getByRole("button",{ name:"Assign role" }).click();
+  const review = page.getByRole("dialog",{name:"Review access change"});
+  await expect(review).toContainText("Asha Sen");
+  await review.getByRole("button",{name:"Cancel"}).click();
+  await expect(rolePerson.locator("option:checked")).toHaveText("Asha Sen");
+  await expect(page.getByRole("listitem").filter({hasText:`hod · Engineering ${suffix}`})).toHaveCount(0);
+  await page.getByRole("button",{ name:"Assign role" }).click();
+  await page.getByRole("dialog",{name:"Review access change"}).getByRole("button",{name:"Confirm change"}).click();
   const grant = page.getByRole("listitem").filter({ hasText:`hod · Engineering ${suffix}` });
   await expect(grant.getByText("Asha Sen",{ exact:true })).toBeVisible();
   const adminUrl = page.url();
@@ -228,6 +237,7 @@ test("administrators configure academic records and manage delegated roles", asy
   await signIn(page, "admin");
   await page.goto(adminUrl);
   await grant.getByRole("button",{ name:"End role" }).click();
+  await page.getByRole("dialog",{name:"Review access change"}).getByRole("button",{name:"Confirm change"}).click();
   await expect(grant.getByText("Ended",{ exact:true })).toBeVisible();
   await signOut(page);
   await signIn(page, "student");
@@ -282,7 +292,7 @@ test("CLUBVERSE recognition, membership, event and leadership journeys persist",
   const name = `Robotics workshop club ${randomUUID().slice(0,8)}`;
   const title = "Planetary rover workshop";
   const visitDirectory = async () => {
-    await page.getByRole("navigation",{ name:"Campus workflows" }).getByRole("link",{ name:/^(CLUBVERSE|Clubs)$/ }).click();
+    await openWorkflow(page,"CLUBVERSE");
     await expect(page.getByRole("heading",{ name:"CLUBVERSE",exact:true })).toBeVisible();
   };
   const openClub = async () => {
@@ -439,7 +449,7 @@ test("AURA event planning confirms a private persisted draft", async ({ page }) 
     await changeClub(reviewer,{operation:"proposal",id:club,revision:1,next:"under_review"});
     await changeClub(reviewer,{operation:"proposal",id:club,revision:2,next:"approved"});
     await signIn(page,"faculty");
-    await page.getByRole("navigation",{ name:"Campus workflows" }).getByRole("link",{ name:/^(CLUBVERSE|Clubs)$/ }).click();
+    await openWorkflow(page,"CLUBVERSE");
     await page.getByRole("link",{ name,exact:true }).click();
     await page.getByRole("link",{ name:"Plan an event with AURA" }).click();
     await expect(page.getByText("Guided event planning · Deterministic mode")).toBeVisible();

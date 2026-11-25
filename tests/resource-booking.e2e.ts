@@ -1,3 +1,4 @@
+import { openWorkflow } from "./workspace-navigation";
 import { expect, test } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { demoEmail, demoPassword } from "../scripts/fixtures";
@@ -19,7 +20,7 @@ test("a club organizer requests a room and sees the custodian confirmation after
     await page.getByLabel("Password").fill(demoPassword);
     await button("Sign in").click();
     await expect(button("Sign out")).toBeVisible();
-    await page.getByRole("link",{name:/^(CLUBVERSE|Clubs)$/}).click();
+    await openWorkflow(page,"CLUBVERSE");
   }
   await login("faculty");
   await page.getByLabel("Club name").fill(club);

@@ -41,6 +41,17 @@ const filters = z.object({kind:kindSchema.optional(),query:z.string().trim().max
 export function directoryFilters(raw:Record<string,unknown>) {
   return filters.safeParse({...raw,kind:raw.kind || undefined});
 }
+const currentMember = `EXISTS (SELECT 1 FROM membership WHERE institution_id=$1 AND account_id=$2 AND role=$3 AND ended_at IS NULL)`;
+const openListing = `l.withdrawn_at IS NULL AND l.deadline >= (now() AT TIME ZONE i.timezone)::date`;
+
+export async function openOpportunityCount(scope: Scope) {
+  if (scope.role !== "student") throw new WorkflowError("The student directory is unavailable.");
+  const {rows:[row]} = await db.query<{count:number}>(`
+    SELECT count(*)::int AS count FROM opportunity_listing l JOIN institution i ON i.id=l.institution_id
+    WHERE l.institution_id=$1 AND ${currentMember} AND ${openListing}`,[scope.institution,scope.account,scope.role]);
+  return row.count;
+}
+
 export async function opportunities(scope:Scope,input:z.infer<typeof filters>) {
   const {kind,query,page}=filters.parse(input);
   if (scope.role!=="admin" && scope.role!=="student") throw new WorkflowError("The directory is unavailable.");
@@ -49,8 +60,8 @@ export async function opportunities(scope:Scope,input:z.infer<typeof filters>) {
     SELECT l.id,l.kind,l.title,l.sponsor,l.eligibility,l.source_url,to_char(l.deadline,'YYYY-MM-DD') AS deadline,l.verified_at,l.withdrawal_reason,
       CASE WHEN withdrawn_at IS NOT NULL THEN 'Withdrawn' WHEN deadline<(now() AT TIME ZONE i.timezone)::date THEN 'Expired' ELSE 'Open' END AS status
     FROM opportunity_listing l JOIN institution i ON i.id=l.institution_id
-    WHERE l.institution_id=$1 AND EXISTS (SELECT 1 FROM membership WHERE institution_id=$1 AND account_id=$2 AND role=$3 AND ended_at IS NULL)
-      AND ($3='admin' OR (withdrawn_at IS NULL AND deadline >= (now() AT TIME ZONE i.timezone)::date))
+    WHERE l.institution_id=$1 AND ${currentMember}
+      AND ($3='admin' OR (${openListing}))
       AND ($4::text IS NULL OR kind=$4) AND strpos(lower(concat_ws(' ',title,sponsor,eligibility)),lower($5))>0
     ORDER BY l.deadline,l.id LIMIT 21 OFFSET $6`,[scope.institution,scope.account,scope.role,kind??null,query,(page-1)*20]);
   return {rows:result.rows.slice(0,20),more:result.rows.length>20};

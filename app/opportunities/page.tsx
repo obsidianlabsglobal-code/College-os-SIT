@@ -43,8 +43,8 @@ export default async function Directory({searchParams}:{searchParams:Promise<Rec
         <button className="button secondary">Filter</button>
       </form>
       {!rows.length && <p>No listings match this page.</p>}
-      {rows.map(row=><article key={row.id} className="club-record stack">
-        <p className="meta">{row.kind} · {row.sponsor} · {row.status}</p><h3>{row.title}</h3><p className="prose-text">{row.eligibility}</p>
+      <div className="record-cards listing-grid">{rows.map(row=><article key={row.id} className="listing-card stack">
+        <p className="row spread"><span className="meta">{row.kind} · {row.sponsor}</span><span className="tag">{row.status}</span></p><h3>{row.title}</h3><p className="prose-text">{row.eligibility}</p>
         <p>Apply by {row.deadline} · {zone}</p>
         <p className="meta">Source checked {date.format(row.verified_at)}</p>
         <a href={row.source_url} rel="noreferrer">Official source · {new URL(row.source_url).hostname}</a>
@@ -52,7 +52,7 @@ export default async function Directory({searchParams}:{searchParams:Promise<Rec
           <ActionForm action={opportunityAction} context={current} operation="withdraw" label="Confirm withdrawal">
             <input name="id" type="hidden" value={row.id}/><label>Reason<input name="reason" required maxLength={300}/></label>
           </ActionForm></details>)}
-      </article>)}
+      </article>)}</div>
       <nav className="row" aria-label="Directory pages">{parsed.data.page>1 && <Link href={link(parsed.data.page-1)}>Previous page</Link>}
         <span>Page {parsed.data.page}</span>{more && <Link href={link(parsed.data.page+1)}>Next page</Link>}</nav>
     </section>

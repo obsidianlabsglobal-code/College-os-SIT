@@ -16,11 +16,11 @@ export default async function Clubverse({ searchParams }: { searchParams: Promis
   const query = workspaceQuery(current);
   const admin = current.role === "admin";
   return <Chrome user={user} current={current} section="/clubverse">
-    <PageHeader title="CLUBVERSE" />
-    <p><Link href={`/clubverse/booking?${query}`}>Resource bookings</Link></p>
+    <PageHeader title="CLUBVERSE" context="Recognized campus communities, membership and club proposals." />
+    <nav className="section-jumps" aria-label="Community operations"><a href="#community-directory">Discover clubs</a><a href="#community-proposals">Proposals</a><Link href={`/clubverse/booking?${query}`}>Resource bookings</Link></nav>
     <div className="grid">
       <section className="panel stack">
-        <h2>Explore communities</h2>
+        <h2 id="community-directory" tabIndex={-1}>Explore communities</h2>
         <form className="form">
           <input type="hidden" name="institution" value={current.institution} /><input type="hidden" name="role" value={current.role} />
           <label>Search clubs<input name="q" type="search" defaultValue={search} maxLength={120} /></label>
@@ -29,7 +29,7 @@ export default async function Clubverse({ searchParams }: { searchParams: Promis
           <div><button className="button secondary">Apply filters</button></div>
         </form>
         {!recognized.length && <p>No recognized clubs match this view.</p>}
-        <ul className="items">{recognized.map(club => <li key={club.id}>
+        <ul className="record-cards">{recognized.map(club => <li key={club.id}>
           <div className="row"><Link href={`/clubverse/${club.id}?${query}`}>{club.name}</Link><span className="tag">{club.club_state}</span></div>
           <p className="meta">{club.category}</p><p className="prose-text">{club.purpose}</p>
         </li>)}</ul>
@@ -38,7 +38,7 @@ export default async function Clubverse({ searchParams }: { searchParams: Promis
         {!admin && <section className="panel"><h2>Create club</h2>
           <ClubForm current={current} operation="draft" label="Save club draft"><ProposalFields options={options} /></ClubForm>
         </section>}
-        <section className="panel stack"><h2>{admin ? "Proposal review" : "Your proposals"}</h2>
+        <section className="panel stack"><h2 id="community-proposals" tabIndex={-1}>{admin ? "Proposal review" : "Your proposals"}</h2>
           {!proposals.length && <p>No proposals to display.</p>}
           {proposals.map(proposal => {
             const values = { id:proposal.id,revision:proposal.revision };
