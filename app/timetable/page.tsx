@@ -6,6 +6,8 @@ import { account,scope,workspaceQuery,workspaces } from "../../lib/scope";
 import { attendancePercentage,attendanceSummary,campusChangeAlternatives,nextClass,sessionDetail,timetable,timetableOptions,upcomingRoomChanges } from "../../lib/academic-day";
 import { ActionForm } from "../forms";
 import { Chrome } from "../chrome";
+import { attendanceGroupDraft } from "../../lib/attendance-group-draft";
+import { AttendanceGroupCopy } from "./attendance-group-copy";
 import { AttendanceForm } from "./attendance-form";
 import { planningOptions } from "../../lib/attendance-planning";
 import { AttendanceForecast } from "./forecast";
@@ -48,6 +50,15 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
     (detail ? `&session=${detail.row.id}` : "");
   const upcomingLink = upcoming ? `${base}&day=${date.format(upcoming.start)}&view=day&session=${upcoming.id}#class-details` : "";
   const periodLabel = new Intl.DateTimeFormat("en-IN", {weekday:"short",day:"numeric",month:"short",year:"numeric",timeZone:"UTC"});
+  // Named drafts are a test-only mode. No institutional group authorization is inferred.
+  const fictionalPractice = process.env.NEXUS_FICTIONAL_PILOT==="true" &&
+    process.env.NEXUS_FICTIONAL_ATTENDANCE_GROUP_NAMES==="true";
+  const groupDraft = current.role==="faculty" && detail?.row.state==="conducted" ? attendanceGroupDraft({
+    course:detail.row.course,section:detail.row.section,
+    date:periodLabel.format(new Date(date.format(detail.row.start))),
+    time:`${time.format(detail.row.start)} – ${time.format(detail.row.finish)}`,
+    timezone,faculty:detail.row.teacher,roster:detail.learners,fictionalPractice,
+  }) : null;
   const stateLabel = {draft:"Draft",published:"Scheduled",cancelled:"Cancelled",conducted:"Attendance recorded"};
   return <Chrome user={user} current={current} section="/timetable"><div className={styles.page}>
     <header className={styles.hero}>
@@ -154,8 +165,9 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
             <label>Public reason for room change<input name="reason" maxLength={500} required /></label>
           </ActionForm>:<p>No approved alternative with sufficient recorded capacity is currently available.</p>}
         </details>}
+        {groupDraft && <AttendanceGroupCopy key={detail?.row.revision} draft={groupDraft} fictionalPractice={fictionalPractice} />}
         {current.role==="student" && detail.row.attendance && <p>Your attendance: {detail.row.attendance}</p>}
-        {current.role==="faculty" && detail.row.finish<=new Date() && detail.learners.length>0 &&
+        {current.role==="faculty" && (detail.row.state==="published" || detail.row.state==="conducted") && detail.row.finish<=new Date() && detail.learners.length>0 &&
           <AttendanceForm key={`${detail.row.id}:${detail.row.revision}`} current={{institution:current.institution,role:current.role}} session={detail.row.id}
             revision={detail.row.revision} learners={detail.learners} correction={detail.row.state==="conducted"} />}
         {current.role==="faculty" && detail.row.state==="published" && (detail.row.finish>new Date() || !detail.learners.length)

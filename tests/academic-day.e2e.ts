@@ -85,9 +85,11 @@ test("admin publishes a timetable and faculty posts a corrected attendance recor
 
     await signIn(page,"faculty");
     await page.goto(path("faculty",historical,oldSession));
+    await page.getByText("Bulk actions",{exact:true}).click();
     await page.getByRole("button",{name:"Mark all absent"}).click();
     await page.getByRole("button",{name:"Record attendance"}).click();
     await expect(page.getByRole("button",{name:"Save correction"})).toBeVisible();
+    await page.getByText("Bulk actions",{exact:true}).click();
     await page.getByRole("button",{name:"Mark all present"}).click();
     await page.getByLabel("Correction reason").fill("Verified the laboratory register");
     await page.getByRole("button",{name:"Save correction"}).click();

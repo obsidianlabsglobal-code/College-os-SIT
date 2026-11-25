@@ -1,0 +1,29 @@
+.workbench { display:grid; gap:var(--space-4); margin-block-start:var(--space-4); border-top:1px solid var(--border); padding-block-start:var(--space-4); }
+.intro h3 { font-size:clamp(1.28rem,2.2vw,1.65rem); letter-spacing:-.035em; }
+.controls,.bulk { display:flex; align-items:end; flex-wrap:wrap; gap:var(--space-2); }
+.controls label { flex:1 1 12rem; }
+.controls input { min-height:44px; }
+.controls [aria-pressed="true"] { background:var(--tint); }
+.bulk summary { padding-inline:.45rem; cursor:pointer; color:var(--accent); font-weight:650; }
+.bulk details { min-width:0; }
+.undo { display:flex; justify-content:space-between; align-items:center; gap:.5rem; flex-wrap:wrap; padding:.55rem; background:var(--tint); border-radius:var(--radius-control); }
+.roll { list-style:none; min-width:0; display:grid; border:1px solid var(--border); border-radius:var(--radius-control); background:var(--surface); }
+.roll > li { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.45rem .8rem; padding:.52rem .68rem; }
+.roll > li + li { border-top:1px solid var(--border); }
+.student { font-weight:660; }
+.marks { display:flex; flex-wrap:wrap; gap:.3rem; }
+.marks button { min-height:var(--control-height); min-width:4.8rem; padding:.3rem .6rem; border:1px solid var(--control-border); border-radius:.6rem;
+  color:var(--ink); background:var(--control-rest); font-size:var(--text-meta); cursor:pointer; }
+.marks button:hover { background:var(--control-hover); }
+.marks button[aria-pressed="true"] { background:var(--tint); color:var(--accent); border-color:var(--accent); font-weight:720; }
+.marks button[aria-pressed="true"][data-status="absent"] { color:var(--warning); background:var(--peach); border-color:var(--warning); }
+@media (prefers-reduced-motion:no-preference) {
+  .marks button { transition:background-color var(--motion-fast) var(--motion-easing); }
+}
+.bulk a { text-decoration:none; }
+.review { padding:.68rem .85rem; border-inline-start:3px solid var(--accent); background:var(--canvas); scroll-margin-block:1rem; }
+.review h4 { font-weight:700; }
+.groupCopy { display:grid; gap:.55rem; background:var(--surface-elevated); border:1px solid var(--border); border-radius:var(--radius-panel); padding:var(--space-3); margin-block:var(--space-4); }
+.groupCopy h3 { font-weight:700; }
+.groupCopy summary { color:var(--accent); cursor:pointer; }
+.groupCopy textarea { font:inherit; font-size:var(--text-meta); }

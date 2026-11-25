@@ -1,3 +1,5 @@
+import { facultyAttendanceWork } from "../../lib/academic-day";
+import { StatusBreakdown } from "../experience/status-breakdown";
 import { QuickLookup } from "../aura/quick-lookup";
 import { ClassTimeline } from "../experience/class-timeline";
 import Link from "next/link";
@@ -14,14 +16,17 @@ import styles from "./mission-control.module.css";
 // Faculty home. Every count below is read from PostgreSQL for the caller's current teaching roster.
 export async function MissionControl({ current, timezone }: { current: Scope; timezone: string }) {
   // Each section has its own query so a row limit in one cannot hide work in another.
-  const [totals, active, unpublished, upcoming, courses] = await Promise.all([
+  const day = new Intl.DateTimeFormat("sv-SE",{dateStyle:"short",timeZone:timezone});
+  const [totals, active, unpublished, upcoming, courses, attendanceWork] = await Promise.all([
     evaluationTotals(current),
     assignmentProgress(current, { view: "active", limit: 100 }),
     assignmentProgress(current, { view: "unpublished", limit: 20 }),
     assignmentProgress(current, { view: "open", limit: 5 }),
     offerings(current),
+    facultyAttendanceWork(current,day.format(new Date())),
   ]);
   const query = workspaceQuery(current);
+  const waiting = attendanceWork.filter(item=>item.state==="published");
 
   return <div className={styles.workspace}>
     <div className={styles.lead}>
@@ -33,15 +38,29 @@ export async function MissionControl({ current, timezone }: { current: Scope; ti
           courses.length ? "No evaluations are waiting. View today’s classes or create an assignment." :
           "Your workspace has no active teaching assignments."}</p>
         <div className={styles.actions}>{totals.pending > 0 || totals.awaiting > 0
-          ? <Link className={styles.primary} href={href("/grading", query, { status: totals.pending > 0 ? "pending" : "awaiting" })}>Go to evaluation queue</Link>
+          ? <Link className="button" href={href("/grading", query, { status: totals.pending > 0 ? "pending" : "awaiting" })}>Go to evaluation queue</Link>
           : null}
-          <Link className={totals.pending || totals.awaiting ? "button secondary" : styles.primary}
+          <Link className={totals.pending || totals.awaiting ? "button secondary" : "button"}
             href={href("/timetable", query, { view: "day" })}>Today’s timetable</Link>
+          {waiting.length>0 && <a className="button secondary" href="#attendance-workbench">Review attendance queue</a>}
           {courses.length>0 && <a className="button secondary" href="#create-assignment">Create assignment</a>}
         </div>
       </section>
       <div className={styles.timeline}><ClassTimeline current={current} timezone={timezone} /></div>
     </div>
+    <section className={`panel ${styles.attendanceWork}`} id="attendance-workbench" tabIndex={-1} aria-labelledby="attendance-work-title">
+      <div><p className="app-kicker">Class records</p><h2 id="attendance-work-title">Attendance queue</h2>
+        <p className="meta">Your eligible classes that ended today or on the preceding six calendar days.</p></div>
+      <StatusBreakdown label="Class attendance records" segments={[
+        {label:"To record",count:waiting.length,tone:"attention"},
+        {label:"Recorded",count:attendanceWork.length-waiting.length,tone:"primary"},
+      ]} />
+      {waiting.length ? <ul className={styles.attendanceList}>{waiting.map(item=><li key={item.id}>
+        <div><h3>{item.course} · {item.section}</h3><p className="meta">{formatDate(item.start,timezone)} · {item.room}</p></div>
+        <a href={href("/timetable",query,{day:day.format(item.start),view:"day",session:item.id})+"#class-details"}
+          aria-label={`Open roll sheet for ${item.course}, ${item.section}, ${formatDate(item.start,timezone)}`}>Open roll sheet</a>
+      </li>)}</ul> : <p>No eligible classes waiting for attendance.</p>}
+    </section>
     <nav className={styles.summary} aria-label="Teaching overview">
       <Link href={href("/grading", query, { status: "pending" })}><Icon name="check" /><span>Pending evaluations</span><strong>{totals.pending}</strong></Link>
       <Link href={href("/grading", query, { status: "awaiting" })}><Icon name="book" /><span>Private feedback drafts</span><strong>{totals.awaiting}</strong></Link>

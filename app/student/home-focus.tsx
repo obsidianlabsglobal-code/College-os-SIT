@@ -15,9 +15,9 @@ export function StudentHomeFocus({heading, timetableHref, children}: {
     <header className={styles.intro}>
       <div>{heading}</div>
       <div className={styles.introActions}>
-        <button type="button" className={styles.focusButton} aria-pressed={focused} aria-controls={region}
+        <button type="button" className={`button secondary ${styles.focusButton}`} aria-pressed={focused} aria-controls={region}
           onClick={() => setFocused(previous => !previous)}>Focus mode</button>
-        <a href={timetableHref} className={styles.primary}>My timetable</a>
+        <a href={timetableHref} className="button">My timetable</a>
       </div>
       <p role="status" className={styles.announcer}>
         {focused ? "Focus mode on. Showing next class, coursework, confirmed room changes and courses." : ""}

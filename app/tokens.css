@@ -37,6 +37,10 @@
   --space-7: 2.5rem;
   --space-8: 3rem;
   --space-9: 4rem;
+  --control-height: 44px;
+  --control-rest: light-dark(#fff, #181f2b);
+  --control-hover: light-dark(#eff6ff, #22364d);
+  --control-shadow: 0 1px 2px light-dark(#102f4e20,#0005), 0 2px 6px light-dark(#102f4e12,#0002);
   --radius-control: .68rem;
   --radius-panel: 1.12rem;
   --radius-sheet: 1.5rem;

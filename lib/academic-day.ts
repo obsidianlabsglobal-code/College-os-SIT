@@ -62,6 +62,23 @@ export async function nextClass(scope:Scope) {
     ORDER BY lower(s.slot),s.id LIMIT 1`,[scope.institution,scope.account,scope.role])).rows[0];
 }
 
+// Only ended sessions for the caller’s still-authorized teaching assignment. The window
+// starts at local midnight six dates ago; cancelled and empty unpublished rosters are not tasks.
+export async function facultyAttendanceWork(scope:Scope, today:string) {
+  if (scope.role!=="faculty") return [];
+  const {rows} = await db.query<Session>(`${sessionSelect}
+    JOIN institution i ON i.id=s.institution_id
+    WHERE s.institution_id=$1 AND ${readable} AND upper(s.slot)<=now()
+      AND upper(s.slot)>=(($4::date-6)::timestamp AT TIME ZONE i.timezone)
+      AND (s.state='conducted' OR (s.state='published' AND EXISTS (
+        SELECT 1 FROM roster r JOIN membership m USING (institution_id,account_id,role)
+        WHERE (r.institution_id,r.offering_id)=(s.institution_id,s.offering_id)
+          AND r.role='student' AND r.ended_at IS NULL AND m.ended_at IS NULL
+      )))
+    ORDER BY upper(s.slot) DESC,s.id`,[scope.institution,scope.account,scope.role,today]);
+  return rows;
+}
+
 export async function attendanceSummary(scope:Scope) {
   if (scope.role!=="student") return [];
   return (await db.query<{offering_id:string;course:string;term:string;present:number;recorded:number;target:number|null;source:string|null}>(`

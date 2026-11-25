@@ -20,8 +20,10 @@
 .timeline { min-width:0; display:grid; }
 .hero { background:var(--atmosphere); display:grid; align-content:center; justify-items:start; gap:.55rem; min-height:13rem; }
 .hero h2 { font:680 clamp(1.65rem,3vw,2.45rem)/1.07 var(--font-display); letter-spacing:-.04em; max-width:20ch; }
-.primary { display:inline-flex; align-items:center; min-height:44px; padding:.4rem .85rem; background:var(--accent); color:var(--on-accent); border-radius:var(--radius-control); font-weight:650; text-decoration:none; }
-.primary:hover { background:var(--accent-hover); }
 @media(min-width:58rem){ .lead { grid-template-columns:minmax(0,1.65fr) minmax(0,1fr); } }
 .actions { display:flex; align-items:center; flex-wrap:wrap; gap:var(--space-2); }
-.actions :global(.button) { text-decoration:none; }
+.attendanceWork { display:grid; gap:var(--space-3); }
+.attendanceWork h2 { margin-block:.28rem; }
+.attendanceList li { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:var(--space-2) var(--space-4);
+  border-top:1px solid var(--border); padding:.45rem 0; }
+.attendanceList a { display:inline-flex; align-items:center; min-height:44px; font-weight:650; }

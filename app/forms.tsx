@@ -7,7 +7,7 @@ import type { Scope } from "../lib/scope";
 import type { ActionState } from "./actions/workflow";
 
 export function ActionForm({
-  action, context, operation, children, label, secondary = false, confirmation, confirmationTitle = "Review access change", confirmationLabel = "Confirm change",
+  action, context, operation, children, label, secondary = false, confirmation, confirmationTitle = "Review access change", confirmationLabel = "Confirm change", submissionDisabled = false,
 }: {
   action: (state: ActionState, form: FormData) => Promise<ActionState>;
   context?: Pick<Scope, "institution" | "role">;
@@ -18,6 +18,7 @@ export function ActionForm({
   confirmation?: string;
   confirmationTitle?: string;
   confirmationLabel?: string;
+  submissionDisabled?: boolean;
 }) {
   const ready = useClientReady();
   const [state, invoke, pending] = useActionState(action, {});
@@ -41,7 +42,7 @@ export function ActionForm({
       {operation && <input type="hidden" name="operation" value={operation} />}
       <fieldset disabled={!ready || pending} className="form-fields">
         {children}
-        <div><button className={secondary ? "button secondary" : "button"}>{pending ? "Saving…" : label}</button></div>
+        <div><button disabled={submissionDisabled} className={secondary ? "button secondary" : "button"}>{pending ? "Saving…" : label}</button></div>
       </fieldset>
       {confirmation && <dialog className="review-dialog" ref={review} aria-labelledby={reviewId}>
         <h2 id={reviewId}>{confirmationTitle}</h2>

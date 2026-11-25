@@ -27,14 +27,18 @@ a:hover { text-decoration-thickness: 2px; }
 .tag { display: inline-block; border-radius: 2rem; background: var(--tint); color: var(--accent); padding: .2rem .62rem; font-size: .8rem; }
 .form, .form-fields { display: grid; gap: .8rem; min-width: 0; }
 label { display: grid; gap: .25rem; font-size: .9rem; font-weight: 650; min-width: 0; }
-input:not([type=hidden]), textarea, select { display: block; width: 100%; min-width: 0; border: 1px solid var(--control-border); border-radius: var(--radius-control); padding: .55rem .62rem; background: var(--surface); color: var(--ink); font: inherit; font-weight: 400; }
+input:not([type=hidden]), textarea, select { display: block; width: 100%; min-width: 0; border: 1px solid var(--control-border); border-radius: var(--radius-control); padding: .55rem .62rem; background: var(--control-rest); color: var(--ink); font: inherit; font-weight: 400; }
 input[type=file] { font-size: .85rem; }
 textarea { min-height: 5.75rem; resize: vertical; }
-.button { display: inline-flex; align-items: center; min-height: 2.55rem; padding: .45rem .85rem; border-radius: var(--radius-control); border: 1px solid var(--accent); color: var(--on-accent); background: var(--accent); font-weight: 650; cursor: pointer; }
-.button:hover { background: var(--accent-hover); }
-.button.secondary { color: var(--accent); background: var(--surface); }
-.button.secondary:hover { background: var(--tint); }
-.button:disabled { opacity: .65; cursor: wait; }
+.button { display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  min-height: var(--control-height); padding: .48rem .92rem; border-radius: var(--radius-control);
+  border: 1px solid var(--accent); color: var(--on-accent); background: var(--accent);
+  box-shadow: var(--control-shadow); font-weight: 670; line-height: 1.25; text-align: center; text-decoration: none; cursor: pointer; }
+.button:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
+.button.secondary { color: var(--accent); background: var(--control-rest); border-color: var(--control-border); box-shadow: none; }
+.button.secondary:hover:not(:disabled) { background: var(--control-hover); border-color: var(--accent); }
+.button:disabled { opacity: .56; cursor: not-allowed; box-shadow: none; }
+form[aria-busy="true"] .button:disabled { cursor: wait; }
 .error { color: var(--danger); }
 .success { color: var(--accent); }
 .prose-text { white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -109,7 +113,7 @@ body { margin: 0; }
 body:has(dialog[open]) { overflow: hidden; }
 .skip { z-index: 5; }
 html { scroll-padding-bottom: 6rem; }
-.button { min-height: 44px; }
+input:not([type=hidden],[type=checkbox],[type=radio]), select { min-height: var(--control-height); }
 input[type=checkbox], input[type=radio] { width: auto; accent-color: var(--accent); }
 input::placeholder, textarea::placeholder { color: var(--muted); }
 .table-scroll { max-width: 100%; }
@@ -148,7 +152,7 @@ input::placeholder, textarea::placeholder { color: var(--muted); }
   .app-shell-single .app-main { grid-column: 1; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .button, .app-sidebar nav a { transition: background-color var(--motion-fast) var(--motion-easing), transform var(--motion-press) var(--motion-easing); }
+  .button, .app-sidebar nav a { transition: background-color var(--motion-fast) var(--motion-easing), border-color var(--motion-fast) var(--motion-easing), transform var(--motion-press) var(--motion-easing); }
   .button:active:not(:disabled) { transform: translateY(1px); }
   .workspace-sheet[open] { animation: sheet-arrive var(--motion-drawer) var(--motion-easing); }
   .success { animation: confirmed var(--motion-reveal) ease-out; }
