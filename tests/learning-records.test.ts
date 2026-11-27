@@ -127,7 +127,7 @@ test("the calendar shows own deadlines and classes for the month, filters by typ
 test("CSV exports carry sources, neutralise spreadsheet formulas, and are role-scoped", async () => {
   assert.equal(csv([["=SUM(A1)", 'say "hi"', null, 3]]), `'=SUM(A1),"say ""hi""",,3\r\n`);
   const record = (await studentRecord(as.get("student")!))!;
-  assert.match(record, /^record,course,item,date,result,source\r\n/);
+  assert.match(record, /^record,scheme,term,course,item,date,result,source\r\n/);
   assert.ok(record.includes(`present,class_session:${ids.accept} revision 2`), "corrected class appears with its revision");
   assert.ok(!(await studentRecord(as.get("outsider")!))!.includes(ids.accept), "another student's export excludes it");
   const report = (await facultyReport(as.get("faculty")!))!;

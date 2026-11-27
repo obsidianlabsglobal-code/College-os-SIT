@@ -47,7 +47,7 @@ export async function adminRequestSummary(scope: Scope) {
 export async function operationsReport(scope: Scope) {
   if (scope.role !== "admin" && scope.role !== "principal") return null;
   return (await db.query<{ open: number; unassigned: number; oldest_open_hours: number | null; resolved_30d: number; declined_30d: number;
-    median_resolution_hours: number | null; attendance_corrections_30d: number; grade_corrections_30d: number }>(
+    median_resolution_hours: number | null; attendance_corrections_30d: number; grade_corrections_30d: number; reopened_30d: number }>(
     `SELECT count(*) FILTER (WHERE r.status IN ('submitted','in_progress'))::int AS open,
        count(*) FILTER (WHERE r.status IN ('submitted','in_progress') AND r.assigned_to IS NULL)::int AS unassigned,
        round((extract(epoch FROM clock_timestamp()-min(r.created_at) FILTER (WHERE r.status IN ('submitted','in_progress')))/3600)::numeric,1)::float8 AS oldest_open_hours,
@@ -56,7 +56,8 @@ export async function operationsReport(scope: Scope) {
        round((percentile_cont(0.5) WITHIN GROUP (ORDER BY extract(epoch FROM r.closed_at-r.created_at)/3600)
          FILTER (WHERE r.closed_at > clock_timestamp()-interval '30 days'))::numeric,1)::float8 AS median_resolution_hours,
        (SELECT count(*)::int FROM class_attendance_revision v WHERE v.institution_id=$1 AND v.revision>1 AND v.recorded_at > clock_timestamp()-interval '30 days') AS attendance_corrections_30d,
-       (SELECT count(*)::int FROM grade g WHERE g.institution_id=$1 AND g.revision>1 AND g.published_at > clock_timestamp()-interval '30 days') AS grade_corrections_30d
+       (SELECT count(*)::int FROM grade g WHERE g.institution_id=$1 AND g.revision>1 AND g.published_at > clock_timestamp()-interval '30 days') AS grade_corrections_30d,
+       (SELECT count(*)::int FROM audit_event e WHERE e.institution_id=$1 AND e.action='case.reopened' AND e.occurred_at > clock_timestamp()-interval '30 days') AS reopened_30d
      FROM membership m LEFT JOIN service_request r ON r.institution_id=m.institution_id
      WHERE m.institution_id=$1 AND m.account_id=$2 AND m.role=$3 AND m.ended_at IS NULL GROUP BY m.id`,
     [scope.institution, scope.account, scope.role])).rows[0] ?? null;

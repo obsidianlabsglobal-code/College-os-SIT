@@ -1,16 +1,17 @@
 import { z } from "zod";
-import { db } from "./db";
+import { db, transaction } from "./db";
+import { audit, WorkflowError } from "./assignments";
 import type { Scope } from "./scope";
 
-// SA-010: one month of dated records the caller can already see — assignment deadlines, classes and published
+// SA-010: institution dates published by the office, and one month of dated records the caller can already see — assignment deadlines, classes and published
 // examinations in their current rosters (and invigilation duties), and campus events they registered for. Nothing here is a separate calendar store; dates come from the records.
-export type CalendarItem = { kind: "deadline" | "class" | "event" | "exam"; id: string; title: string; course: string | null;
+export type CalendarItem = { kind: "deadline" | "class" | "event" | "exam" | "institution"; id: string; title: string; course: string | null;
   offering_id: string | null; at: Date; finish: Date | null; state: string };
 
 const filter = z.object({
   month: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/),
   offering: z.uuid().optional(),
-  kind: z.enum(["deadline", "class", "event", "exam"]).optional(),
+  kind: z.enum(["deadline", "class", "event", "exam", "institution"]).optional(),
 });
 export type CalendarFilter = z.infer<typeof filter>;
 export const parseCalendarFilter = (raw: Record<string, string | undefined>, fallbackMonth: string) =>
@@ -44,6 +45,10 @@ export async function calendar(scope: Scope, input: CalendarFilter) {
         AND (EXISTS (SELECT 1 FROM roster r WHERE (r.institution_id,r.offering_id)=(o.institution_id,o.id) AND r.account_id=$2 AND r.role=$3 AND r.ended_at IS NULL)
           OR ($3='faculty' AND e.invigilator_id=$2))
       UNION ALL
+      SELECT 'institution',e.id,e.title,NULL,NULL,e.starts_on::timestamp AT TIME ZONE i.timezone,(e.ends_on+1)::timestamp AT TIME ZONE i.timezone,e.kind
+      FROM calendar_entry e CROSS JOIN i WHERE e.institution_id=$1 AND e.withdrawn_at IS NULL
+        AND ${span} && tstzrange(e.starts_on::timestamp AT TIME ZONE i.timezone,(e.ends_on+1)::timestamp AT TIME ZONE i.timezone)
+      UNION ALL
       SELECT 'event',e.id,e.title||' · '||e.location,NULL,NULL,e.starts_at,e.ends_at,e.state
       FROM club_registration g CROSS JOIN i JOIN club_event e ON (e.institution_id,e.id)=(g.institution_id,g.event_id)
       WHERE g.institution_id=$1 AND g.account_id=$2 AND e.state NOT IN ('draft','pending_approval') AND ${span} && tstzrange(e.starts_at,e.ends_at)
@@ -51,4 +56,37 @@ export async function calendar(scope: Scope, input: CalendarFilter) {
     WHERE ($5::uuid IS NULL OR item.offering_id=$5) AND ($6::text IS NULL OR item.kind=$6)
     ORDER BY item.at,item.kind,item.id LIMIT 500`,
   [scope.institution, scope.account, scope.role, input.month, input.offering ?? null, input.kind ?? null])).rows;
+}
+
+/** Office: publish or withdraw institution-wide dates. */
+export async function calendarEntries(scope: Scope) {
+  if (scope.role !== "admin") return [];
+  return (await db.query<{ id: string; title: string; kind: string; starts_on: string; ends_on: string }>(`SELECT e.id,e.title,e.kind,
+      to_char(e.starts_on,'YYYY-MM-DD') AS starts_on,to_char(e.ends_on,'YYYY-MM-DD') AS ends_on FROM calendar_entry e
+    WHERE e.institution_id=$1 AND e.withdrawn_at IS NULL AND EXISTS (SELECT 1 FROM membership WHERE institution_id=$1 AND account_id=$2 AND role='admin' AND ended_at IS NULL)
+    ORDER BY e.starts_on`, [scope.institution, scope.account])).rows;
+}
+const entryInput = z.object({ title: z.string().trim().min(1).max(160), kind: z.enum(["term", "holiday", "event", "deadline"]), from: z.iso.date(), to: z.iso.date() })
+  .refine(v => v.to >= v.from, { message: "The end date must not be before the start date." });
+export function addCalendarEntry(scope: Scope, raw: unknown) {
+  const input = entryInput.parse(raw);
+  if (scope.role !== "admin") throw new WorkflowError("This action is unavailable.");
+  return transaction(async client => {
+    const { rows: [row] } = await client.query<{ id: string }>(`INSERT INTO calendar_entry (institution_id,title,kind,starts_on,ends_on,created_by)
+      SELECT $1,$2,$3,$4,$5,$6 WHERE EXISTS (SELECT 1 FROM membership WHERE institution_id=$1 AND account_id=$6 AND role='admin' AND ended_at IS NULL) RETURNING id`,
+    [scope.institution, input.title, input.kind, input.from, input.to, scope.account]);
+    if (!row) throw new WorkflowError("This action is unavailable.");
+    await audit(client, scope, row.id, "calendar.published");
+    return row.id;
+  });
+}
+export function withdrawCalendarEntry(scope: Scope, id: unknown) {
+  const entry = z.uuid().parse(id);
+  if (scope.role !== "admin") throw new WorkflowError("This action is unavailable.");
+  return transaction(async client => {
+    const { rowCount } = await client.query(`UPDATE calendar_entry SET withdrawn_at=clock_timestamp() WHERE institution_id=$1 AND id=$2 AND withdrawn_at IS NULL
+      AND EXISTS (SELECT 1 FROM membership WHERE institution_id=$1 AND account_id=$3 AND role='admin' AND ended_at IS NULL)`, [scope.institution, entry, scope.account]);
+    if (!rowCount) throw new WorkflowError("This date is unavailable.");
+    await audit(client, scope, entry, "calendar.withdrawn");
+  });
 }

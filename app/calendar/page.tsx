@@ -6,8 +6,8 @@ import { account, scope, workspaceQuery, workspaces } from "../../lib/scope";
 import { calendar, parseCalendarFilter } from "../../lib/calendar";
 import { offerings } from "../../lib/assignments";
 
-const kindLabel = { deadline: "Deadline", class: "Class", event: "Campus event", exam: "Examination" } as const;
-const stateLabel: Record<string, string> = { cancelled: "Cancelled", conducted: "Attendance recorded", completed: "Completed" };
+const kindLabel = { deadline: "Deadline", class: "Class", event: "Campus event", exam: "Examination", institution: "Institution" } as const;
+const stateLabel: Record<string, string> = { cancelled: "Cancelled", conducted: "Attendance recorded", completed: "Completed", term: "Term dates", holiday: "Holiday" };
 
 export default async function Calendar({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const [params, user] = await Promise.all([searchParams, account()]);
@@ -45,7 +45,7 @@ export default async function Calendar({ searchParams }: { searchParams: Promise
         <label>Course<select name="offering" defaultValue={selection.offering ?? ""}>
           <option value="">All courses</option>{courses.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}</select></label>
         <label>Type<select name="kind" defaultValue={selection.kind ?? ""}>
-          <option value="">Everything</option><option value="deadline">Deadlines</option><option value="class">Classes</option><option value="exam">Examinations</option><option value="event">Campus events</option></select></label>
+          <option value="">Everything</option><option value="deadline">Deadlines</option><option value="class">Classes</option><option value="exam">Examinations</option><option value="institution">Institution dates</option><option value="event">Campus events</option></select></label>
         <button className="button secondary">Apply</button>
       </form>
       {groups.length ? <ol className="items" aria-label="Calendar entries">{groups.map(([date, entries]) => <li key={date}>
@@ -53,7 +53,7 @@ export default async function Calendar({ searchParams }: { searchParams: Promise
         <ul className="items">{entries.map(item => { const target = href(item); return <li key={`${item.kind}:${item.id}`}>
           <p><span className={item.kind === "deadline" ? "tag tag-attention" : "tag"}>{kindLabel[item.kind]}</span>{" "}
             {target ? <Link href={target}>{item.title}</Link> : item.title}</p>
-          <p className="meta">{item.kind === "deadline" ? `Due ${time.format(item.at)}` : `${time.format(item.at)} – ${item.finish ? time.format(item.finish) : ""}`}
+          <p className="meta">{item.kind === "institution" ? "All day" : item.kind === "deadline" ? `Due ${time.format(item.at)}` : `${time.format(item.at)} – ${item.finish ? time.format(item.finish) : ""}`}
             {item.course && item.kind === "deadline" && ` · ${item.course}`}{stateLabel[item.state] && ` · ${stateLabel[item.state]}`}</p>
         </li>; })}</ul>
       </li>)}</ol> : <p>Nothing scheduled in {title} for this filter.</p>}

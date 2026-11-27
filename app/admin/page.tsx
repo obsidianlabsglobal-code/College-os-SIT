@@ -12,6 +12,7 @@ import { onboardingPreviewEnabled } from "../../lib/onboarding-preview";
 import { delegatedRoles, institutionCatalog } from "../../lib/institution";
 import { planningAction } from "../actions/planning";
 import { catalogHistory } from "../../lib/academics";
+import { calendarEntries } from "../../lib/calendar";
 
 type Option = { id: string; name: string };
 
@@ -25,8 +26,8 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   const current = await scope(selection.institution,selection.role);
   if (current.role !== "admin") notFound();
   const preview = onboardingPreviewEnabled();
-  const [data, setup, admissions, history] = await Promise.all([
-    adminCatalog(current), institutionCatalog(current), preview ? studentAdmissions(current) : [], catalogHistory(current),
+  const [data, setup, admissions, history, dates] = await Promise.all([
+    adminCatalog(current), institutionCatalog(current), preview ? studentAdmissions(current) : [], catalogHistory(current), calendarEntries(current),
   ]);
   return <Chrome user={user} current={current} section="/admin">
     <PageHeader title="Academic setup" parent={{ href: `/?${workspaceQuery(current)}`, label: "Workspace" }} />
@@ -90,6 +91,17 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
             <input type="hidden" name="membership" value={grant.id} />
           </ActionForm>}
         </li>)}</ul>
+      </section>
+      <section className="panel stack" aria-labelledby="calendar-title">
+        <h2 id="calendar-title">Institution calendar</h2>
+        <p className="meta">Term dates, holidays and institution events appear in every student’s and teacher’s calendar.</p>
+        <ActionForm action={planningAction} context={current} operation="calendar-add" label="Publish date">
+          <label>Title<input name="title" required maxLength={160} /></label>
+          <label>Type<select name="kind" defaultValue="holiday"><option value="term">Term dates</option><option value="holiday">Holiday</option><option value="event">Event</option><option value="deadline">Deadline</option></select></label>
+          <label>From<input name="from" type="date" required /></label><label>To<input name="to" type="date" required /></label>
+        </ActionForm>
+        {dates.length > 0 && <ul className="items">{dates.map(d => <li key={d.id}><div className="row spread"><span>{d.title} · {d.starts_on}{d.ends_on !== d.starts_on && ` to ${d.ends_on}`}</span>
+          <ActionForm action={planningAction} context={current} operation="calendar-withdraw" label="Withdraw" secondary><input type="hidden" name="entry" value={d.id} /></ActionForm></div></li>)}</ul>}
       </section>
       <section className="panel stack" aria-labelledby="rename-title">
         <h2 id="rename-title">Catalog name corrections</h2>

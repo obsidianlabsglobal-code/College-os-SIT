@@ -94,7 +94,7 @@ test("calendar, catalog, exports and the page finder work for each role", async 
   expect(record.status()).toBe(200);
   expect(record.headers()["content-type"]).toContain("text/csv");
   expect(record.headers()["cache-control"]).toContain("no-store");
-  expect(await record.text()).toMatch(/^record,course,item,date,result,source/);
+  expect(await record.text()).toMatch(/^record,scheme,term,course,item,date,result,source/);
 
   await page.goto(`/catalog?institution=${f.institution}&role=student`);
   await page.getByLabel("Course or department").fill("Programming");

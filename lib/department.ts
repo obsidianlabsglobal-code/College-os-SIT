@@ -160,3 +160,24 @@ export async function cohortProgress(scope: Scope) {
     WHERE o.institution_id=$1
     GROUP BY t.id,t.name,s.id,s.name ORDER BY t.name,s.name`, [scope.institution, scope.account])).rows;
 }
+
+export type Compliance = { offering: string; measured: number; below: number; policy: string; version: number; threshold: number };
+/** DH-009: per section, how many students with recorded classes are below the latest approved attendance policy minimum.
+ * Uses each class's latest attendance revision. Empty when no attendance policy has been approved. */
+export async function sectionCompliance(scope: Scope) {
+  if (scope.role !== "hod") return [];
+  return (await db.query<Compliance>(`WITH pol AS (
+      SELECT p.title,v.version,v.attendance_threshold AS threshold FROM policy p
+      JOIN policy_version v ON (v.institution_id,v.policy_id)=(p.institution_id,p.id) AND v.state='approved' AND v.attendance_threshold IS NOT NULL
+      WHERE p.institution_id=$1 AND p.kind='attendance' AND p.audience IN ('everyone','students') ORDER BY v.decided_at DESC LIMIT 1),
+    rates AS (SELECT cs.offering_id,m.student_id,100.0*count(*) FILTER (WHERE m.status='present')/count(*) AS rate
+      FROM class_session cs JOIN class_attendance_mark m ON (m.institution_id,m.session_id)=(cs.institution_id,cs.id)
+      JOIN roster r ON (r.institution_id,r.offering_id,r.account_id)=(cs.institution_id,cs.offering_id,m.student_id) AND r.role='student' AND r.ended_at IS NULL
+      WHERE cs.institution_id=$1 AND cs.state IN ('published','conducted')
+        AND m.revision=(SELECT max(revision) FROM class_attendance_revision v WHERE (v.institution_id,v.session_id)=(cs.institution_id,cs.id))
+      GROUP BY cs.offering_id,m.student_id)
+    SELECT r.offering_id AS offering,count(*)::int AS measured,count(*) FILTER (WHERE r.rate < pol.threshold)::int AS below,
+      pol.title AS policy,pol.version,pol.threshold
+    FROM rates r CROSS JOIN pol JOIN offering o ON (o.institution_id,o.id)=($1,r.offering_id) JOIN course c ON (c.institution_id,c.id)=(o.institution_id,o.course_id)
+    WHERE c.department_id IN (${hodDepartments}) GROUP BY r.offering_id,pol.title,pol.version,pol.threshold`, [scope.institution, scope.account])).rows;
+}

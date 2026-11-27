@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { cohortProgress, departmentComparison, departmentFaculty, departmentSections, escalatedRequests } from "../../lib/department";
+import { cohortProgress, sectionCompliance, departmentComparison, departmentFaculty, departmentSections, escalatedRequests } from "../../lib/department";
 import { adminRequestSummary, campusOperations, departmentSummary, institutionSummary, latestDigest, operationsReport, qualityIndicators, resourcePlanning, type Digest } from "../../lib/reporting";
 import { notifications } from "../../lib/automation";
 import { coursePlan, departmentDelivery } from "../../lib/course-delivery";
 import { allocationOptions, allocationProposals, departmentSchemes } from "../../lib/allocation";
+import { cases } from "../../lib/cases";
 import { planningAction } from "../actions/planning";
 import { ActionForm } from "../forms";
 import { courseAction } from "../actions/courses";
@@ -37,7 +38,8 @@ function WeeklyDigest({ digest, timezone }: { digest: Digest | null; timezone: s
 export async function HodBoard({ current }: { current: Scope }) {
   const [summary, faculty, sections, delivery] = await Promise.all([departmentSummary(current), departmentFaculty(current), departmentSections(current),
     departmentDelivery(current)]);
-  const [proposals, allocation, schemes] = await Promise.all([allocationProposals(current), allocationOptions(current), departmentSchemes(current)]);
+  const [proposals, allocation, schemes, compliance] = await Promise.all([allocationProposals(current), allocationOptions(current), departmentSchemes(current),
+    sectionCompliance(current)]);
   const awaitingPlans = await Promise.all(delivery.filter(row => row.plan === "submitted").map(async row => ({ row, plan: await coursePlan(current, row.offering) })));
   const pending = faculty.reduce((n, row) => n + row.pending, 0), awaiting = faculty.reduce((n, row) => n + row.awaiting, 0);
   const unrecorded = faculty.reduce((n, row) => n + row.unrecorded, 0);
@@ -138,6 +140,8 @@ export async function HodBoard({ current }: { current: Scope }) {
             {row.target !== null && row.marked > 0 && 100 * row.present / row.marked < row.target && <span className="tag tag-attention">Below planning target</span>}</div>
           <p className="meta">{row.term} · {row.faculty.join(", ") || "No faculty assigned"} · {row.classes} recorded classes · {rate(row.present, row.marked)} present
             {row.target !== null && ` · target ${row.target}% (${row.target_source})`}</p>
+          {(() => { const c = compliance.find(x => x.offering === row.offering); return c && <p className="meta">
+            {c.below ? <strong>{c.below} of {c.measured}</strong> : `0 of ${c.measured}`} students below the {c.threshold}% minimum in {c.policy} (version {c.version})</p>; })()}
           {row.marked > 0 && <SegmentedBar label={`${row.course} ${row.section} attendance`} total={row.marked} rest="absent"
             parts={[{ label: "present", value: row.present, tone: 1 }]} />}
           <details><summary>Roster · {plural(row.students.length, "student")}</summary>
@@ -154,6 +158,7 @@ export async function PrincipalBoard({ current, timezone }: { current: Scope; ti
   const [overview, departments, escalations, inbox, digest, cohorts, quality, estate, rooms] = await Promise.all([institutionSummary(current), departmentComparison(current),
     escalatedRequests(current), notifications(current), latestDigest(current), cohortProgress(current), qualityIndicators(current),
     campusOperations(current), resourcePlanning(current)]);
+  const grievances = (await cases(current, "grievance")).filter(g => g.escalated);
   const query = workspaceQuery(current);
   const open = escalations.filter(row => row.status === "submitted" || row.status === "in_progress");
   const when = new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: timezone });
@@ -179,6 +184,9 @@ export async function PrincipalBoard({ current, timezone }: { current: Scope; ti
           <p className="meta">Submitted {when.format(row.created_at)} · escalated {when.format(row.escalated_at)}{row.handler && ` · handled by ${row.handler}`}</p>
           <p>{row.outcome ?? row.description}</p>
         </li>)}</ul> : <p>No requests have been escalated to you.</p>}
+        {grievances.length > 0 && <><h3>Grievances open more than 7 days</h3><ul className={styles.people}>{grievances.map(g => <li key={g.id}>
+          <div className={styles.head}><h3>{g.title}</h3><span className="tag tag-attention">{g.state === "open" ? "Open" : "In progress"}</span></div>
+          <p className="meta">Opened {when.format(g.created_at)} · {g.assignee ? `Owner ${g.assignee}` : "No owner yet"} · decision stays with the office</p></li>)}</ul></>}
         <Link href={`/automation?${query}`}>Automation Centre</Link>
       </section>
     </div>
@@ -199,6 +207,11 @@ export async function PrincipalBoard({ current, timezone }: { current: Scope; ti
     <section className="panel" aria-labelledby="compare-title">
       <div className="row spread"><h2 id="compare-title">Departments compared</h2>
         <a href={`/records/export?${query}`} download>Download executive report (CSV)</a></div>
+      <form method="get" action="/records/export" className="row" aria-label="Executive report for dates">
+        {[...new URLSearchParams(query)].map(([k, v]) => <input key={k} type="hidden" name={k} value={v} />)}
+        <label>From<input type="date" name="from" required /></label><label>To<input type="date" name="to" required /></label>
+        <button className="button secondary">Download for these dates</button>
+      </form>
       <p className="meta">Each measure uses the same definition in every department: active rosters, published assignments, submissions with a published result, and present marks in each class’s latest attendance record.</p>
       {departments.length ? <div className={`table-scroll ${styles.compare}`} role="region" aria-label="Department comparison" tabIndex={0}><table>
         <thead><tr><th scope="col">Department</th><th scope="col">Offerings</th><th scope="col">Faculty</th><th scope="col">Students</th><th scope="col">Published assignments</th><th scope="col">Results published</th><th scope="col">Attendance</th></tr></thead>
@@ -298,6 +311,7 @@ export async function AdminBoard({ current, timezone }: { current: Scope; timezo
         <div><dt>Resolved · declined</dt><dd>{ops.resolved_30d} · {ops.declined_30d}</dd></div>
         <div><dt>Attendance corrections</dt><dd>{ops.attendance_corrections_30d}</dd></div>
         <div><dt>Result corrections</dt><dd>{ops.grade_corrections_30d}</dd></div>
+        <div><dt>Reopened after closing</dt><dd>{ops.reopened_30d}</dd></div>
       </dl>
     </section>}
     {waiting.length > 0 && <section className="panel" aria-labelledby="allocation-decisions">

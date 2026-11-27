@@ -34,6 +34,8 @@ Policies (AD-021) are drafted only by an institution administrator and take effe
 
 Development records and research projects are decided by an HOD of the department the teacher teaches in. An HOD cannot verify their own records. The HOD also chooses whether an approved project is disclosed to the institution, and only disclosed projects reach the principal. Catalog name corrections are admin-only and keep the old name, reason and actor.
 
+My work (AD-018) only collects items. Each item comes from its own workflow's read model and authority rule, so the queue never grants access. Institution calendar dates and catalog visibility are admin-only. A hidden offering stays visible to its roster.
+
 Source vocabulary has changed over time. The original eight product domains describe subject areas. Later OS names describe user workspaces that cross those areas. Retain both views, with shared identity and records. A prototype name confers no evidence of a working implementation. Operational GPS, model suggestions and policy-sensitive disclosure retain explicit gates.
 
 ## Change procedure

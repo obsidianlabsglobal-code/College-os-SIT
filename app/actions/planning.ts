@@ -10,6 +10,8 @@ import { decideAllocation, offboard, proposeAllocation } from "../../lib/allocat
 import { decidePolicy, draftPolicy } from "../../lib/policies";
 import { addDevelopmentRecord, addResearchMilestone, completeResearchMilestone, decideDevelopmentRecord, decideProject, proposeProject } from "../../lib/faculty-records";
 import { renameCatalog } from "../../lib/academics";
+import { addCalendarEntry, withdrawCalendarEntry } from "../../lib/calendar";
+import { setCatalogVisibility } from "../../lib/catalog";
 import { composeAssessment, saveQuestion } from "../../lib/question-bank";
 import { addMilestone, createTeam, reviewEvidence, submitEvidence } from "../../lib/teams";
 import { scope, workspaceQuery } from "../../lib/scope";
@@ -21,7 +23,8 @@ const messages: Record<string, string> = { "exam-draft": "Sitting drafted.", "ex
   "evidence-review": "Review recorded.", "policy-draft": "Draft saved for the principal’s decision.", "policy-decide": "Decision recorded.",
   "question-save": "Question saved as a new version.", "dev-add": "Sent to your department head for verification.", "dev-decide": "Decision recorded.",
   "research-propose": "Proposal sent to your department head.", "research-decide": "Decision recorded.", "research-milestone": "Milestone added.",
-  "research-done": "Milestone completed.", rename: "Name corrected; the previous name is kept in the history.", compose: "Draft assignment created from the selected questions." };
+  "research-done": "Milestone completed.", "calendar-add": "Date published to everyone's calendar.", "calendar-withdraw": "Date withdrawn.",
+  "catalog-show": "Offering shown in the catalog.", "catalog-hide": "Offering hidden from the catalog.", rename: "Name corrected; the previous name is kept in the history.", compose: "Draft assignment created from the selected questions." };
 
 export async function planningAction(_state: ActionState, form: FormData): Promise<ActionState> {
   const current = await scope(form.get("institution"), form.get("role"));
@@ -66,6 +69,9 @@ export async function planningAction(_state: ActionState, form: FormData): Promi
       const [entity, id] = String(value("target") ?? "").split("|");
       await renameCatalog(current, { entity: entity as "course" | "section", id, name: String(value("name") ?? ""), reason: String(value("reason") ?? "") });
     }
+    else if (operation === "calendar-add") await addCalendarEntry(current, { title: value("title"), kind: value("kind"), from: value("from"), to: value("to") });
+    else if (operation === "calendar-withdraw") await withdrawCalendarEntry(current, value("entry"));
+    else if (operation === "catalog-show" || operation === "catalog-hide") await setCatalogVisibility(current, String(value("offering") ?? ""), operation === "catalog-show");
     else return { error: "This action is unavailable." };
   } catch (error) {
     if (error instanceof WorkflowError) return { error: error.message };

@@ -256,17 +256,19 @@ export async function files(scope: Scope, assignment: string, id?: string, submi
   )).rows;
 }
 
-export type AssessmentRecord = { id: string; title: string; course: string; deadline: Date; max_marks: number; submitted_at: Date | null;
+export type AssessmentRecord = { id: string; title: string; course: string; term: string; scheme: string; deadline: Date; max_marks: number; submitted_at: Date | null;
   marks: number | null; published_at: Date | null; corrected: boolean };
 
 /** SA-017: the student's chronological cross-course record. Only published results appear; drafts stay private to faculty. */
 export async function assessmentHistory(scope: Scope) {
   if (scope.role !== "student") return [];
   return (await db.query<AssessmentRecord>(
-    `SELECT a.id,a.title,c.name AS course,a.deadline,a.max_marks,s.submitted_at,p.marks,p.published_at,coalesce(p.revision>1,false) AS corrected
+    `SELECT a.id,a.title,c.name AS course,t.name AS term,sc.name AS scheme,a.deadline,a.max_marks,s.submitted_at,p.marks,p.published_at,coalesce(p.revision>1,false) AS corrected
      FROM assignment a
      JOIN offering o ON (o.institution_id,o.id)=(a.institution_id,a.offering_id)
      JOIN course c ON (c.institution_id,c.id)=(o.institution_id,o.course_id)
+     JOIN academic_term t ON (t.institution_id,t.id)=(o.institution_id,o.term_id)
+     JOIN academic_scheme sc ON (sc.institution_id,sc.id)=(t.institution_id,t.scheme_id)
      LEFT JOIN submission s ON (s.institution_id,s.assignment_id,s.student_id)=(a.institution_id,a.id,$2)
      LEFT JOIN LATERAL (SELECT g.marks,g.published_at,g.revision FROM grade g WHERE (g.institution_id,g.submission_id)=(s.institution_id,s.id)
        AND g.published_at IS NOT NULL ORDER BY g.revision DESC LIMIT 1) p ON true

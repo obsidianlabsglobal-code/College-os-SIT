@@ -6,7 +6,7 @@ export async function GET(request: Request) {
   const query = new URL(request.url).searchParams;
   const current = await scope(query.get("institution"), query.get("role"));
   const body = current.role === "student" ? await studentRecord(current) : current.role === "faculty" ? await facultyReport(current)
-    : current.role === "principal" ? await executiveReport(current) : null;
+    : current.role === "principal" ? await executiveReport(current, query.get("from") && query.get("to") ? { from: query.get("from")!, to: query.get("to")! } : undefined) : null;
   if (body === null) return new Response(null, { status: 404 });
   const name = { student: "academic-record", faculty: "teaching-report", principal: "executive-report" }[current.role as "student"];
   return new Response(body, { headers: {
