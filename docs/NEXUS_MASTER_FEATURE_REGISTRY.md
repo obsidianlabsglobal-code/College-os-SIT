@@ -27,7 +27,7 @@ Domain: shared foundation. Users: all institutional participants and authorized 
 | ID-005 | Accessible navigation | Navigate by role at desktop and mobile widths with keyboard and reduced motion. | Tested | X |
 | ID-006 | Transactional audit | Record consequential changes and roll back writes on audit failure. | Tested | R/C/A |
 | ID-007 | Hosted staging acceptance | Exercise five roles, redeploy, verify previous work and recover from backup on authorized hosts. | Blocked | DEPLOYMENT.md; provider access missing |
-| ID-008 | Scoped specialist posts | Delegate class coordinator, academic mentor, specialist office and resource custodian duties for a defined scope. | Proposed | F |
+| ID-008 | Scoped specialist posts | Delegate class coordinator, academic mentor, specialist office and resource custodian duties for a defined scope. | Tested (specialist office duties via delegation; mentors via FC-016; no class coordinator or custodian posts) | lib/delegation.ts; tests/delegation-certificates.test.ts, tests/delegation-certificates.e2e.ts |
 | ID-009 | Account lifecycle | Provision, suspend and offboard accounts with traceable effects on grants. | Tested (offboarding within one institution; no provisioning or suspension) | lib/allocation.ts offboard, app/admin; tests/allocation-teams.test.ts, tests/allocation-teams.e2e.ts |
 | ID-010 | Privacy and retention | Define access, deletion, backups and retention per record class and institution. | Proposed | F |
 | ID-011 | Institution and campus configuration | Configure campuses, departments, branding, program, scheme, locale and academic year per tenant. | Proposed | F |
@@ -101,12 +101,12 @@ Students need a single route from discovery to action. From a student workspace 
 | SL-006 | Campus transport | Find eligible bus, stop and service status. | Designed | T |
 | SL-007 | College services | Find available offices, requirements and service channels. | Tested (approved office service policies; no office directory or channels) | db/025, lib/policies.ts, app/policies; tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |
 | SL-008 | Administrative requests | Submit an enrollment-letter request and inspect recorded outcome. | Tested | R |
-| SL-009 | Student profile | Manage authorized profile fields and visibility. | Proposed | F |
+| SL-009 | Student profile | Manage authorized profile fields and visibility. | Tested | lib/student-life.ts, app/profile; tests/delegation-certificates.test.ts, tests/delegation-certificates.e2e.ts |
 | SL-010 | Preferences | Control interests, accessibility, locale and discovery settings. | Proposed | F |
 | SL-011 | Notifications | Inspect relevant delivery history and manage subscriptions. | Tested (in-app only) | Student "For you" inbox from assignment and result events with read state. Subscription preferences absent. |
 | SL-012 | Personal AURA activity history | Review owned event-planning tasks, state and output references. | Tested | A |
 | SL-013 | Student development portfolio | Curate verified achievements, skills and projects with sharing controls. | Proposed | F |
-| SL-014 | Mentor and study groups | Request mentorship or join opt-in study groups. | Proposed | F |
+| SL-014 | Mentor and study groups | Request mentorship or join opt-in study groups. | Tested (opt-in study groups; mentorship is assigned by the office, not requested) | lib/student-life.ts, app/groups; tests/delegation-certificates.test.ts, tests/delegation-certificates.e2e.ts |
 | SL-015 | Support service discovery | Find approved accessibility and support services. | Proposed | F |
 | SL-016 | Student representation | Raise and track representative issues under institution policy. | Proposed | F |
 | SL-017 | Community discussions | Participate in scoped and moderated discussions. | Proposed | F |
@@ -243,15 +243,15 @@ Institution administrators, academic office and designated specialists manage ac
 | AD-008 | Course and section management | Maintain existing offerings, corrections, retirement and history beyond creation. | Tested (course and section name corrections with history; no retirement) | db/026, lib/academics.ts renameCatalog, app/admin; tests/growth-operations.test.ts, tests/growth-operations.e2e.ts |
 | AD-009 | Examination management | Schedule examinations, invigilation and authorized publication. | Tested | db/023, lib/exams.ts, app/exams; tests/exams-improvement.test.ts, tests/exams-improvement.e2e.ts |
 | AD-010 | Document requests | Process enrollment-letter request from submission to recorded outcome. | Tested | R |
-| AD-011 | Certificate preparation | Draft official documents from validated records. | Proposed | F |
-| AD-012 | Credential issuance | Authorized human issues and verifies an official credential. | Proposed | F |
+| AD-011 | Certificate preparation | Draft official documents from validated records. | Tested | db/028, lib/certificates.ts, app/certificates; tests/delegation-certificates.test.ts, tests/delegation-certificates.e2e.ts |
+| AD-012 | Credential issuance | Authorized human issues and verifies an official credential. | Tested | lib/certificates.ts issue/verify, app/verify; tests/delegation-certificates.test.ts, tests/delegation-certificates.e2e.ts |
 | AD-013 | Fee workflows | Reconcile approved fee-system transactions and student visibility. | Proposed | F |
 | AD-014 | Scholarship administration | Check eligibility and route applications for authorized decisions. | Proposed | F |
 | AD-015 | Procurement | Request goods, compare proposals and record human authorization. | Proposed | F |
 | AD-016 | Administrative approvals | Route delegated decisions and record reasons. | Tested (principal policy approval, HOD plan approval and office allocation approval, each with reasons; no general delegation rules) | db/025, lib/policies.ts, app/policies; tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |
 | AD-017 | Complaints and grievances | Confidential intake, assignment, escalation and resolution. | Tested | db/022, lib/cases.ts, app/cases; tests/cases.test.ts, tests/cases.e2e.ts |
 | AD-018 | Staff work queues | Show actionable records only for the assigned office. | Tested | db/019, lib/connected.ts assignRequest; tests/operations.test.ts, tests/operations.e2e.ts, lib/work.ts, app/work, tests/work-closing.test.ts, tests/work-closing.e2e.ts |
-| AD-019 | Delegated responsibilities | Assign bounded responsibilities with expiry and revocation. | Proposed | F |
+| AD-019 | Delegated responsibilities | Assign bounded responsibilities with expiry and revocation. | Tested (exam-cell and institution-calendar duties with expiry and revocation) | db/028, lib/delegation.ts, app/admin; tests/delegation-certificates.test.ts, tests/delegation-certificates.e2e.ts |
 | AD-020 | Reusable workflow engine | Extract proven shared transitions, ownership and audit rules. | Tested (one case engine for five kinds: ownership, transitions, notes, reopen, audit, notifications; enrollment letters and fees not migrated) | db/022, db/025, lib/cases.ts, app/cases; tests/cases.test.ts, tests/policies-cases.test.ts, tests/cases.e2e.ts, tests/policies-cases.e2e.ts |
 | AD-021 | Institutional knowledge base | Publish approved, versioned, permission-scoped policies. | Tested | db/025, lib/policies.ts, app/policies; tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |
 | AD-022 | Audit viewer | Search authorized event metadata without exposing private payloads. | Tested | lib/reporting.ts auditEvents, app/audit; tests/operations.test.ts, tests/operations.e2e.ts |

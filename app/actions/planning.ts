@@ -12,6 +12,9 @@ import { addDevelopmentRecord, addResearchMilestone, completeResearchMilestone, 
 import { renameCatalog } from "../../lib/academics";
 import { addCalendarEntry, withdrawCalendarEntry } from "../../lib/calendar";
 import { setCatalogVisibility } from "../../lib/catalog";
+import { grantDelegation, revokeDelegation } from "../../lib/delegation";
+import { draftCertificate, issueCertificate, revokeCertificate } from "../../lib/certificates";
+import { createStudyGroup, joinStudyGroup, leaveStudyGroup, saveProfile } from "../../lib/student-life";
 import { composeAssessment, saveQuestion } from "../../lib/question-bank";
 import { addMilestone, createTeam, reviewEvidence, submitEvidence } from "../../lib/teams";
 import { scope, workspaceQuery } from "../../lib/scope";
@@ -24,7 +27,9 @@ const messages: Record<string, string> = { "exam-draft": "Sitting drafted.", "ex
   "question-save": "Question saved as a new version.", "dev-add": "Sent to your department head for verification.", "dev-decide": "Decision recorded.",
   "research-propose": "Proposal sent to your department head.", "research-decide": "Decision recorded.", "research-milestone": "Milestone added.",
   "research-done": "Milestone completed.", "calendar-add": "Date published to everyone's calendar.", "calendar-withdraw": "Date withdrawn.",
-  "catalog-show": "Offering shown in the catalog.", "catalog-hide": "Offering hidden from the catalog.", rename: "Name corrected; the previous name is kept in the history.", compose: "Draft assignment created from the selected questions." };
+  "catalog-show": "Offering shown in the catalog.", "delegation-grant": "Duty delegated until its expiry.", "delegation-revoke": "Delegation revoked.",
+  "certificate-draft": "Draft prepared from current records.", "certificate-revoke": "Certificate revoked.", "group-create": "Study group created.",
+  "group-join": "You joined the group.", "group-leave": "You left the group.", "profile-save": "Profile saved.", "catalog-hide": "Offering hidden from the catalog.", rename: "Name corrected; the previous name is kept in the history.", compose: "Draft assignment created from the selected questions." };
 
 export async function planningAction(_state: ActionState, form: FormData): Promise<ActionState> {
   const current = await scope(form.get("institution"), form.get("role"));
@@ -72,6 +77,19 @@ export async function planningAction(_state: ActionState, form: FormData): Promi
     else if (operation === "calendar-add") await addCalendarEntry(current, { title: value("title"), kind: value("kind"), from: value("from"), to: value("to") });
     else if (operation === "calendar-withdraw") await withdrawCalendarEntry(current, value("entry"));
     else if (operation === "catalog-show" || operation === "catalog-hide") await setCatalogVisibility(current, String(value("offering") ?? ""), operation === "catalog-show");
+    else if (operation === "delegation-grant") await grantDelegation(current, { duty: value("duty"), delegate: value("delegate"), days: value("days"), reason: value("reason") });
+    else if (operation === "delegation-revoke") await revokeDelegation(current, value("delegation"));
+    else if (operation === "certificate-draft") await draftCertificate(current, { student: value("student"), kind: value("kind") });
+    else if (operation === "certificate-issue") {
+      const code = await issueCertificate(current, value("certificate"));
+      revalidatePath("/", "layout");
+      return { message: `Issued. Verification code ${code}.` };
+    }
+    else if (operation === "certificate-revoke") await revokeCertificate(current, { certificate: value("certificate"), reason: value("reason") });
+    else if (operation === "group-create") await createStudyGroup(current, { offering: value("offering"), name: value("name"), capacity: value("capacity") });
+    else if (operation === "group-join") await joinStudyGroup(current, value("group"));
+    else if (operation === "group-leave") await leaveStudyGroup(current, value("group"));
+    else if (operation === "profile-save") await saveProfile(current, { bio: form.get("bio") ?? "", interests: form.get("interests") ?? "", visibility: value("visibility") });
     else return { error: "This action is unavailable." };
   } catch (error) {
     if (error instanceof WorkflowError) return { error: error.message };

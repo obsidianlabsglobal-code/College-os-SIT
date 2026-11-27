@@ -36,6 +36,8 @@ Development records and research projects are decided by an HOD of the departmen
 
 My work (AD-018) only collects items. Each item comes from its own workflow's read model and authority rule, so the queue never grants access. Institution calendar dates and catalog visibility are admin-only. A hidden offering stays visible to its roster.
 
+Delegation (AD-019): an admin lends exactly one duty (exam cell or institution calendar) to a current faculty member or HOD, with an expiry of at most 365 days. The admin can revoke it. While it is live, the delegate passes that duty's checks in their own role; nothing else widens. Certificates are drafted and issued only by admins. Public verification shows only the type, institution, date, status and holder initials.
+
 Source vocabulary has changed over time. The original eight product domains describe subject areas. Later OS names describe user workspaces that cross those areas. Retain both views, with shared identity and records. A prototype name confers no evidence of a working implementation. Operational GPS, model suggestions and policy-sensitive disclosure retain explicit gates.
 
 ## Change procedure

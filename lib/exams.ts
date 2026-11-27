@@ -3,8 +3,9 @@ import { z } from "zod";
 import { audit, WorkflowError } from "./assignments";
 import { db, transaction } from "./db";
 import type { Scope } from "./scope";
+import { hasDuty, holdsDuty } from "./delegation";
 
-// SA-015 / SA-016 / AD-009 / AD-029 / LE-008: the office (admin) drafts and publishes examination sittings with a room
+// SA-015 / SA-016 / AD-009 / AD-029 / LE-008: the office (admin, or an exam-cell delegate) drafts and publishes examination sittings with a room
 // and an invigilator. Publication checks the section, room and invigilator against published exams (database
 // exclusion constraints), classes and confirmed bookings. Readers see only published sittings in their scope.
 const unavailable = () => new WorkflowError("This sitting is unavailable or has already changed.");
@@ -14,11 +15,9 @@ const draftInput = z.object({
   start: wall, end: wall, room: z.uuid(), invigilator: z.string().min(1).max(100), source: z.string().trim().max(300).optional(),
 }).refine(v => v.kind === "internal" || !!v.source, { message: "Enter the official source for an external examination." });
 
+// The office, or a staff member holding the exam-cell duty (AD-019).
 async function requireAdmin(client: PoolClient, scope: Scope) {
-  if (scope.role !== "admin") throw unavailable();
-  const { rowCount } = await client.query("SELECT 1 FROM membership WHERE institution_id=$1 AND account_id=$2 AND role='admin' AND ended_at IS NULL FOR SHARE",
-    [scope.institution, scope.account]);
-  if (!rowCount) throw unavailable();
+  if (!(await hasDuty(scope, "exam_cell", client))) throw unavailable();
 }
 
 export function draftExam(scope: Scope, raw: unknown) {
@@ -94,14 +93,13 @@ export type Sitting = { id: string; kind: "internal" | "external"; title: string
 const member = `EXISTS (SELECT 1 FROM membership x WHERE x.institution_id=e.institution_id AND x.account_id=$2 AND x.role=$3 AND x.ended_at IS NULL)`;
 const roster = (role: string) => `EXISTS (SELECT 1 FROM roster r WHERE (r.institution_id,r.offering_id)=(e.institution_id,e.offering_id)
   AND r.account_id=$2 AND r.role='${role}' AND r.ended_at IS NULL)`;
-const visible = `${member} AND CASE $3
-  WHEN 'admin' THEN true
+const visible = `${member} AND CASE WHEN ${holdsDuty("exam_cell")} THEN true ELSE CASE $3
   WHEN 'principal' THEN e.state<>'draft'
   WHEN 'student' THEN e.state<>'draft' AND ${roster("student")}
   WHEN 'faculty' THEN e.state<>'draft' AND (e.invigilator_id=$2 OR ${roster("faculty")})
   WHEN 'hod' THEN e.state<>'draft' AND EXISTS (SELECT 1 FROM membership h WHERE h.institution_id=e.institution_id AND h.account_id=$2
     AND h.role='hod' AND h.department_id=c.department_id AND h.ended_at IS NULL)
-  ELSE false END`;
+  ELSE false END END`;
 
 export async function exams(scope: Scope) {
   return (await db.query<Sitting>(`SELECT e.id,e.kind,e.title,c.name AS course,s.name AS section,lower(e.slot) AS start,upper(e.slot) AS finish,
@@ -124,7 +122,7 @@ export function examIssues(rows: Sitting[], invigilatorsActive: Set<string>) {
 }
 
 export async function examOptions(scope: Scope) {
-  if (scope.role !== "admin") return null;
+  if (!(await hasDuty(scope, "exam_cell"))) return null;
   const [offerings, rooms, faculty] = await Promise.all([
     db.query<{ id: string; label: string }>(`SELECT o.id,c.name||' · '||s.name||' · '||t.name AS label FROM offering o
       JOIN course c ON (c.institution_id,c.id)=(o.institution_id,o.course_id) JOIN section s ON (s.institution_id,s.id)=(o.institution_id,o.section_id)

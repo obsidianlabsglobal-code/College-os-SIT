@@ -13,6 +13,7 @@ import { delegatedRoles, institutionCatalog } from "../../lib/institution";
 import { planningAction } from "../actions/planning";
 import { catalogHistory } from "../../lib/academics";
 import { calendarEntries } from "../../lib/calendar";
+import { delegateOptions, delegations, dutyLabel } from "../../lib/delegation";
 
 type Option = { id: string; name: string };
 
@@ -26,8 +27,9 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   const current = await scope(selection.institution,selection.role);
   if (current.role !== "admin") notFound();
   const preview = onboardingPreviewEnabled();
-  const [data, setup, admissions, history, dates] = await Promise.all([
+  const [data, setup, admissions, history, dates, lent, delegates] = await Promise.all([
     adminCatalog(current), institutionCatalog(current), preview ? studentAdmissions(current) : [], catalogHistory(current), calendarEntries(current),
+    delegations(current), delegateOptions(current),
   ]);
   return <Chrome user={user} current={current} section="/admin">
     <PageHeader title="Academic setup" parent={{ href: `/?${workspaceQuery(current)}`, label: "Workspace" }} />
@@ -91,6 +93,20 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
             <input type="hidden" name="membership" value={grant.id} />
           </ActionForm>}
         </li>)}</ul>
+      </section>
+      <section className="panel stack" aria-labelledby="delegation-title">
+        <h2 id="delegation-title">Delegated duties</h2>
+        <p className="meta">Lend one office duty to a faculty member or department head until an expiry. They can do only that duty, in their own role, and you can revoke it at any time.</p>
+        <ActionForm action={planningAction} context={current} operation="delegation-grant" label="Delegate duty">
+          <label>Duty<select name="duty" defaultValue="exam_cell">{Object.entries(dutyLabel).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>
+          <Choices label="Staff member" field="delegate" options={delegates} />
+          <label>Days until expiry<input name="days" type="number" min={1} max={365} defaultValue={30} required /></label>
+          <label>Reason<input name="reason" required maxLength={500} /></label>
+        </ActionForm>
+        {lent.length > 0 && <ul className="items">{lent.map(d => <li key={d.id}><div className="row spread">
+          <span>{dutyLabel[d.duty]} · {d.delegate} · until {d.expires_at.toISOString().slice(0, 10)} · {d.active ? "active" : d.revoked_at ? "revoked" : "expired"}</span>
+          {d.active && <ActionForm action={planningAction} context={current} operation="delegation-revoke" label="Revoke" secondary><input type="hidden" name="delegation" value={d.id} /></ActionForm>}
+        </div></li>)}</ul>}
       </section>
       <section className="panel stack" aria-labelledby="calendar-title">
         <h2 id="calendar-title">Institution calendar</h2>

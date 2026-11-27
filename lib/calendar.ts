@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { db, transaction } from "./db";
 import { audit, WorkflowError } from "./assignments";
+import { hasDuty, holdsDuty } from "./delegation";
 import type { Scope } from "./scope";
 
 // SA-010: institution dates published by the office, and one month of dated records the caller can already see — assignment deadlines, classes and published
@@ -58,23 +59,21 @@ export async function calendar(scope: Scope, input: CalendarFilter) {
   [scope.institution, scope.account, scope.role, input.month, input.offering ?? null, input.kind ?? null])).rows;
 }
 
-/** Office: publish or withdraw institution-wide dates. */
+/** Office (or a calendar delegate): publish or withdraw institution-wide dates. */
 export async function calendarEntries(scope: Scope) {
-  if (scope.role !== "admin") return [];
+  if (!(await hasDuty(scope, "calendar"))) return [];
   return (await db.query<{ id: string; title: string; kind: string; starts_on: string; ends_on: string }>(`SELECT e.id,e.title,e.kind,
       to_char(e.starts_on,'YYYY-MM-DD') AS starts_on,to_char(e.ends_on,'YYYY-MM-DD') AS ends_on FROM calendar_entry e
-    WHERE e.institution_id=$1 AND e.withdrawn_at IS NULL AND EXISTS (SELECT 1 FROM membership WHERE institution_id=$1 AND account_id=$2 AND role='admin' AND ended_at IS NULL)
-    ORDER BY e.starts_on`, [scope.institution, scope.account])).rows;
+    WHERE e.institution_id=$1 AND e.withdrawn_at IS NULL ORDER BY e.starts_on`, [scope.institution])).rows;
 }
 const entryInput = z.object({ title: z.string().trim().min(1).max(160), kind: z.enum(["term", "holiday", "event", "deadline"]), from: z.iso.date(), to: z.iso.date() })
   .refine(v => v.to >= v.from, { message: "The end date must not be before the start date." });
 export function addCalendarEntry(scope: Scope, raw: unknown) {
   const input = entryInput.parse(raw);
-  if (scope.role !== "admin") throw new WorkflowError("This action is unavailable.");
   return transaction(async client => {
     const { rows: [row] } = await client.query<{ id: string }>(`INSERT INTO calendar_entry (institution_id,title,kind,starts_on,ends_on,created_by)
-      SELECT $1,$2,$3,$4,$5,$6 WHERE EXISTS (SELECT 1 FROM membership WHERE institution_id=$1 AND account_id=$6 AND role='admin' AND ended_at IS NULL) RETURNING id`,
-    [scope.institution, input.title, input.kind, input.from, input.to, scope.account]);
+      SELECT $1,$4,$5,$6,$7,$2 WHERE ${holdsDuty("calendar")} RETURNING id`,
+    [scope.institution, scope.account, scope.role, input.title, input.kind, input.from, input.to]);
     if (!row) throw new WorkflowError("This action is unavailable.");
     await audit(client, scope, row.id, "calendar.published");
     return row.id;
@@ -82,10 +81,9 @@ export function addCalendarEntry(scope: Scope, raw: unknown) {
 }
 export function withdrawCalendarEntry(scope: Scope, id: unknown) {
   const entry = z.uuid().parse(id);
-  if (scope.role !== "admin") throw new WorkflowError("This action is unavailable.");
   return transaction(async client => {
-    const { rowCount } = await client.query(`UPDATE calendar_entry SET withdrawn_at=clock_timestamp() WHERE institution_id=$1 AND id=$2 AND withdrawn_at IS NULL
-      AND EXISTS (SELECT 1 FROM membership WHERE institution_id=$1 AND account_id=$3 AND role='admin' AND ended_at IS NULL)`, [scope.institution, entry, scope.account]);
+    const { rowCount } = await client.query(`UPDATE calendar_entry SET withdrawn_at=clock_timestamp() WHERE institution_id=$1 AND id=$4 AND withdrawn_at IS NULL
+      AND ${holdsDuty("calendar")}`, [scope.institution, scope.account, scope.role, entry]);
     if (!rowCount) throw new WorkflowError("This date is unavailable.");
     await audit(client, scope, entry, "calendar.withdrawn");
   });
