@@ -1,10 +1,10 @@
 import { MissionControl } from "./faculty/mission-control";
 import Link from "next/link";
 import { account, scope, workspaces, workspaceQuery } from "../lib/scope";
-import { SegmentedBar } from "./experience/segmented-bar";
 import { notifications } from "../lib/automation";
 import { Inbox } from "./experience/inbox";
-import { adminRequestSummary, departmentSummary, institutionSummary } from "../lib/reporting";
+import { adminRequestSummary, operationsReport } from "../lib/reporting";
+import { HodBoard, PrincipalBoard } from "./leadership/boards";
 import { Suspense } from "react";
 import { ExperienceHeading } from "./experience/heading";
 import { StudentHome, StudentHomeLoading } from "./student/home";
@@ -27,10 +27,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ i
     </Chrome>;
   }
 
-  const [summary, overview, requestCounts, inbox] = current
-    ? await Promise.all([departmentSummary(current), institutionSummary(current), adminRequestSummary(current),
-      current.role === "admin" || current.role === "principal" ? notifications(current) : []])
-    : [[], [], null, []];
+  const [requestCounts, inbox, ops] = current?.role === "admin"
+    ? await Promise.all([adminRequestSummary(current), notifications(current), operationsReport(current)])
+    : [null, [], null];
   const query = current ? workspaceQuery(current) : "";
   return <Chrome user={user} current={current}>
     <ExperienceHeading title={current ? roleLabels[current.role] : "Your workspace"}
@@ -39,19 +38,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ i
         current?.role === "principal" ? "Institution reporting from published academic records and service requests." :
         current?.role === "admin" ? "Review service requests, configure courses and manage access." : undefined} />
     {!current && <p className="panel">Your account has no active institutional workspace.</p>}
-    {current?.role === "principal" && <Inbox items={inbox} current={current} query={query} title="Escalations" timezone={workspace?.timezone ?? "Asia/Kolkata"} className="panel" />}
-    {current?.role === "principal" && <section className="panel">
-      <h2>Institution activity</h2>
-      <p className="meta">All recorded activity for this institution. Published results count each submission once.</p>
-      {overview.map(row => <dl className="metrics" key={row.name}>
-        <div><dt>Published assignments</dt><dd>{row.assignments}</dd></div>
-        <div><dt>Submissions</dt><dd>{row.submissions}</dd></div>
-        <div><dt>Published results</dt><dd>{row.results}</dd></div>
-        <div><dt>Open service requests</dt><dd>{row.open_requests}</dd></div>
-      </dl>)}
-      {overview.map(row => <SegmentedBar key={row.name} label="Submissions with published results" total={row.submissions} rest="awaiting results"
-        parts={[{ label: "with published results", value: row.results, tone: 1 }]} />)}
-    </section>}
+    {current?.role === "principal" && <PrincipalBoard current={current} timezone={workspace?.timezone ?? "Asia/Kolkata"} />}
     {current?.role === "admin" && <section className="panel">
       <h2>Institution operations</h2>
       {requestCounts && <dl className="metrics" aria-label="Enrollment-letter queue">
@@ -59,22 +46,27 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ i
         <div><dt>In review</dt><dd>{requestCounts.in_review}</dd></div>
       </dl>}
       <p className="meta">Current enrollment-letter requests in this institution.</p>
+      {ops && <section aria-labelledby="ops-title">
+        <h3 id="ops-title">Operations · last 30 days</h3>
+        <dl className="metrics" aria-label="Operations report">
+          <div><dt>Unassigned open requests</dt><dd>{ops.unassigned}</dd></div>
+          <div><dt>Oldest open request</dt><dd>{ops.oldest_open_hours === null ? "None" : `${ops.oldest_open_hours} h`}</dd></div>
+          <div><dt>Median resolution</dt><dd>{ops.median_resolution_hours === null ? "—" : `${ops.median_resolution_hours} h`}</dd></div>
+          <div><dt>Resolved · declined</dt><dd>{ops.resolved_30d} · {ops.declined_30d}</dd></div>
+          <div><dt>Attendance corrections</dt><dd>{ops.attendance_corrections_30d}</dd></div>
+          <div><dt>Result corrections</dt><dd>{ops.grade_corrections_30d}</dd></div>
+        </dl>
+      </section>}
       <Inbox items={inbox} current={current!} query={query} title="Routed to you" timezone={workspace?.timezone ?? "Asia/Kolkata"} />
       <ul className="items">
         <li><Link href={`/admin?${query}`}>Manage catalog and access</Link><p className="meta">Set up academic offerings, rosters and delegated roles.</p></li>
         <li><Link href={`/requests?${query}`}>Review the request queue</Link><p className="meta">Process student enrollment-letter requests.</p></li>
+        <li><Link href={`/requests?${query}&view=mine`}>Requests assigned to me</Link><p className="meta">Your owned queue; unassigned requests are claimed when you start review.</p></li>
+        <li><Link href={`/audit?${query}`}>Search the audit log</Link><p className="meta">Who changed which record and when, without record contents.</p></li>
         <li><Link href={`/notices?${query}`}>Manage institution notices</Link><p className="meta">Publish notices for this institution.</p></li>
       </ul>
     </section>}
-    {current?.role === "hod" && <section className="panel">
-      <h2>Department activity</h2>
-      <p className="meta">All recorded activity in your assigned departments. Turnaround measures the average time from submission to first publication.</p>
-      {summary.length ? <div className="table-scroll department-report" role="region" aria-label="Department reports" tabIndex={0}><table>
-        <thead><tr><th scope="col">Department</th><th scope="col">Published assignments</th><th scope="col">Submissions</th><th scope="col">Published results</th><th scope="col">Average turnaround</th><th scope="col">Results progress</th></tr></thead>
-        <tbody>{summary.map(row => <tr key={row.name}><th scope="row">{row.name}</th><td>{row.assignments}</td><td>{row.submissions}</td><td>{row.results}</td><td>{row.hours === null ? "—" : `${row.hours.toFixed(1)} h`}</td><td><SegmentedBar label={`${row.name} published results`} total={row.submissions}
-          rest="awaiting results" parts={[{ label: "published", value: row.results, tone: 1 }]} /></td></tr>)}</tbody>
-      </table></div> : <p>No departments are assigned to this workspace.</p>}
-    </section>}
+    {current?.role === "hod" && <HodBoard current={current} />}
     {current?.role === "faculty" && <MissionControl current={current} timezone={workspace?.timezone ?? "Asia/Kolkata"} />}
   </Chrome>;
 }

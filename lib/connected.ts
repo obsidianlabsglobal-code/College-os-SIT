@@ -93,15 +93,46 @@ export function publishNotice(current: Scope, id: string) {
   });
 }
 
-export async function requests(current: Scope) {
+export type QueueView = "mine" | "unassigned" | "all";
+
+export async function requests(current: Scope, view: QueueView = "all") {
   if (current.role !== "admin" && current.role !== "student") return [];
-  return (await db.query<{ id: string; student: string; description: string; status: string; outcome: string | null; handler: string | null }>(
-    `SELECT r.id,s.name AS student,r.description,r.status,r.outcome,h.name AS handler
-     FROM service_request r JOIN "user" s ON s.id=r.student_id LEFT JOIN "user" h ON h.id=r.handled_by
+  return (await db.query<{ id: string; student: string; description: string; status: string; outcome: string | null; handler: string | null;
+    assigned_to: string | null; assignee: string | null; created_at: Date }>(
+    `SELECT r.id,s.name AS student,r.description,r.status,r.outcome,h.name AS handler,r.assigned_to,a.name AS assignee,r.created_at
+     FROM service_request r JOIN "user" s ON s.id=r.student_id LEFT JOIN "user" h ON h.id=r.handled_by LEFT JOIN "user" a ON a.id=r.assigned_to
      WHERE r.institution_id=$1 AND ($3='admin' OR r.student_id=$2)
+     AND ($4='all' OR $3<>'admin' OR ($4='mine' AND r.assigned_to=$2) OR ($4='unassigned' AND r.assigned_to IS NULL AND r.status IN ('submitted','in_progress')))
      AND EXISTS (SELECT 1 FROM membership WHERE institution_id=$1 AND account_id=$2 AND role=$3 AND ended_at IS NULL)
-     ORDER BY r.created_at DESC,r.id`, [current.institution,current.account,current.role],
+     ORDER BY r.created_at DESC,r.id`, [current.institution,current.account,current.role,view],
   )).rows;
+}
+
+/** Active administrative staff who can own a request. */
+export async function requestStaff(current: Scope) {
+  if (current.role !== "admin") return [];
+  return (await db.query<{ id: string; name: string }>(
+    `SELECT u.id,u.name FROM membership m JOIN "user" u ON u.id=m.account_id
+     WHERE m.institution_id=$1 AND m.role='admin' AND m.ended_at IS NULL
+     AND EXISTS (SELECT 1 FROM membership c WHERE c.institution_id=$1 AND c.account_id=$2 AND c.role='admin' AND c.ended_at IS NULL)
+     ORDER BY u.name`, [current.institution,current.account])).rows;
+}
+
+/** Assign an open request to an active admin. Reassignment is allowed; the change is audited and notifies the assignee. */
+export async function assignRequest(current: Scope, id: string, assignee: string) {
+  if (current.role !== "admin") throw new WorkflowError("This action is unavailable.");
+  return transaction(async client => {
+    await lockMembership(client,current);
+    const staff = await client.query("SELECT 1 FROM membership WHERE institution_id=$1 AND account_id=$2 AND role='admin' AND ended_at IS NULL FOR SHARE",
+      [current.institution,assignee]);
+    if (!staff.rowCount) throw new WorkflowError("Choose an active administrative staff member.");
+    const result = await client.query(
+      `UPDATE service_request SET assigned_to=$3,assigned_at=clock_timestamp()
+       WHERE institution_id=$1 AND id=$2 AND status IN ('submitted','in_progress') AND assigned_to IS DISTINCT FROM $3`,
+      [current.institution,id,assignee]);
+    if (!result.rowCount) throw new WorkflowError("This request is unavailable, closed or already assigned to that person.");
+    await audit(client,current,id,"service_request.assigned");
+  });
 }
 
 export async function createRequest(current: Scope, description: string) {
@@ -123,13 +154,14 @@ export async function advanceRequest(current: Scope, id: string, next: "in_progr
     await lockMembership(client,current);
     const result = await client.query(
       `UPDATE service_request SET status=$3, handled_by=$4, outcome=$5,
-          closed_at=CASE WHEN $3='in_progress' THEN NULL ELSE clock_timestamp() END
-       WHERE institution_id=$1 AND id=$2 AND (
+          closed_at=CASE WHEN $3='in_progress' THEN NULL ELSE clock_timestamp() END,
+          assigned_to=coalesce(assigned_to,$4), assigned_at=coalesce(assigned_at,clock_timestamp())
+       WHERE institution_id=$1 AND id=$2 AND (assigned_to IS NULL OR assigned_to=$4) AND (
          ($3='in_progress' AND status='submitted') OR
          ($3 IN ('resolved','declined') AND status='in_progress'))`,
       [current.institution,id,next,current.account,next === "in_progress" ? null : outcome],
     );
-    if (!result.rowCount) throw new WorkflowError("This request is unavailable or has already changed.");
+    if (!result.rowCount) throw new WorkflowError("This request is unavailable, assigned to someone else, or has already changed.");
     await audit(client,current,id,`service_request.${next}`);
   });
 }

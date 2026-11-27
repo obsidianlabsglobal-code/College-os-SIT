@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { advanceRequest, createRequest, draftNotice, publishNotice } from "../../lib/connected";
+import { advanceRequest, assignRequest, createRequest, draftNotice, publishNotice } from "../../lib/connected";
 import { WorkflowError } from "../../lib/assignments";
 import { scope } from "../../lib/scope";
 import type { ActionState } from "./workflow";
@@ -26,6 +26,9 @@ export async function connected(_state: ActionState, form: FormData): Promise<Ac
         await advanceRequest(current,z.uuid().parse(form.get("id")),
           z.enum(["in_progress","resolved","declined"]).parse(form.get("status")),
           z.string().trim().max(4000).optional().parse(form.get("outcome") ?? undefined));
+        break;
+      case "assign-request":
+        await assignRequest(current,z.uuid().parse(form.get("id")),z.string().trim().min(1).max(200).parse(form.get("assignee")));
         break;
       default:
         throw new WorkflowError("This action is unavailable.");

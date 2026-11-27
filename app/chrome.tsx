@@ -20,7 +20,7 @@ export const roleLabels = {
   principal: "Principal",
 } satisfies Record<Scope["role"], string>;
 
-type Destination = "/automation" | "/fees" | "/letters" | "/opportunities" | "/" | "/grading" | "/notices" | "/requests" | "/admin" | "/clubverse" | "/aura" | "/timetable";
+type Destination = "/history" | "/audit" | "/automation" | "/fees" | "/letters" | "/opportunities" | "/" | "/grading" | "/notices" | "/requests" | "/admin" | "/clubverse" | "/aura" | "/timetable";
 const labels: Record<Destination, string> = {
   "/fees": "Fees & dues",
   "/opportunities": "Opportunities",
@@ -33,6 +33,8 @@ const labels: Record<Destination, string> = {
   "/aura": "AURA",
   "/requests": "Service requests",
   "/automation": "Automation",
+  "/audit": "Audit log",
+  "/history": "Assessment history",
   "/admin": "Academic setup and roles",
 };
 
@@ -40,7 +42,7 @@ const icons: Record<Destination, ComponentProps<typeof Icon>["name"]> = {
   "/fees": "service",
   "/opportunities": "service",
   "/": "home", "/timetable": "calendar", "/grading": "check", "/notices": "notice", "/clubverse": "people",
-  "/aura": "spark", "/automation": "spark", "/requests": "service", "/admin": "book", "/letters": "notice",
+  "/aura": "spark", "/automation": "spark", "/audit": "book", "/history": "check", "/requests": "service", "/admin": "book", "/letters": "notice",
 };
 
 const dock: Destination[] = ["/", "/timetable", "/aura", "/clubverse", "/notices", "/requests", "/opportunities"];
@@ -62,6 +64,8 @@ export async function Chrome({ user, current, section = "/", children }: {
   if (current?.role === "student" || current?.role === "admin") destinations.push("/opportunities");
   if (current?.role === "admin") destinations.push("/admin");
   if (current?.role === "admin" || current?.role === "principal") destinations.push("/automation");
+  if (current?.role === "admin") destinations.push("/audit");
+  if (current?.role === "student") destinations.push("/history");
   if (current?.role === "student" || current?.role === "faculty") destinations.push("/aura");
   // Design Bible student dock: Today, Timetable (learn), AURA, Campus first; the rest sit under More.
   if (current?.role === "student") destinations.sort((a, b) => dock.indexOf(a) - dock.indexOf(b));

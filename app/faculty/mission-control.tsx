@@ -6,6 +6,7 @@ import { QuickLookup } from "../aura/quick-lookup";
 import { ClassTimeline } from "../experience/class-timeline";
 import Link from "next/link";
 import { assignmentProgress, evaluationTotals } from "../../lib/faculty";
+import { facultyWorkload } from "../../lib/department";
 import { offerings } from "../../lib/assignments";
 import { workspaceQuery, type Scope } from "../../lib/scope";
 import { ActionForm } from "../forms";
@@ -19,7 +20,7 @@ import styles from "./mission-control.module.css";
 export async function MissionControl({ current, timezone }: { current: Scope; timezone: string }) {
   // Each section has its own query so a row limit in one cannot hide work in another.
   const day = new Intl.DateTimeFormat("sv-SE",{dateStyle:"short",timeZone:timezone});
-  const [totals, active, unpublished, upcoming, courses, attendanceWork, inbox] = await Promise.all([
+  const [totals, active, unpublished, upcoming, courses, attendanceWork, inbox, load] = await Promise.all([
     evaluationTotals(current),
     assignmentProgress(current, { view: "active", limit: 100 }),
     assignmentProgress(current, { view: "unpublished", limit: 20 }),
@@ -27,6 +28,7 @@ export async function MissionControl({ current, timezone }: { current: Scope; ti
     offerings(current),
     facultyAttendanceWork(current,day.format(new Date())),
     notifications(current),
+    facultyWorkload(current),
   ]);
   const query = workspaceQuery(current);
   const waiting = attendanceWork.filter(item=>item.state==="published");
@@ -41,6 +43,7 @@ export async function MissionControl({ current, timezone }: { current: Scope; ti
           totals.awaiting > 0 ? `${plural(totals.awaiting, "feedback draft")} ready for review before publication.` :
           courses.length ? "No evaluations are waiting. View today’s classes or create an assignment." :
           "Your workspace has no active teaching assignments."}</p>
+        {load && <p className="meta" aria-label="Your workload">Workload · {plural(load.offerings.length, "section")} · {plural(load.upcoming, "class", "classes")} in the next 7 days · {load.unrecorded} without attendance this week</p>}
         <div className={styles.actions}>{totals.pending > 0 || totals.awaiting > 0
           ? <Link className="button" href={href("/grading", query, { status: totals.pending > 0 ? "pending" : "awaiting" })}>Go to evaluation queue</Link>
           : null}
@@ -74,7 +77,7 @@ export async function MissionControl({ current, timezone }: { current: Scope; ti
     <div className={styles.columns}>
     <div className="stack">
       <section className={`panel ${styles.priority}`} aria-labelledby="next-work">
-        <p className={styles.eyebrow}>Teaching priorities</p>
+        <p className={styles.eyebrow}>Evaluation and publishing</p>
         <h2 id="next-work" tabIndex={-1}>What needs your attention</h2>
         {!courses.length ? <p>You have no active teaching assignments in this workspace. An institution administrator assigns courses.</p> :
           <ul className="work-list">

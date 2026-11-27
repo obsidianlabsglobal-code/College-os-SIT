@@ -98,7 +98,7 @@ export async function StudentHome({current, name, timezone}:{current:Scope;name:
           </div>
           {assignments.length ? <>
             {open.length ? assignmentList(open) : <p className={styles.empty}>No assignments awaiting submission.</p>}
-            {history.length>0 && <details className={styles.history}><summary>Submitted and past assignments ({history.length})</summary>{assignmentList(history)}</details>}
+            {history.length>0 && <details className={styles.history}><summary>Submitted and past assignments ({history.length})</summary>{assignmentList(history)}<Link href={`/history?${query}`}>Full assessment history</Link></details>}
           </> : <p className={styles.empty}>No assignments have been published for your courses yet.</p>}
         </section>
 

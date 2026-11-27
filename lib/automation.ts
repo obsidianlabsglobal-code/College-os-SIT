@@ -92,6 +92,21 @@ const handlers: Record<string, (client: PoolClient, job: Job) => Promise<Result>
        FROM membership m WHERE m.institution_id=$1 AND m.role='admin' AND m.ended_at IS NULL ON CONFLICT DO NOTHING`,
       [job.institution_id, job.entity_id, job.event_id]);
   },
+  async "request-assigned-notify"(client, job) {
+    // Only the latest assignment notifies: a later reassignment supersedes this event.
+    const { rows: [r] } = await client.query<{ open: boolean; current: boolean }>(
+      `SELECT q.status IN ('submitted','in_progress') AS open, q.assigned_at <= e.occurred_at AS current
+       FROM service_request q JOIN audit_event e ON e.institution_id=q.institution_id AND e.id=$3
+       WHERE q.institution_id=$1 AND q.id=$2 AND q.assigned_to IS NOT NULL`, [job.institution_id, job.entity_id, job.event_id]);
+    if (!r?.open) return { skip: "handled" };
+    if (!r.current) return { skip: "superseded" };
+    return notify(client,
+      `INSERT INTO notification (institution_id,recipient_id,event_id,kind,entity_id,title)
+       SELECT q.institution_id,q.assigned_to,$3::bigint,'request',q.id,'Enrollment-letter request assigned to you'
+       FROM service_request q JOIN membership m ON m.institution_id=q.institution_id AND m.account_id=q.assigned_to AND m.role='admin' AND m.ended_at IS NULL
+       WHERE q.institution_id=$1 AND q.id=$2 ON CONFLICT DO NOTHING`,
+      [job.institution_id, job.entity_id, job.event_id]);
+  },
   async "request-sla-escalate"(client, job) {
     const { rows: [r] } = await client.query<{ status: string; created_at: Date; now: Date }>(
       "SELECT status,created_at,clock_timestamp() AS now FROM service_request WHERE institution_id=$1 AND id=$2", [job.institution_id, job.entity_id]);
