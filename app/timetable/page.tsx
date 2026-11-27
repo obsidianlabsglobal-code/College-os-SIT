@@ -3,9 +3,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { account,scope,workspaceQuery,workspaces } from "../../lib/scope";
-import { attendancePercentage,attendanceSummary,nextClass,sessionDetail,timetable,timetableOptions } from "../../lib/academic-day";
+import { attendancePercentage,attendanceSummary,campusChangeAlternatives,nextClass,sessionDetail,timetable,timetableOptions,upcomingRoomChanges } from "../../lib/academic-day";
 import { ActionForm } from "../forms";
 import { Chrome } from "../chrome";
+import { attendanceGroupDraft } from "../../lib/attendance-group-draft";
+import { roomChangeMessage } from "../../lib/prepared-message";
+import { PreparedMessage } from "../experience/prepared-message";
+import { AttendanceGroupCopy } from "./attendance-group-copy";
 import { AttendanceForm } from "./attendance-form";
 import { planningOptions } from "../../lib/attendance-planning";
 import { AttendanceForecast } from "./forecast";
@@ -24,7 +28,7 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
   const time = new Intl.DateTimeFormat("en-IN",{timeZone:timezone,hour:"numeric",minute:"2-digit"});
   const today = date.format(new Date());
   const day = z.iso.date().safeParse(params.day).data ?? today;
-  const days = params.view==="day" ? 1 : 7;
+  const days = params.view==="week" ? 7 : 1;
   const selectedID = z.uuid().safeParse(params.session);
   if (params.session && !selectedID.success) notFound();
   const [sessions,upcoming,summary,options,detail,targets] = await Promise.all([
@@ -32,6 +36,7 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
     attendanceSummary(current),timetableOptions(current),selectedID.success ? sessionDetail(current,selectedID.data) : null,planningOptions(current),
   ]);
   if (selectedID.success && !detail) notFound();
+  const [alternatives,changes] = detail ? await Promise.all([campusChangeAlternatives(current,detail.row.id),upcomingRoomChanges(current,detail.row.id)]) : [[],[]];
   const query = workspaceQuery(current);
   const base = `/timetable?${query}`;
   const period = `${base}&day=${day}&view=${days===1 ? "day" : "week"}`;
@@ -43,16 +48,27 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
   };
   const selectedOn = (localDay:string) => detail && date.format(detail.row.start) <= localDay &&
     date.format(new Date(detail.row.finish.getTime()-1)) >= localDay;
-  const switchView = `${base}&day=${day}&view=${days===1?"week":"day"}` +
-    (detail && (days===1 || selectedOn(day)) ? `&session=${detail.row.id}` : "");
+  const switchDay = days===7 && detail && !selectedOn(day) ? date.format(detail.row.start) : day;
+  const switchView = `${base}&day=${switchDay}&view=${days===1?"week":"day"}` +
+    (detail ? `&session=${detail.row.id}` : "");
   const upcomingLink = upcoming ? `${base}&day=${date.format(upcoming.start)}&view=day&session=${upcoming.id}#class-details` : "";
+  const periodLabel = new Intl.DateTimeFormat("en-IN", {weekday:"short",day:"numeric",month:"short",year:"numeric",timeZone:"UTC"});
+  // Named drafts are a test-only mode. No institutional group authorization is inferred.
+  const fictionalPractice = process.env.NEXUS_FICTIONAL_PILOT==="true" &&
+    process.env.NEXUS_FICTIONAL_ATTENDANCE_GROUP_NAMES==="true";
+  const groupDraft = current.role==="faculty" && detail?.row.state==="conducted" ? attendanceGroupDraft({
+    course:detail.row.course,section:detail.row.section,
+    date:periodLabel.format(new Date(date.format(detail.row.start))),
+    time:`${time.format(detail.row.start)} – ${time.format(detail.row.finish)}`,
+    timezone,faculty:detail.row.teacher,roster:detail.learners,fictionalPractice,
+  }) : null;
   const stateLabel = {draft:"Draft",published:"Scheduled",cancelled:"Cancelled",conducted:"Attendance recorded"};
   const label = (localDay:string) => new Intl.DateTimeFormat("en-IN",{weekday:"short",day:"numeric",month:"short",timeZone:"UTC"}).format(new Date(localDay));
   const now = new Date();
   const groups = [...Map.groupBy(sessions, session => date.format(session.start))];
   return <Chrome user={user} current={current} section="/timetable"><div className={styles.page}>
     <header className={styles.hero}>
-      <div><p className={styles.eyebrow}>Academic day</p><h1>Timetable</h1><p className="meta">Classes and attendance · {timezone}</p></div>
+      <div><p className={styles.eyebrow}>Campus and academics</p><h1>Timetable</h1><p className="meta">Classes and attendance · {timezone}</p></div>
       {current.role==="student" && <a className={styles.shortcut} href="#attendance">My attendance</a>}
     </header>
     {upcoming && <section className={`panel ${styles.next}`} aria-labelledby="next-class">
@@ -61,8 +77,8 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
       <p className="meta">{label(date.format(upcoming.start))} · {time.format(upcoming.start)} · {upcoming.room}</p>
     </section>}
 
-    <div className={styles.planner}>
-      <section className="panel" aria-labelledby="class-schedule">
+    <div className={styles.planner} data-student={current.role==="student" ? "true" : undefined}>
+      <section className={`panel ${styles.schedule}`} aria-labelledby="class-schedule">
         <div className={styles.scheduleHead}>
           <h2 id="class-schedule">Class schedule</h2>
           <nav className={styles.segmented} aria-label="Timetable view">
@@ -82,7 +98,7 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
             const count = sessions.filter(session => date.format(session.start) === localDay && session.state !== "cancelled").length;
             const parts = new Intl.DateTimeFormat("en-IN",{weekday:"short",day:"numeric",timeZone:"UTC"}).formatToParts(new Date(localDay));
             return <li key={localDay}>
-              <Link href={`${base}&day=${localDay}&view=day`} aria-current={localDay===today ? "date" : undefined}
+              <Link href={`${base}&day=${localDay}&view=day` + (detail && selectedOn(localDay) ? `&session=${detail.row.id}` : "")} aria-current={localDay===today ? "date" : undefined}
                 aria-label={`${label(localDay)}: ${count ? `${count} class${count===1?"":"es"}` : "no classes"}`}>
                 <span>{parts.find(part=>part.type==="weekday")?.value}</span><strong>{parts.find(part=>part.type==="day")?.value}</strong>
                 <i data-count={Math.min(count,3)} aria-hidden="true" />
@@ -141,12 +157,39 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
           </ActionForm>
         </details>)}
       </section>}
-      {detail && <section className={`panel ${styles.classDetail}`} style={recordTransition(current,"session",detail.row.id)} id="class-details" aria-labelledby="class-detail-title">
+      {detail && <section className={`panel ${styles.classDetail}`} style={recordTransition(current,"session",detail.row.id)} id="class-details" tabIndex={-1} aria-labelledby="class-detail-title">
         <h2 id="class-detail-title">{detail.row.course} class</h2>
-        <p>{date.format(detail.row.start)} · {time.format(detail.row.start)} – {time.format(detail.row.finish)} · {detail.row.room}</p>
+        <p><time dateTime={detail.row.start.toISOString()}>{periodLabel.format(new Date(date.format(detail.row.start)))} · {time.format(detail.row.start)}</time> – {time.format(detail.row.finish)} · <strong>{detail.row.room}</strong></p>
         <p className="meta">{stateLabel[detail.row.state]}{detail.row.change_reason ? ` · ${detail.row.change_reason}` : ""}</p>
+        {changes[0]&&<aside aria-label="Verified room change">
+          <h3>Verified room change</h3>
+          <p>Moved from {changes[0].from_room_name} to {changes[0].to_room_name}. Go to {changes[0].current_room} at the displayed time.</p>
+          <p className="meta">Timetable revision {changes[0].revision} · Published {date.format(changes[0].published_at)} at {time.format(changes[0].published_at)} · {changes[0].reason}</p>
+          {current.role==="admin"&&<PreparedMessage title="Room-change announcement" buttonLabel="Copy room-change update"
+            description="The published timetable is the source. Paste this only to the affected class or authorized staff channel."
+            message={roomChangeMessage({course:detail.row.course,section:detail.row.section,
+              date:periodLabel.format(new Date(date.format(detail.row.start))),time:`${time.format(detail.row.start)} (${timezone})`,
+              oldRoom:changes[0].from_room_name,newRoom:changes[0].to_room_name})}/>}
+        </aside>}
+        {current.role==="admin"&&detail.row.state==="published"&&detail.row.start>new Date()&&<details>
+          <summary>Campus Change Brief: replace the room</summary>
+          <p className="meta">Time and teacher stay the same. Choices are preapproved room alternatives with sufficient recorded seats and no current schedule or confirmed-booking conflict.</p>
+          {alternatives.length?<ActionForm action={timetableAction} context={current} operation="move-room" label="Review room change"
+            confirmationTitle="Review room change" confirmationLabel="Publish room change"
+            confirmation={`${detail.row.course} · ${date.format(detail.row.start)}, ${time.format(detail.row.start)}. The timetable will change from ${detail.row.room} to the selected room for ${alternatives[0].affected} active students. The class time and teacher stay the same. No external message is sent.`}>
+            <input type="hidden" name="session" value={detail.row.id}/>
+            <input type="hidden" name="revision" value={detail.row.revision}/>
+            <p>Active students affected: {alternatives[0].affected}. The assigned teacher is unchanged.</p>
+            <label>Replacement room<select name="room" required defaultValue="">
+              <option value="" disabled>Choose an approved room</option>
+              {alternatives.map(room=><option key={room.id} value={room.id}>{room.name} · {room.location} · {room.capacity} seats</option>)}
+            </select></label>
+            <label>Public reason for room change<input name="reason" maxLength={500} required /></label>
+          </ActionForm>:<p>No approved alternative with sufficient recorded capacity is currently available.</p>}
+        </details>}
+        {groupDraft && <AttendanceGroupCopy key={detail?.row.revision} draft={groupDraft} fictionalPractice={fictionalPractice} />}
         {current.role==="student" && detail.row.attendance && <p>Your attendance: {detail.row.attendance}</p>}
-        {current.role==="faculty" && detail.row.finish<=new Date() && detail.learners.length>0 &&
+        {current.role==="faculty" && (detail.row.state==="published" || detail.row.state==="conducted") && detail.row.finish<=new Date() && detail.learners.length>0 &&
           <AttendanceForm key={`${detail.row.id}:${detail.row.revision}`} current={{institution:current.institution,role:current.role}} session={detail.row.id}
             revision={detail.row.revision} learners={detail.learners} correction={detail.row.state==="conducted"} />}
         {current.role==="faculty" && detail.row.state==="published" && (detail.row.finish>new Date() || !detail.learners.length)

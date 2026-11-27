@@ -39,5 +39,5 @@ export async function timetableAction(_state:ActionState, form:FormData):Promise
   }
   revalidatePath("/", "layout");
   if (operation==="draft" || operation==="move") redirect(`/timetable?${workspaceQuery(current)}&session=${session}`);
-  return {message:operation==="attendance" ? "Attendance saved." : "Schedule updated."};
+  return {message:operation==="attendance" ? "Attendance saved." : operation==="move-room" ? "Room change published to the timetable. No external message was sent." : "Schedule updated."};
 }

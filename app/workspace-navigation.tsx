@@ -29,7 +29,7 @@ export function WorkspaceNavigation({ role, items }: { role: string; items: Dest
       {collapsed ? "Show navigation" : "Hide navigation"}
     </button>
     <nav id="workspace-navigation" aria-label="Campus workflows">
-      <p className="sidebar-role">{role}</p>
+      <p className="sidebar-role">{role} workspace</p>
       {items.map((item, index) => <DestinationLink key={item.href} item={item} secondary={index >= 4} />)}
       {secondary.length > 0 && <button type="button" className="more-trigger" aria-haspopup="dialog" disabled={!ready}
         data-current={secondary.some(item=>item.active)} onClick={() => sheet.current?.showModal()}>

@@ -34,6 +34,7 @@
   --rose: light-dark(#f1dce4, #432a35);
   --success: light-dark(#316b51, #9fd9bc);
   --violet-deep: #4b3590;
+  --brand-blue: var(--accent); /* Sites-direction alias: the identity is violet (Design Bible decision, 27 Nov) */
   --text-meta: .875rem;
   --text-heading: clamp(2rem, 3.8vw, 3.3rem);
   --space-1: .25rem;
@@ -45,6 +46,10 @@
   --space-7: 2.5rem;
   --space-8: 3rem;
   --space-9: 4rem;
+  --control-height: 44px;
+  --control-rest: light-dark(#fff, #181f2b);
+  --control-hover: light-dark(#eff6ff, #22364d);
+  --control-shadow: 0 1px 2px light-dark(#102f4e20,#0005), 0 2px 6px light-dark(#102f4e12,#0002);
   --radius-control: .68rem;
   --radius-panel: 1.12rem;
   --radius-sheet: 1.5rem;

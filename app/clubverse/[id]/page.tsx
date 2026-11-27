@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { Chrome } from "../../chrome";
+import { PreparedMessage } from "../../experience/prepared-message";
+import { clubEventMessage } from "../../../lib/prepared-message";
 import { ExperienceHeading } from "../../experience/heading";
 import { account, scope, workspaceQuery } from "../../../lib/scope";
 import { clubView } from "../../../lib/club-views";
@@ -65,6 +67,12 @@ export default async function ClubHome({ params,searchParams }: {
               <p>{event.location} · {date.format(event.starts_at)} – {date.format(event.ends_at)}</p>
               <p className="meta">Capacity {event.capacity} · {event.audience === "club" ? "Members only" : "Eligible students"}</p>
               <p className="prose-text">{event.requirements}</p>
+              {officer && active && ["published","registration_open","registration_closed"].includes(event.state) &&
+                event.starts_at>new Date() && <PreparedMessage title="Event announcement" buttonLabel="Copy event announcement"
+                  description={event.audience==="club" ? "Share only with club members. Check the published event before posting." :
+                    "Share with the eligible student audience. Check the published event before posting."}
+                  message={clubEventMessage({club:club.name,title:event.title,when:`${date.format(event.starts_at)} – ${date.format(event.ends_at)} · ${club.timezone}`,
+                    venue:event.location,audience:event.audience==="club" ? "club":"institution",registrationOpen:event.state==="registration_open"})} />}
               {event.registered && <p>{event.verified ? "Participation verified" : "Registered · participation unverified"}</p>}
               {event.total != null && <p>{event.total} registered · {event.attended} verified participants</p>}
               {active && current.role === "student" && !event.registered && event.state === "registration_open" && new Date(event.starts_at) > new Date() &&

@@ -1,0 +1,10 @@
+.figure { display:grid; gap:.55rem; }
+.track { display:flex; gap:2px; height:.56rem; overflow:hidden; border-radius:var(--radius-pill); background:var(--canvas); }
+.track span { flex:0 1 0; min-width:0; }
+.legend { display:flex; gap:.4rem 1rem; flex-wrap:wrap; font-size:var(--text-meta); color:var(--muted); }
+.legend > span { display:inline-flex; align-items:center; gap:.28rem; }
+.legend i { display:inline-block; width:.6rem; height:.6rem; border-radius:50%; margin-inline-end:.16rem; }
+.legend strong { color:var(--ink); font-variant-numeric:tabular-nums; }
+.figure [data-tone="primary"] { background:var(--accent); }
+.figure [data-tone="attention"] { background:light-dark(#aa580b,#ffc479); }
+.figure [data-tone="neutral"] { background:var(--control-border); }

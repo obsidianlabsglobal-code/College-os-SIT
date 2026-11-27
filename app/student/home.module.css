@@ -4,10 +4,10 @@
   padding-block: clamp(1rem, 2.6vw, 2rem);
   overflow-wrap: anywhere;
 }
-.intro h1 { margin: .12em 0; line-height: 1.1; font-weight: 500; }
+.intro h1 { margin: .12em 0; line-height: 1.1; font-weight: 680; }
 .intro p, .list p, .sectionHead p, .empty { color: var(--muted); }
 .date, .home h2 { display: flex; align-items: center; gap: .6rem; }
-.date { font-size: .85rem; font-weight: 600; }
+.date { font-size: var(--text-meta); font-weight: 500; }
 .home svg { flex: none; color: var(--accent); }
 .home h2 { font-size: 1.12rem; letter-spacing: -.02em; margin: 0; }
 .lead, .content, .column { display: grid; gap: 1rem; min-width: 0; }
@@ -17,7 +17,7 @@
   border-radius: 1rem; box-shadow: var(--elevation-panel); padding: clamp(1rem, 2vw, 1.5rem);
 }
 .priority { display: grid; align-content: center; justify-items: start; gap: .4rem;
-  background: var(--atmosphere); position: relative; isolation: isolate; overflow: hidden; min-height: 12rem; }
+  background: var(--atmosphere); min-height: 7.5rem; }
 .priority strong { font-size: clamp(1.35rem,2.8vw,2rem); line-height: 1.2; letter-spacing: -.035em; }
 .priority p, .sectionHead p, .list p { font-size: .9rem; }
 .primary { display: inline-flex; gap: .85rem; align-items: center; margin-top: .4rem; min-height: 44px;
@@ -70,24 +70,23 @@
 /* Student Today: retain authentic links inside the Living Atmosphere layout. */
 .dashboard { display:grid; min-width:0; gap:inherit; }
 .intro { display:flex; align-items:end; justify-content:space-between; flex-wrap:wrap; gap:.85rem 1.2rem; }
-.intro h1 { font-size:clamp(2.25rem,4.1vw,3.6rem); letter-spacing:-.045em; }
+.intro h1 { font-size:clamp(1.9rem,3.1vw,2.9rem); letter-spacing:-.044em; }
 .introActions { display:flex; flex-wrap:wrap; gap:.55rem; align-items:center; }
-.introActions .primary { margin-top:0; }
-.focusButton { min-height:44px; padding:.45rem .85rem; border:1px solid var(--control-border); border-radius:var(--radius-control); background:var(--surface); color:var(--ink); font-weight:650; }
-.focusButton:hover,.focusButton[aria-pressed="true"] { background:var(--sage); }
+.introActions .focusButton[aria-pressed="true"] { background:var(--tint); border-color:var(--accent); }
 .announcer { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 .overline { color:var(--accent); letter-spacing:.11em; text-transform:uppercase; font-weight:750; }
 .priority .overline { font-size:var(--text-meta); }
 .timeline { display:grid; min-width:0; }
 .timeline > :global(.panel) { margin:0; height:100%; border-radius:var(--radius-panel); padding:clamp(1rem,2vw,1.5rem); }
 .aura { background:var(--surface); }
+.aura .sectionHead h2 { letter-spacing: -.01em; }
 .auraInset { background:linear-gradient(125deg,var(--lilac),var(--surface-elevated)); border-radius:var(--radius-panel); padding:.85rem; margin:.6rem 0 .25rem; }
 .stats a { grid-template-columns:minmax(0,1fr); align-content:start; gap:.28rem; }
 .stats a svg { box-sizing:content-box; background:var(--sage); padding:.33rem; border-radius:.55rem; }
 .stats a:nth-of-type(2) svg { background:var(--lilac); }
 .stats a:nth-of-type(4) svg { background:var(--peach); }
 .home[data-focus="on"] [data-focus-secondary] { display:none; }
-.home[data-focus="on"] .lead,.home[data-focus="on"] .content { grid-template-columns:minmax(0,1fr); }
+.home[data-focus="on"] .content { grid-template-columns:minmax(0,1fr); }
 @media (min-width:48rem) { .stats { grid-template-columns:repeat(4,minmax(0,1fr)); } }
 
 /* Design Bible slice: violet next-class hero, attendance ring and course bars. */
@@ -108,3 +107,22 @@
 .bar b { position: absolute; top: -.2rem; width: 2px; height: .9rem; background: var(--ink); border-radius: 1px; }
 .courseBars small { grid-column: 1/-1; color: var(--muted); }
 .inboxItem[data-unread] .record::before { content: ""; display: inline-block; inline-size: .5rem; block-size: .5rem; margin-inline-end: .45rem; border-radius: 50%; background: var(--accent); vertical-align: middle; }
+
+/* Two stable priorities: a class never displaces independently due coursework. */
+.priority { align-content: start; }
+.priority strong, .priorityLink {
+  font-family: var(--font-display); font-weight: 680;
+  font-size: clamp(1.21rem, 2.4vw, 1.85rem); line-height: 1.24; letter-spacing: -.025em;
+}
+.priorityLink { display: flex; align-items: center; gap: .65rem; min-height: 44px; color: var(--ink); text-decoration-thickness: 1px; }
+.priorityLink svg { width: 1rem; height: 1rem; }
+.priority p { color: var(--muted); }
+.coursework { background: var(--surface); }
+.roomBrief { border-inline-start: 4px solid var(--info); }
+.roomBrief .list { margin-top: .35rem; }
+.history { margin-top: var(--space-3); border-top: 1px solid var(--border); }
+.history summary { min-height: 44px; padding-block: .65rem; font-weight: 650; cursor: pointer; }
+@media (prefers-reduced-motion: no-preference) {
+  .priorityLink svg { transition: transform var(--motion-fast) var(--motion-easing); }
+  .priorityLink:is(:hover, :focus-visible) svg { transform: translateX(2px); }
+}

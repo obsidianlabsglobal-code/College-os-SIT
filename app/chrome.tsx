@@ -20,12 +20,13 @@ export const roleLabels = {
   principal: "Principal",
 } satisfies Record<Scope["role"], string>;
 
-type Destination = "/automation" | "/fees" | "/opportunities" | "/" | "/grading" | "/notices" | "/requests" | "/admin" | "/clubverse" | "/aura" | "/timetable";
+type Destination = "/automation" | "/fees" | "/letters" | "/opportunities" | "/" | "/grading" | "/notices" | "/requests" | "/admin" | "/clubverse" | "/aura" | "/timetable";
 const labels: Record<Destination, string> = {
   "/fees": "Fees & dues",
   "/opportunities": "Opportunities",
   "/": "Today",
   "/timetable": "Timetable",
+  "/letters": "Letter drafts",
   "/grading": "Evaluation queue",
   "/notices": "Notices",
   "/clubverse": "CLUBVERSE",
@@ -39,7 +40,7 @@ const icons: Record<Destination, ComponentProps<typeof Icon>["name"]> = {
   "/fees": "service",
   "/opportunities": "service",
   "/": "home", "/timetable": "calendar", "/grading": "check", "/notices": "notice", "/clubverse": "people",
-  "/aura": "spark", "/automation": "spark", "/requests": "service", "/admin": "book",
+  "/aura": "spark", "/automation": "spark", "/requests": "service", "/admin": "book", "/letters": "notice",
 };
 
 const dock: Destination[] = ["/", "/timetable", "/aura", "/clubverse", "/notices", "/requests", "/opportunities"];
@@ -67,10 +68,13 @@ export async function Chrome({ user, current, section = "/", children }: {
 
   if (current && feesPreviewAvailable(current,user)) destinations.push("/fees");
 
+  if (current) destinations.push("/letters");
+
   return <div className={current ? "app-shell" : "app-shell app-shell-single"}>
     <header className="app-top">
       <Link href={home} className="brand"><Brand /></Link>
-      {selected && <span className="institution-label">{selected.name} <span className="institution-role">· {roleLabels[selected.role]}</span></span>}
+      {selected && <span className="institution-label"><span className="workspace-crumb">Campus workspace / {labels[section]}</span>
+        {selected.name} <span className="institution-role">· {roleLabels[selected.role]}</span></span>}
       <div className="account-tools">
         {options.length > 1 && <form action={chooseWorkspace} className="workspace-form">
           <label><span className="sr-only">Workspace</span>
