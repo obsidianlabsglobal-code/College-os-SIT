@@ -44,7 +44,7 @@ Students locate authoritative course work and deadlines for their enrollment. St
 | SA-002 | Course directory | Browse institution-published catalog entries with visibility rules. | Tested (every institution offering visible to active members; no catalog publication controls) | lib/catalog.ts courseCatalog, app/catalog; tests/learning-records.test.ts, tests/learning-records.e2e.ts |
 | SA-003 | Enrolled course workspaces | Open a roster-scoped offering and its assigned coursework. | Tested | W2 |
 | SA-004 | Academic schemes and terms | Read the offering’s current scheme and term. Cohort-specific eligibility policy remains a separate requirement. | Tested | W2 |
-| SA-005 | Attendance records | Read own recorded marks. A student-initiated correction request remains planned. | Tested (record view) | [Academic day](ACADEMIC_DAY.md) |
+| SA-005 | Attendance records | Read own recorded marks and request a correction of an absent mark (SA-021). | Tested | [Academic day](ACADEMIC_DAY.md), tests/learning-records.test.ts, tests/learning-records.e2e.ts |
 | SA-006 | Attendance percentage | Calculate from own present and recorded marks. Institutional policy and leave exceptions remain planned. | Tested (record-based rate) | [Academic day](ACADEMIC_DAY.md) |
 | SA-007 | Attendance eligibility | Explain eligibility with verified scheme and policy version. | Proposed | F |
 | SA-008 | Attendance what-if planning | Compare recorded marks and hypothetical future counts with the offering’s optional, sourced advisory target. | Tested | [Academic day](ACADEMIC_DAY.md) |
@@ -54,8 +54,8 @@ Students locate authoritative course work and deadlines for their enrollment. St
 | SA-012 | Submissions | Submit on time once, with an allowed private attachment or text. | Tested | R |
 | SA-013 | Grades | Read own published score and authorized corrections. | Tested | R |
 | SA-014 | Feedback | Read own published feedback while draft grades remain private. | Tested | R |
-| SA-015 | Internal examinations | Find CIE dates, components, eligibility and approved information. | Proposed | F |
-| SA-016 | External examinations | Find authorized SEE schedule, registration and official sources. | Proposed | F |
+| SA-015 | Internal examinations | Find CIE dates, components, eligibility and approved information. | Tested (published internal sittings with room and invigilator; no components or eligibility) | db/023, lib/exams.ts, app/exams; tests/exams-improvement.test.ts, tests/exams-improvement.e2e.ts |
+| SA-016 | External examinations | Find authorized SEE schedule, registration and official sources. | Tested (published external sittings citing the official source; no registration) | db/023, lib/exams.ts, app/exams; tests/exams-improvement.test.ts, tests/exams-improvement.e2e.ts |
 | SA-017 | Assessment history | Inspect a chronological cross-course assessment record. | Tested | lib/assignments.ts assessmentHistory, app/history; tests/history.test.ts, tests/operations.e2e.ts |
 | SA-018 | Course resources | Retrieve current authorized course material and versions. | Tested (PDF/TXT materials; students get the latest version) | db/021, lib/course-delivery.ts, app/resources; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
 | SA-019 | Learning progress | Inspect concept-level evidence and its limitations. | Proposed | F |
@@ -135,7 +135,7 @@ Faculty need to organize teaching and evaluation by assigned offering. Select as
 | FC-016 | Student mentorship | Agree mentoring goals and record appropriate follow-ups. | Tested (admin-assigned mentor; goals, follow-ups and student agreement) | lib/mentoring.ts, app/mentoring; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
 | FC-017 | Project supervision | Review assigned milestones and evidence. | Proposed | F |
 | FC-018 | Student team management | Form and oversee authorized project teams. | Proposed | F |
-| FC-019 | Faculty workload | Inspect teaching, assessment and mentoring commitments. | Tested (teaching and evaluation only) | No mentoring commitments yet; tests/department.test.ts, tests/leadership.e2e.ts |
+| FC-019 | Faculty workload | Inspect teaching, assessment and mentoring commitments. | Tested | lib/department.ts facultyWorkload; tests/department.test.ts, tests/exams-improvement.test.ts, tests/leadership.e2e.ts |
 | FC-020 | Teaching resources | Organize authorized learning materials and versions. | Tested (versioned PDF/TXT per offering with withdrawal) | db/021, lib/course-delivery.ts, app/courses/[id]; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
 | FC-021 | Research support | Track research activity and relevant opportunities. | Proposed | F |
 | FC-022 | Literature search | Find and cite accessible publications with provenance. | Proposed | F |
@@ -177,7 +177,7 @@ HODs and explicitly delegated coordinators need department-scoped oversight. Sel
 | DH-022 | Department approvals | Review and record a department decision with reason. | Tested (course plan approval or return with reason only) | lib/course-delivery.ts, app/courses/[id], app/leadership/boards.tsx; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
 | DH-023 | Department service requests | Route requests to accountable staff and track resolution. | Proposed | F |
 | DH-024 | Accreditation evidence | Trace approved evidence back to records. | Proposed | F |
-| DH-025 | Improvement tracking | Assign, measure and close department improvement actions. | Proposed | F |
+| DH-025 | Improvement tracking | Assign, measure and close department improvement actions. | Tested | db/023, lib/improvement.ts, app/improvement; tests/exams-improvement.test.ts, tests/exams-improvement.e2e.ts |
 | DH-026 | Institutional Dependency Graph | Inspect verified dependencies affecting the department; see INV-009. | Proposed | F |
 | DH-027 | HOD AURA assistant | Request a source-linked department briefing. | Proposed | F |
 
@@ -194,10 +194,10 @@ Principal and authorized leaders need defensible institution-level decisions. Re
 | LE-005 | Resource planning | Compare available resources to documented demand. | Proposed | F |
 | LE-006 | Financial oversight | Inspect explicitly authorized budget and expenditure reports. | Proposed | F |
 | LE-007 | Institutional notices | Read published authorized notices. | Tested | R; tests/notices.test.ts |
-| LE-008 | Examination operations | Review approved schedules and unresolved operational issues. | Proposed | F |
+| LE-008 | Examination operations | Review approved schedules and unresolved operational issues. | Tested (issues: invigilator without a post, room below cohort size) | db/023, lib/exams.ts, app/exams; tests/exams-improvement.test.ts, tests/exams-improvement.e2e.ts |
 | LE-009 | Departmental requests | Review authorized escalations and decisions. | Tested (service-request escalations) | lib/department.ts escalatedRequests; tests/department.test.ts, tests/leadership.e2e.ts |
-| LE-010 | Strategic priorities | Assign owners and milestones to institutional priorities. | Proposed | F |
-| LE-011 | Institutional improvement planning | Measure progress and actions against approved plans. | Proposed | F |
+| LE-010 | Strategic priorities | Assign owners and milestones to institutional priorities. | Tested (owner, measure, due date and progress updates; no multi-milestone plans) | db/023, lib/improvement.ts, app/improvement; tests/exams-improvement.test.ts, tests/exams-improvement.e2e.ts |
+| LE-011 | Institutional improvement planning | Measure progress and actions against approved plans. | Tested (open, overdue and on-time measures over owned actions) | db/023, lib/improvement.ts, app/improvement; tests/exams-improvement.test.ts, tests/exams-improvement.e2e.ts |
 | LE-012 | Research and innovation overview | Review disclosure-approved activity and outcomes. | Proposed | F |
 | LE-013 | Industry partnerships | Track approved agreements and responsibilities. | Proposed | F |
 | LE-014 | Placement performance | Review verified and appropriately aggregated outcomes. | Proposed | F |
@@ -241,7 +241,7 @@ Institution administrators, academic office and designated specialists manage ac
 | AD-006 | Academic catalog | Create schemes, terms, courses, sections and offerings. | Tested | R |
 | AD-007 | Enrollments | Enroll or end student and faculty roster assignments. | Tested | R |
 | AD-008 | Course and section management | Maintain existing offerings, corrections, retirement and history beyond creation. | Proposed | F |
-| AD-009 | Examination management | Schedule examinations, invigilation and authorized publication. | Proposed | F |
+| AD-009 | Examination management | Schedule examinations, invigilation and authorized publication. | Tested | db/023, lib/exams.ts, app/exams; tests/exams-improvement.test.ts, tests/exams-improvement.e2e.ts |
 | AD-010 | Document requests | Process enrollment-letter request from submission to recorded outcome. | Tested | R |
 | AD-011 | Certificate preparation | Draft official documents from validated records. | Proposed | F |
 | AD-012 | Credential issuance | Authorized human issues and verifies an official credential. | Proposed | F |
@@ -261,7 +261,7 @@ Institution administrators, academic office and designated specialists manage ac
 | AD-026 | Laboratory staff | Manage inventory, access, maintenance and equipment issues. | Proposed | F |
 | AD-027 | Research administration | Track grants, approved disclosures and project milestones. | Proposed | F |
 | AD-028 | Placement office | Manage drives, employers, eligibility and graduate outcomes. | Proposed | F |
-| AD-029 | Examination cell | Allocate rooms and authorized invigilators. | Proposed | F |
+| AD-029 | Examination cell | Allocate rooms and authorized invigilators. | Tested | db/023, lib/exams.ts, app/exams; tests/exams-improvement.test.ts, tests/exams-improvement.e2e.ts |
 | AD-030 | Finance office | Review authorized invoices, approvals and reconciliation. | Proposed | F |
 | AD-031 | Facilities office | Assign and verify estate service requests. | Proposed | F |
 | AD-032 | Maintenance staff | Record repair evidence and reopen unresolved work. | Proposed | F |

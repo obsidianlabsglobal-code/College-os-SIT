@@ -23,6 +23,8 @@ Course plans (DH-022 slice) are approved or returned only by an HOD of the cours
 
 Cases (AD-020 slice) are one engine with per-kind authority. Support cases are opened by an HOD or teacher for a student on their rosters, assigned by the HOD to a teacher in that department, and hidden from the student. Grievances are opened by a student, triaged and owned by the administrative office, and shown to the principal only after 7 days open, without notes. Only the owner records an outcome. Other office workflows (enrollment letters, fees) have not been migrated onto the engine. The weekly digest runs inside the worker loop and needs no audit event.
 
+Examination sittings are drafted, published and cancelled only by an institution administrator acting as the exam cell. Publication is refused if a published exam already uses the section, room or invigilator at that time, if the room or invigilator has a class, or if a confirmed booking holds the room. Improvement actions: the principal assigns institution actions to an HOD, admin or the principal; an HOD assigns department actions to a department teacher or themself. Only the owner records progress or closes an action.
+
 Source vocabulary has changed over time. The original eight product domains describe subject areas. Later OS names describe user workspaces that cross those areas. Retain both views, with shared identity and records. A prototype name confers no evidence of a working implementation. Operational GPS, model suggestions and policy-sensitive disclosure retain explicit gates.
 
 ## Change procedure

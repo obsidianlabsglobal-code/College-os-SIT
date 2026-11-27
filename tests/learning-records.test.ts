@@ -1,4 +1,4 @@
-// covers: SA-021, SA-010, SA-022, FC-028, SA-002, ID-004, ID-006
+// covers: SA-005, SA-021, SA-010, SA-022, FC-028, SA-002, ID-004, ID-006
 import "../scripts/environment";
 import assert from "node:assert/strict";
 import { test, before, after } from "node:test";

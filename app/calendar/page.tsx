@@ -6,7 +6,7 @@ import { account, scope, workspaceQuery, workspaces } from "../../lib/scope";
 import { calendar, parseCalendarFilter } from "../../lib/calendar";
 import { offerings } from "../../lib/assignments";
 
-const kindLabel = { deadline: "Deadline", class: "Class", event: "Campus event" } as const;
+const kindLabel = { deadline: "Deadline", class: "Class", event: "Campus event", exam: "Examination" } as const;
 const stateLabel: Record<string, string> = { cancelled: "Cancelled", conducted: "Attendance recorded", completed: "Completed" };
 
 export default async function Calendar({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
@@ -28,6 +28,7 @@ export default async function Calendar({ searchParams }: { searchParams: Promise
     ...(selection.offering ? { offering: selection.offering } : {}), ...(selection.kind ? { kind: selection.kind } : {}) })}`;
   const title = new Intl.DateTimeFormat("en-IN", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(year, month - 1, 1)));
   const href = (item: (typeof items)[number]) => item.kind === "deadline" ? `/assignments/${item.id}?${query}`
+      : item.kind === "exam" ? `/exams?${query}`
     : item.kind === "class" ? `/timetable?${query}&day=${day.format(item.at)}&view=day&session=${item.id}#class-details` : null;
   const groups = [...Map.groupBy(items, item => day.format(item.at))];
   return <Chrome user={user} current={current} section="/calendar">
@@ -44,7 +45,7 @@ export default async function Calendar({ searchParams }: { searchParams: Promise
         <label>Course<select name="offering" defaultValue={selection.offering ?? ""}>
           <option value="">All courses</option>{courses.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}</select></label>
         <label>Type<select name="kind" defaultValue={selection.kind ?? ""}>
-          <option value="">Everything</option><option value="deadline">Deadlines</option><option value="class">Classes</option><option value="event">Campus events</option></select></label>
+          <option value="">Everything</option><option value="deadline">Deadlines</option><option value="class">Classes</option><option value="exam">Examinations</option><option value="event">Campus events</option></select></label>
         <button className="button secondary">Apply</button>
       </form>
       {groups.length ? <ol className="items" aria-label="Calendar entries">{groups.map(([date, entries]) => <li key={date}>

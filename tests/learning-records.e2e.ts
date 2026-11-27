@@ -1,4 +1,4 @@
-// covers: SA-021, SA-010, SA-022, FC-028, SA-002, ID-005
+// covers: SA-005, SA-021, SA-010, SA-022, FC-028, SA-002, ID-005
 import "../scripts/environment";
 import { expect, test, type Page } from "@playwright/test";
 import { randomUUID } from "node:crypto";

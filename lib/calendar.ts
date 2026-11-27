@@ -2,15 +2,15 @@ import { z } from "zod";
 import { db } from "./db";
 import type { Scope } from "./scope";
 
-// SA-010: one month of dated records the caller can already see — assignment deadlines and classes in their current
-// rosters, and campus events they registered for. Nothing here is a separate calendar store; dates come from the records.
-export type CalendarItem = { kind: "deadline" | "class" | "event"; id: string; title: string; course: string | null;
+// SA-010: one month of dated records the caller can already see — assignment deadlines, classes and published
+// examinations in their current rosters (and invigilation duties), and campus events they registered for. Nothing here is a separate calendar store; dates come from the records.
+export type CalendarItem = { kind: "deadline" | "class" | "event" | "exam"; id: string; title: string; course: string | null;
   offering_id: string | null; at: Date; finish: Date | null; state: string };
 
 const filter = z.object({
   month: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/),
   offering: z.uuid().optional(),
-  kind: z.enum(["deadline", "class", "event"]).optional(),
+  kind: z.enum(["deadline", "class", "event", "exam"]).optional(),
 });
 export type CalendarFilter = z.infer<typeof filter>;
 export const parseCalendarFilter = (raw: Record<string, string | undefined>, fallbackMonth: string) =>
@@ -35,6 +35,14 @@ export async function calendar(scope: Scope, input: CalendarFilter) {
       JOIN course c ON (c.institution_id,c.id)=(o.institution_id,o.course_id)
       JOIN section sec ON (sec.institution_id,sec.id)=(s.institution_id,s.section_id) ${roster}
       WHERE s.institution_id=$1 AND s.state<>'draft' AND ($3='student' OR s.faculty_id=$2) AND ${span} && s.slot
+      UNION ALL
+      SELECT 'exam',e.id,e.title||' · '||room.name,c.name,o.id,lower(e.slot),upper(e.slot),e.state
+      FROM exam_sitting e CROSS JOIN i JOIN offering o ON (o.institution_id,o.id)=(e.institution_id,e.offering_id)
+      JOIN course c ON (c.institution_id,c.id)=(o.institution_id,o.course_id)
+      JOIN campus_resource room ON (room.institution_id,room.id)=(e.institution_id,e.room_id)
+      WHERE e.institution_id=$1 AND e.state<>'draft' AND ${span} && e.slot
+        AND (EXISTS (SELECT 1 FROM roster r WHERE (r.institution_id,r.offering_id)=(o.institution_id,o.id) AND r.account_id=$2 AND r.role=$3 AND r.ended_at IS NULL)
+          OR ($3='faculty' AND e.invigilator_id=$2))
       UNION ALL
       SELECT 'event',e.id,e.title||' · '||e.location,NULL,NULL,e.starts_at,e.ends_at,e.state
       FROM club_registration g CROSS JOIN i JOIN club_event e ON (e.institution_id,e.id)=(g.institution_id,g.event_id)

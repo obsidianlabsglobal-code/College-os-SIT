@@ -97,6 +97,7 @@ export async function HodBoard({ current }: { current: Scope }) {
             <div><dt>Drafts unpublished</dt><dd>{row.awaiting}</dd></div>
             <div><dt>Classes next 7 days</dt><dd>{row.upcoming}</dd></div>
             <div data-attention={row.unrecorded > 0 || undefined}><dt>Attendance not recorded</dt><dd>{row.unrecorded}</dd></div>
+            <div><dt>Mentees</dt><dd>{row.mentees}</dd></div>
           </dl>
         </li>)}</ul> : <p>No faculty currently teach in your departments.</p>}
       </section>

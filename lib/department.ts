@@ -5,7 +5,7 @@ import type { Scope } from "./scope";
 // principal or faculty membership returns nothing even with a stale session. Counts come from records only.
 
 export type Workload = { account: string; name: string; offerings: string[]; assignments: number; pending: number;
-  awaiting: number; upcoming: number; unrecorded: number };
+  awaiting: number; upcoming: number; unrecorded: number; mentees: number };
 
 // Teaching and evaluation commitments per faculty member. `upcoming` = published classes in the next 7 days;
 // `unrecorded` = published classes that ended in the last 7 days without an attendance record.
@@ -19,7 +19,9 @@ const workload = `SELECT u.id AS account,u.name,
       AND lower(cs.slot) BETWEEN now() AND now()+interval '7 days') AS upcoming,
     (SELECT count(*)::int FROM class_session cs WHERE cs.institution_id=$1 AND cs.faculty_id=u.id AND cs.state='published'
       AND upper(cs.slot) BETWEEN now()-interval '7 days' AND now()
-      AND NOT EXISTS (SELECT 1 FROM class_attendance_revision v WHERE (v.institution_id,v.session_id)=(cs.institution_id,cs.id))) AS unrecorded
+      AND NOT EXISTS (SELECT 1 FROM class_attendance_revision v WHERE (v.institution_id,v.session_id)=(cs.institution_id,cs.id))) AS unrecorded,
+    (SELECT count(*)::int FROM mentor_assignment ma JOIN membership sm ON sm.institution_id=ma.institution_id AND sm.account_id=ma.student_id
+      AND sm.role='student' AND sm.ended_at IS NULL WHERE ma.institution_id=$1 AND ma.mentor_id=u.id AND ma.ended_at IS NULL) AS mentees
   FROM roster r
   JOIN membership fm ON fm.institution_id=r.institution_id AND fm.account_id=r.account_id AND fm.role='faculty' AND fm.ended_at IS NULL
   JOIN "user" u ON u.id=r.account_id

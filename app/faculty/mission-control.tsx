@@ -43,7 +43,7 @@ export async function MissionControl({ current, timezone }: { current: Scope; ti
           totals.awaiting > 0 ? `${plural(totals.awaiting, "feedback draft")} ready for review before publication.` :
           courses.length ? "No evaluations are waiting. View today’s classes or create an assignment." :
           "Your workspace has no active teaching assignments."}</p>
-        {load && <p className="meta" aria-label="Your workload">Workload · {plural(load.offerings.length, "section")} · {plural(load.upcoming, "class", "classes")} in the next 7 days · {load.unrecorded} without attendance this week</p>}
+        {load && <p className="meta" aria-label="Your workload">Workload · {plural(load.offerings.length, "section")} · {plural(load.upcoming, "class", "classes")} in the next 7 days · {load.unrecorded} without attendance this week · {plural(load.mentees, "mentee")}</p>}
         <div className={styles.actions}>{totals.pending > 0 || totals.awaiting > 0
           ? <Link className="button" href={href("/grading", query, { status: totals.pending > 0 ? "pending" : "awaiting" })}>Go to evaluation queue</Link>
           : null}
