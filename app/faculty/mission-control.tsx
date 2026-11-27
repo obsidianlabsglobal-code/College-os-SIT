@@ -1,3 +1,5 @@
+import { notifications } from "../../lib/automation";
+import { Inbox } from "../experience/inbox";
 import { facultyAttendanceWork } from "../../lib/academic-day";
 import { StatusBreakdown } from "../experience/status-breakdown";
 import { QuickLookup } from "../aura/quick-lookup";
@@ -17,18 +19,20 @@ import styles from "./mission-control.module.css";
 export async function MissionControl({ current, timezone }: { current: Scope; timezone: string }) {
   // Each section has its own query so a row limit in one cannot hide work in another.
   const day = new Intl.DateTimeFormat("sv-SE",{dateStyle:"short",timeZone:timezone});
-  const [totals, active, unpublished, upcoming, courses, attendanceWork] = await Promise.all([
+  const [totals, active, unpublished, upcoming, courses, attendanceWork, inbox] = await Promise.all([
     evaluationTotals(current),
     assignmentProgress(current, { view: "active", limit: 100 }),
     assignmentProgress(current, { view: "unpublished", limit: 20 }),
     assignmentProgress(current, { view: "open", limit: 5 }),
     offerings(current),
     facultyAttendanceWork(current,day.format(new Date())),
+    notifications(current),
   ]);
   const query = workspaceQuery(current);
   const waiting = attendanceWork.filter(item=>item.state==="published");
 
   return <div className={styles.workspace}>
+    <Inbox items={inbox} current={current} query={query} title="Prepared for you" timezone={timezone} className="panel" />
     <div className={styles.lead}>
       <section className={`panel ${styles.hero}`} aria-labelledby="faculty-priority">
         <p className={styles.eyebrow}>Your teaching workspace</p>

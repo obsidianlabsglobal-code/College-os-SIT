@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { WorkflowError } from "../../lib/assignments";
-import { markNotificationRead, retryJob, setRulePaused } from "../../lib/automation";
+import { cancelJob, markNotificationRead, retryJob, setRuleState } from "../../lib/automation";
 import { scope } from "../../lib/scope";
 import type { ActionState } from "./workflow";
 
@@ -12,8 +12,10 @@ export async function automation(_state: ActionState, form: FormData): Promise<A
   try {
     const operation = form.get("operation");
     if (operation === "read-notification") await markNotificationRead(current, z.uuid().parse(form.get("id")));
-    else if (operation === "pause-rule" || operation === "resume-rule") await setRulePaused(current, z.string().max(80).parse(form.get("rule")), operation === "pause-rule");
-    else if (operation === "retry-job") await retryJob(current, z.string().regex(/^\d{1,18}$/).parse(form.get("id")));
+    else if (operation === "rule-state") await setRuleState(current, z.string().max(80).parse(form.get("rule")),
+      z.enum(["active", "paused", "disabled"]).parse(form.get("state")));
+    else if (operation === "retry-job" || operation === "cancel-job")
+      await (operation === "retry-job" ? retryJob : cancelJob)(current, z.string().regex(/^\d{1,18}$/).parse(form.get("id")));
     else throw new WorkflowError("This action is unavailable.");
   } catch (error) {
     if (error instanceof WorkflowError) return { error: error.message };

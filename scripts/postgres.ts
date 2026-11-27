@@ -21,6 +21,9 @@ async function main() {
     if (!(await client.query("SELECT 1 FROM pg_roles WHERE rolname='nexus_app'")).rowCount) {
       await client.query("CREATE ROLE nexus_app LOGIN PASSWORD 'local-app-only'");
     }
+    // Least-privilege worker login (grants come from db/018). Migrations create it NOLOGIN when absent.
+    await client.query((await client.query("SELECT 1 FROM pg_roles WHERE rolname='nexus_worker'")).rowCount
+      ? "ALTER ROLE nexus_worker LOGIN PASSWORD 'local-worker-only'" : "CREATE ROLE nexus_worker LOGIN PASSWORD 'local-worker-only'");
     if (!(await client.query("SELECT 1 FROM pg_database WHERE datname='nexus'")).rowCount) {
       await client.query("CREATE DATABASE nexus");
     }

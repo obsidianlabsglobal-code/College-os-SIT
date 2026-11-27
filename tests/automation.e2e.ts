@@ -1,3 +1,4 @@
+// covers: AD-023, SL-011
 import "../scripts/environment";
 import { expect, test, type Page } from "@playwright/test";
 import { randomUUID } from "node:crypto";
@@ -22,6 +23,7 @@ async function signIn(page: Page, persona: string) {
 test("a published assignment reaches the student inbox through the worker, and admins govern the rule", async ({ page }) => {
   const owner = new Pool({ connectionString: process.env.MIGRATION_DATABASE_URL });
   const { rows: [faculty] } = await owner.query<{ id: string }>('SELECT id FROM "user" WHERE email=$1', [demoEmail("faculty")]);
+  await owner.query("DELETE FROM automation_setting WHERE institution_id=$1", [f.institution]);  // start from active rules
   await owner.end();
   const teacher = { account: faculty.id, role: "faculty" as const, institution: f.institution };
   const deadline = new Intl.DateTimeFormat("sv-SE", { dateStyle: "short", timeStyle: "short", timeZone: "Asia/Kolkata" })
@@ -29,13 +31,14 @@ test("a published assignment reaches the student inbox through the worker, and a
   const title = `Inbox check ${randomUUID().slice(0, 8)}`;
   const id = await createAssignment(teacher, { offering: f.offering, title, description: "Fictional.", deadline, marks: 10, file: null });
   await publishAssignment(teacher, id);
-  await runJobs({ worker: "e2e" });
+  for (let batch = 0; batch < 50 && Object.values(await runJobs({ worker: "e2e" })).some(Boolean); batch++);  // drain earlier suites' work
 
   await signIn(page, "student");
   const inbox = page.getByRole("region", { name: "For you" });
   const item = inbox.getByRole("listitem").filter({ hasText: title });
   await expect(item.getByRole("link", { name: new RegExp(`^New assignment: ${title}`) })).toHaveAttribute("href", new RegExp(`/assignments/${id}`));
   await item.getByRole("button", { name: "Mark read" }).click();
+  await expect(item.getByRole("button", { name: "Mark read" })).toHaveCount(0);
   await page.reload();
   await expect(inbox.getByRole("listitem").filter({ hasText: title })).toContainText("Read");
   await expect(inbox.getByRole("listitem").filter({ hasText: title }).getByRole("button", { name: "Mark read" })).toHaveCount(0);
@@ -47,12 +50,16 @@ test("a published assignment reaches the student inbox through the worker, and a
   await expect(page.getByRole("status").filter({ hasText: /Worker (running|not running)/ })).toBeVisible();
   const rule = page.getByRole("listitem").filter({ hasText: "Tell enrolled students about a newly published assignment" });
   await expect(rule.getByRole("img", { name: /runs: \d+ completed/ })).toBeVisible();
+  // Wait for the committed re-render before reloading, then confirm the state persisted.
   await rule.getByRole("button", { name: "Pause rule" }).click();
+  await expect(rule.getByText("Paused · work is held", { exact: true })).toBeVisible();
   await page.reload();
-  await expect(rule.getByText("Paused", { exact: true })).toBeVisible();
+  await expect(rule.getByText("Paused · work is held", { exact: true })).toBeVisible();
   await rule.getByRole("button", { name: "Resume rule" }).click();
+  await expect(rule.getByText("Active", { exact: true })).toBeVisible();
   await page.reload();
   await expect(rule.getByText("Active", { exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Effort evidence" }).getByRole("row", { name: /Timetable change coordination/ })).toContainText("Synthetic rehearsal");
 });
 
 test("students cannot open the Automation Centre", async ({ page }) => {
