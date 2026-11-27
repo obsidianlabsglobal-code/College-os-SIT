@@ -32,6 +32,8 @@ const jobFor = async (entity: string, rule: string) => (await owner.query<JobRow
   [entity, rule])).rows;
 const inbox = async (alias: string, role: Scope["role"], entity: string, institution = f.institution) =>
   (await notifications(as(alias, role, institution))).filter(n => n.entity_id === entity);
+// Drain every due job: a reused database can hold more due jobs than one bounded worker pass claims.
+const drain = async () => { for (let n = 0; n < 50 && Object.values(await runJobs({ worker: "test" })).some(Boolean); n++); };
 const dueNow = (rule: string) => owner.query("UPDATE job SET run_after=now() WHERE rule_key=$1 AND status='queued'", [rule]);
 
 before(async () => {
@@ -60,7 +62,7 @@ after(async () => {
 test("publication enqueues atomically; delivery reaches only the current roster, once, and is re-checked on display", async () => {
   const id = await publish();
   assert.deepEqual((await jobFor(id, "assignment-published-notify")).map(j => j.status), ["queued"]);
-  await runJobs({ worker: "test" });
+  await drain();
   const [job] = await jobFor(id, "assignment-published-notify");
   assert.equal(job.status, "succeeded");
   const [notice] = await inbox("student", "student", id);
@@ -70,11 +72,11 @@ test("publication enqueues atomically; delivery reaches only the current roster,
 
   // Crash after commit but before acknowledgement: the lease expires, the job re-runs, nothing is duplicated.
   await owner.query("UPDATE job SET status='running',lease_until=now()-interval '1 second',lease_token=gen_random_uuid() WHERE id=$1", [job.id]);
-  await runJobs({ worker: "test" });
+  await drain();
   assert.equal((await inbox("student", "student", id)).length, 1);
   // A lease still held by another worker is never stolen.
   await owner.query("UPDATE job SET status='running',lease_until=now()+interval '1 minute',lease_token=gen_random_uuid() WHERE id=$1", [job.id]);
-  await runJobs({ worker: "test" });
+  await drain();
   assert.equal((await owner.query("SELECT status FROM job WHERE id=$1", [job.id])).rows[0].status, "running");
   await owner.query("UPDATE job SET status='succeeded',lease_until=NULL WHERE id=$1", [job.id]);
 
@@ -105,11 +107,11 @@ test("pause holds work, resume releases it, disable ignores events and cancels w
     await assert.rejects(setRuleState(as(alias, role), rule, "paused"), /unavailable/);
   await setRuleState(as("admin", "admin"), rule, "paused");
   const held = await publish();
-  await runJobs({ worker: "test" });
+  await drain();
   assert.deepEqual((await jobFor(held, rule)).map(j => [j.status, j.attempt]), [["queued", 0]]);
   assert.equal((await inbox("student", "student", held)).length, 0);
   await setRuleState(as("admin", "admin"), rule, "active");
-  await runJobs({ worker: "test" });
+  await drain();
   assert.equal((await jobFor(held, rule))[0].status, "succeeded");
   assert.equal((await inbox("student", "student", held)).length, 1);
 
@@ -129,7 +131,7 @@ test("pause holds work, resume releases it, disable ignores events and cancels w
 test("deadline reminders wait for T-24h, follow a moved deadline, skip submitters and expire after the deadline", async () => {
   const rule = "assignment-deadline-reminder";
   const submitted = await publish(), open = await publish(), late = await publish();
-  await runJobs({ worker: "test" });
+  await drain();
   const [deferred] = await jobFor(open, rule);
   assert.deepEqual([deferred.status, deferred.attempt], ["queued", 0]);
   assert.ok(Math.abs(deferred.run_after.getTime() - (Date.now() + 29 * DAY)) < 5 * 60_000, "deferred to deadline − 24h");
@@ -138,12 +140,12 @@ test("deadline reminders wait for T-24h, follow a moved deadline, skip submitter
   await owner.query("UPDATE assignment SET deadline=now()+interval '12 hours' WHERE id = ANY($1)", [[submitted, open]]);
   await owner.query("UPDATE assignment SET deadline=now()-interval '1 minute' WHERE id=$1", [late]);
   await dueNow(rule);
-  await runJobs({ worker: "test" });
+  await drain();
   assert.equal((await inbox("student", "student", open)).filter(n => n.kind === "reminder").length, 1);
   assert.equal((await inbox("student", "student", submitted)).filter(n => n.kind === "reminder").length, 0, "submitters are not reminded");
   assert.equal((await jobFor(late, rule))[0].outcome?.reason, "deadline_passed");
   await owner.query("UPDATE job SET status='queued',run_after=now() WHERE id=$1", [(await jobFor(open, rule))[0].id]);
-  await runJobs({ worker: "test" });
+  await drain();
   assert.equal((await inbox("student", "student", open)).filter(n => n.kind === "reminder").length, 1, "duplicate delivery is impossible");
   // Leave no near-due fixtures behind for the browser suites' "Due next" checks.
   await owner.query("UPDATE assignment SET deadline=now()-interval '1 minute' WHERE id = ANY($1)", [[submitted, open]]);
@@ -156,14 +158,14 @@ test("timetable changes notify enrolled students; superseded changes are skipped
   await changeClass(admin, { operation: "publish", session, revision: 0 });
   await changeClass(admin, { operation: "move", session, revision: 1, start: `${day}T13:00`, end: `${day}T13:30`, reason: "Fictional seminar" });
   await changeClass(admin, { operation: "move", session, revision: 2, start: `${day}T14:00`, end: `${day}T14:30`, reason: "Fictional seminar" });
-  await runJobs({ worker: "test" });
+  await drain();
   const moves = await jobFor(session, "class-change-notify");
   assert.deepEqual(moves.map(j => [j.status, j.outcome?.reason ?? null]), [["skipped", "superseded"], ["succeeded", null]]);
   const [moved] = (await inbox("student", "student", session)).filter(n => n.kind === "class");
   assert.match(moved.title, /^Class moved: .* · now .*02:00 PM/);
   assert.equal((await inbox("outsider", "student", session)).length, 0);
   await changeClass(admin, { operation: "cancel", session, revision: 3, reason: "Fictional holiday" });
-  await runJobs({ worker: "test" });
+  await drain();
   assert.ok((await inbox("student", "student", session)).some(n => n.title.startsWith("Class cancelled: ")));
 
   const yesterday = wall(-DAY).slice(0, 10);
@@ -172,7 +174,7 @@ test("timetable changes notify enrolled students; superseded changes are skipped
   const detail = await sessionDetail(as("faculty", "faculty"), held);
   await changeClass(as("faculty", "faculty"), { operation: "attendance", session: held, revision: 1, reason: "",
     marks: detail!.learners.map(l => ({ student: l.student, status: l.student === people.student ? "present" : "absent" })) });
-  await runJobs({ worker: "test" });
+  await drain();
   const [summary] = await inbox("faculty", "faculty", held);
   assert.match(summary.title, /^Attendance summary ready to share: .* · 1 of \d+ present$/);
   assert.equal((await inbox("student", "student", held)).length, 0, "students do not see the teacher's summary");
@@ -183,20 +185,20 @@ test("results and requests: drafts stay private, requests route to admins and es
   const submission = await submitAssignment(as("student", "student"), id, randomUUID(), "Work", null);
   const grade = { assignment: id, submission, expected: 0, expectedDraft: false, marks: 8, feedback: "Clear.", publish: false };
   await updateGrade(as("faculty", "faculty"), grade);
-  await runJobs({ worker: "test" });
+  await drain();
   assert.equal((await inbox("student", "student", id)).filter(n => n.kind === "result").length, 0, "a draft grade is never announced");
   await updateGrade(as("faculty", "faculty"), { ...grade, expected: 1, expectedDraft: true, publish: true });
-  await runJobs({ worker: "test" });
+  await drain();
   assert.equal((await inbox("student", "student", id)).filter(n => n.kind === "result").length, 1);
 
   await createRequest(as("student", "student"), "Letter for a fictional scholarship.");
   const { rows: [request] } = await owner.query<{ id: string }>("SELECT id FROM service_request WHERE student_id=$1 ORDER BY created_at DESC LIMIT 1", [people.student]);
-  await runJobs({ worker: "test" });
+  await drain();
   assert.equal((await inbox("admin", "admin", request.id)).map(n => n.kind).join(), "request");
   assert.equal((await jobFor(request.id, "request-sla-escalate"))[0].status, "queued", "escalation is scheduled, not immediate");
   await owner.query("UPDATE service_request SET created_at=now()-interval '49 hours' WHERE id=$1", [request.id]);
   await dueNow("request-sla-escalate");
-  await runJobs({ worker: "test" });
+  await drain();
   assert.deepEqual((await inbox("admin", "admin", request.id)).map(n => n.kind).sort(), ["followup", "request"]);
   assert.equal((await inbox("principal", "principal", request.id))[0].kind, "escalation");
   assert.equal((await inbox("student", "student", request.id)).length, 0);
