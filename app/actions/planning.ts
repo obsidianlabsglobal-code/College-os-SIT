@@ -5,11 +5,15 @@ import { z } from "zod";
 import { WorkflowError } from "../../lib/assignments";
 import { cancelExam, draftExam, publishExam } from "../../lib/exams";
 import { createAction, updateAction } from "../../lib/improvement";
+import { decideAllocation, offboard, proposeAllocation } from "../../lib/allocation";
+import { addMilestone, createTeam, reviewEvidence, submitEvidence } from "../../lib/teams";
 import { scope } from "../../lib/scope";
 import type { ActionState } from "./workflow";
 
 const messages: Record<string, string> = { "exam-draft": "Sitting drafted.", "exam-publish": "Sitting published.", "exam-cancel": "Sitting cancelled.",
-  "action-create": "Action created.", "action-update": "Progress recorded." };
+  "action-create": "Action created.", "action-update": "Progress recorded.", "allocation-propose": "Allocation proposed to the office.",
+  "allocation-decide": "Decision recorded.", "team-create": "Team formed.", "milestone-add": "Milestone set.", "evidence-submit": "Evidence submitted.",
+  "evidence-review": "Review recorded." };
 
 export async function planningAction(_state: ActionState, form: FormData): Promise<ActionState> {
   const current = await scope(form.get("institution"), form.get("role"));
@@ -24,6 +28,17 @@ export async function planningAction(_state: ActionState, form: FormData): Promi
       const [owner, department] = String(value("owner") ?? "").split("|");
       await createAction(current, { title: value("title"), measure: value("measure"), owner, department: department || undefined, due: value("due") });
     } else if (operation === "action-update") await updateAction(current, { action: value("action"), progress: value("progress"), note: value("note"), close: value("close") });
+    else if (operation === "allocation-propose") await proposeAllocation(current, { offering: value("offering"), faculty: value("faculty"), reason: value("reason") });
+    else if (operation === "allocation-decide") await decideAllocation(current, { proposal: value("proposal"), decision: value("decision"), reason: value("reason") });
+    else if (operation === "offboard") {
+      const e = await offboard(current, value("account"));
+      revalidatePath("/", "layout");
+      return { message: `Access ended: ${e.memberships} posts, ${e.rosters} course rosters, ${e.mentoring} mentoring pairings. Needs a new owner: ${e.open_cases} cases, ${e.open_requests} requests.` };
+    }
+    else if (operation === "team-create") await createTeam(current, { offering: value("offering"), name: value("name"), students: form.getAll("students").map(String) });
+    else if (operation === "milestone-add") await addMilestone(current, { offering: value("offering"), title: value("title"), due: value("due") });
+    else if (operation === "evidence-submit") await submitEvidence(current, { milestone: value("milestone"), body: value("body") });
+    else if (operation === "evidence-review") await reviewEvidence(current, { evidence: value("evidence"), decision: value("decision"), note: value("note") });
     else return { error: "This action is unavailable." };
   } catch (error) {
     if (error instanceof WorkflowError) return { error: error.message };

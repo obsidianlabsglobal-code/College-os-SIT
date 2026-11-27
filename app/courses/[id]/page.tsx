@@ -11,6 +11,8 @@ import { ProgressLine } from "../../faculty/progress-line";
 import { ActionForm } from "../../forms";
 import { courseAction } from "../../actions/courses";
 import { coursePlan, courseResources, deliverySessions } from "../../../lib/course-delivery";
+import { projectTeams, unteamedStudents } from "../../../lib/teams";
+import { planningAction } from "../../actions/planning";
 
 export default async function CourseWorkspace({params, searchParams}: {
   params: Promise<{id: string}>;
@@ -26,6 +28,9 @@ export default async function CourseWorkspace({params, searchParams}: {
     actor.role === "faculty" ? assignmentProgress(actor, { offering: id, limit: 200 }) : null,
     courseResources(actor, id), coursePlan(actor, id), deliverySessions(actor, id),
   ]);
+  const projects = await projectTeams(actor, id);
+  const available = await unteamedStudents(actor, id);
+  const reviewLabel = { pending: "Awaiting review", accepted: "Accepted", changes_requested: "Changes requested" } as Record<string, string>;
   const teacher = actor.role === "faculty";
   const planState = { none: "No plan yet", draft: "Draft", submitted: "Awaiting department approval", approved: "Approved", returned: "Returned for changes" };
   const topicOf = new Map(plan?.items.map(item => [item.id, `${item.sequence}. ${item.topic}`]));
@@ -95,6 +100,39 @@ export default async function CourseWorkspace({params, searchParams}: {
         {plan.state === "draft" && plan.items.length > 0 && <ActionForm action={courseAction} context={actor} operation="plan-submit" label="Send for department approval" secondary>
           <input type="hidden" name="offering" value={id} />
         </ActionForm>}
+      </>}
+    </section>}
+
+    {(teacher || projects.teams.length > 0) && <section className="panel stack" aria-labelledby="teams-title">
+      <h2 id="teams-title">{teacher ? "Project teams" : "My project team"}</h2>
+      {projects.milestones.length > 0 && <p className="meta">Milestones: {projects.milestones.map(m => `${m.title} (due ${date.format(m.due_at)})`).join(" · ")}</p>}
+      {projects.teams.map(team => <article key={team.id} aria-label={team.name} className="stack">
+        <h3>{team.name}</h3><p className="meta">{team.members.map(m => m.name).join(", ")}</p>
+        {projects.milestones.map(m => { const latest = team.evidence.find(e => e.milestone_id === m.id); return <div key={m.id} className="stack">
+          <p><strong>{m.title}</strong> · {latest ? `${reviewLabel[latest.review]} · submitted by ${latest.submitted_by}` : "No evidence yet"}</p>
+          {latest && <p className="meta">{latest.body}{latest.review_note && ` — Review: ${latest.review_note}`}</p>}
+          {teacher && latest?.review === "pending" && <ActionForm action={planningAction} context={actor} operation="evidence-review" label="Record review">
+            <input type="hidden" name="evidence" value={latest.id} />
+            <label>Decision<select name="decision" required defaultValue=""><option value="" disabled>Choose</option>
+              <option value="accepted">Accept</option><option value="changes_requested">Request changes</option></select></label>
+            <label>Note<input name="note" required maxLength={1000} /></label></ActionForm>}
+          {actor.role === "student" && latest?.review !== "accepted" && latest?.review !== "pending" && <ActionForm action={planningAction} context={actor} operation="evidence-submit" label={`Submit evidence for ${m.title}`}>
+            <input type="hidden" name="milestone" value={m.id} /><label>Evidence<textarea name="body" required maxLength={4000} /></label></ActionForm>}
+        </div>; })}
+      </article>)}
+      {teacher && <>
+        {available.length > 0 && <details><summary>Form a team</summary>
+          <ActionForm action={planningAction} context={actor} operation="team-create" label="Form team">
+            <input type="hidden" name="offering" value={id} />
+            <label>Team name<input name="name" required maxLength={80} /></label>
+            <fieldset><legend>Students without a team</legend>{available.map(s => <label key={s.id}><input type="checkbox" name="students" value={s.id} /> {s.name}</label>)}</fieldset>
+          </ActionForm></details>}
+        <details><summary>Set a milestone</summary>
+          <ActionForm action={planningAction} context={actor} operation="milestone-add" label="Set milestone">
+            <input type="hidden" name="offering" value={id} />
+            <label>Milestone<input name="title" required maxLength={160} /></label>
+            <label>Due ({course.timezone})<input name="due" type="datetime-local" required /></label>
+          </ActionForm></details>
       </>}
     </section>}
 

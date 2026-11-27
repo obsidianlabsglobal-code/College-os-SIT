@@ -99,3 +99,49 @@ export async function latestDigest(scope: Scope) {
     JOIN membership m ON m.institution_id=o.institution_id AND m.account_id=$2 AND m.role=$3 AND m.ended_at IS NULL
     WHERE o.institution_id=$1 ORDER BY o.period_start DESC LIMIT 1`, [scope.institution, scope.account, scope.role])).rows[0] ?? null;
 }
+
+export type Indicator = { name: string; value: string; definition: string; limitation: string };
+/** LE-004: a fixed set of record-derived quality measures, each shown with its definition and its limits. */
+export async function qualityIndicators(scope: Scope): Promise<Indicator[]> {
+  if (scope.role !== "principal" && scope.role !== "admin") return [];
+  const { rows: [q] } = await db.query<{ ok: boolean; turnaround: number | null; submissions: number; published: number; present: number; marked: number;
+    recorded: number; corrected: number; results: number; regraded: number; request_hours: number | null; case_hours: number | null }>(`SELECT
+      EXISTS (SELECT 1 FROM membership WHERE institution_id=$1 AND account_id=$2 AND role=$3 AND ended_at IS NULL) AS ok,
+      (SELECT round(avg(extract(epoch FROM p.first - s.submitted_at)/3600)::numeric,1)::float8 FROM submission s
+        JOIN LATERAL (SELECT min(g.published_at) AS first FROM grade g WHERE (g.institution_id,g.submission_id)=(s.institution_id,s.id) AND g.published_at IS NOT NULL) p ON p.first IS NOT NULL
+        WHERE s.institution_id=$1) AS turnaround,
+      (SELECT count(*)::int FROM submission WHERE institution_id=$1) AS submissions,
+      (SELECT count(DISTINCT submission_id)::int FROM grade WHERE institution_id=$1 AND published_at IS NOT NULL) AS published,
+      (SELECT count(*) FILTER (WHERE m.status='present')::int FROM class_attendance_mark m WHERE m.institution_id=$1
+        AND m.revision=(SELECT max(revision) FROM class_attendance_revision v WHERE (v.institution_id,v.session_id)=(m.institution_id,m.session_id))) AS present,
+      (SELECT count(*)::int FROM class_attendance_mark m WHERE m.institution_id=$1
+        AND m.revision=(SELECT max(revision) FROM class_attendance_revision v WHERE (v.institution_id,v.session_id)=(m.institution_id,m.session_id))) AS marked,
+      (SELECT count(DISTINCT session_id)::int FROM class_attendance_revision WHERE institution_id=$1) AS recorded,
+      (SELECT count(DISTINCT session_id)::int FROM class_attendance_revision WHERE institution_id=$1 AND revision>1) AS corrected,
+      (SELECT count(DISTINCT submission_id)::int FROM grade WHERE institution_id=$1 AND published_at IS NOT NULL) AS results,
+      (SELECT count(DISTINCT submission_id)::int FROM grade WHERE institution_id=$1 AND published_at IS NOT NULL AND revision>1) AS regraded,
+      (SELECT round((percentile_cont(0.5) WITHIN GROUP (ORDER BY extract(epoch FROM closed_at-created_at)/3600))::numeric,1)::float8
+        FROM service_request WHERE institution_id=$1 AND closed_at > clock_timestamp()-interval '90 days') AS request_hours,
+      (SELECT round((percentile_cont(0.5) WITHIN GROUP (ORDER BY extract(epoch FROM closed_at-created_at)/3600))::numeric,1)::float8
+        FROM case_record WHERE institution_id=$1 AND closed_at > clock_timestamp()-interval '90 days') AS case_hours`,
+  [scope.institution, scope.account, scope.role]);
+  if (!q.ok) return [];
+  const pct = (a: number, b: number) => b ? `${(100 * a / b).toFixed(1)}%` : "No records";
+  const hours = (h: number | null) => h === null ? "No records" : `${h} h`;
+  return [
+    { name: "Result turnaround", value: hours(q.turnaround), definition: "Mean hours from submission to the first published result, all time.",
+      limitation: "Ignores submissions still awaiting a result, so a backlog can make it look faster." },
+    { name: "Results published", value: pct(q.published, q.submissions), definition: "Submissions with at least one published result ÷ all submissions.",
+      limitation: "Recent submissions within their normal evaluation window lower the rate." },
+    { name: "Attendance", value: pct(q.present, q.marked), definition: "Present marks ÷ all marks in each class's latest attendance revision.",
+      limitation: "Classes without a record are excluded; this is not an eligibility calculation." },
+    { name: "Attendance correction rate", value: pct(q.corrected, q.recorded), definition: "Recorded classes with more than one revision ÷ recorded classes.",
+      limitation: "Counts corrections, not their cause; an accepted student request and a teacher's own fix count the same." },
+    { name: "Result correction rate", value: pct(q.regraded, q.results), definition: "Published results revised after first publication ÷ published results.",
+      limitation: "Unpublished draft changes are not counted." },
+    { name: "Request resolution (median)", value: hours(q.request_hours), definition: "Median hours from submission to recorded outcome, last 90 days.",
+      limitation: "Enrollment-letter requests only." },
+    { name: "Case closure (median)", value: hours(q.case_hours), definition: "Median hours from opening to outcome for support cases and grievances, last 90 days.",
+      limitation: "Mixes two case kinds with different urgency." },
+  ];
+}

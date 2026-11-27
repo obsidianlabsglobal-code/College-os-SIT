@@ -25,6 +25,8 @@ Cases (AD-020 slice) are one engine with per-kind authority. Support cases are o
 
 Examination sittings are drafted, published and cancelled only by an institution administrator acting as the exam cell. Publication is refused if a published exam already uses the section, room or invigilator at that time, if the room or invigilator has a class, or if a confirmed booking holds the room. Improvement actions: the principal assigns institution actions to an HOD, admin or the principal; an HOD assigns department actions to a department teacher or themself. Only the owner records progress or closes an action.
 
+Teaching allocation (DH-007) splits authority. The HOD proposes a teacher only for offerings in their department, and only an institution administrator approves. Approval writes the faculty roster row in the same transaction. Offboarding (ID-009) is admin-only, refuses the caller's own account and other admins, and ends posts, rosters and mentoring pairings together; cases and requests the person owns are reported for reassignment, not moved. Project teams are formed and reviewed only by the offering's current teachers.
+
 Source vocabulary has changed over time. The original eight product domains describe subject areas. Later OS names describe user workspaces that cross those areas. Retain both views, with shared identity and records. A prototype name confers no evidence of a working implementation. Operational GPS, model suggestions and policy-sensitive disclosure retain explicit gates.
 
 ## Change procedure

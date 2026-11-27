@@ -28,7 +28,7 @@ Domain: shared foundation. Users: all institutional participants and authorized 
 | ID-006 | Transactional audit | Record consequential changes and roll back writes on audit failure. | Tested | R/C/A |
 | ID-007 | Hosted staging acceptance | Exercise five roles, redeploy, verify previous work and recover from backup on authorized hosts. | Blocked | DEPLOYMENT.md; provider access missing |
 | ID-008 | Scoped specialist posts | Delegate class coordinator, academic mentor, specialist office and resource custodian duties for a defined scope. | Proposed | F |
-| ID-009 | Account lifecycle | Provision, suspend and offboard accounts with traceable effects on grants. | Proposed | F |
+| ID-009 | Account lifecycle | Provision, suspend and offboard accounts with traceable effects on grants. | Tested (offboarding within one institution; no provisioning or suspension) | lib/allocation.ts offboard, app/admin; tests/allocation-teams.test.ts, tests/allocation-teams.e2e.ts |
 | ID-010 | Privacy and retention | Define access, deletion, backups and retention per record class and institution. | Proposed | F |
 | ID-011 | Institution and campus configuration | Configure campuses, departments, branding, program, scheme, locale and academic year per tenant. | Proposed | F |
 | ID-012 | Approved imports and exports | Validate source authority, preview changes and reconcile batch outcomes across systems. | Proposed | F |
@@ -133,8 +133,8 @@ Faculty need to organize teaching and evaluation by assigned offering. Select as
 | FC-014 | Classroom concept analysis | Identify concepts needing support using appropriate assessment evidence. | Proposed | F |
 | FC-015 | Academic intervention | Coordinate support with authorized staff and measure resolution. | Tested (support cases with time-to-close measure) | db/022, lib/cases.ts, app/cases; tests/cases.test.ts, tests/cases.e2e.ts |
 | FC-016 | Student mentorship | Agree mentoring goals and record appropriate follow-ups. | Tested (admin-assigned mentor; goals, follow-ups and student agreement) | lib/mentoring.ts, app/mentoring; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
-| FC-017 | Project supervision | Review assigned milestones and evidence. | Proposed | F |
-| FC-018 | Student team management | Form and oversee authorized project teams. | Proposed | F |
+| FC-017 | Project supervision | Review assigned milestones and evidence. | Tested (team milestones with evidence review and resubmission) | db/024, lib/teams.ts, app/courses/[id]; tests/allocation-teams.test.ts, tests/allocation-teams.e2e.ts |
+| FC-018 | Student team management | Form and oversee authorized project teams. | Tested | db/024, lib/teams.ts, app/courses/[id]; tests/allocation-teams.test.ts, tests/allocation-teams.e2e.ts |
 | FC-019 | Faculty workload | Inspect teaching, assessment and mentoring commitments. | Tested | lib/department.ts facultyWorkload; tests/department.test.ts, tests/exams-improvement.test.ts, tests/leadership.e2e.ts |
 | FC-020 | Teaching resources | Organize authorized learning materials and versions. | Tested (versioned PDF/TXT per offering with withdrawal) | db/021, lib/course-delivery.ts, app/courses/[id]; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
 | FC-021 | Research support | Track research activity and relevant opportunities. | Proposed | F |
@@ -156,10 +156,10 @@ HODs and explicitly delegated coordinators need department-scoped oversight. Sel
 | DH-001 | Department dashboard | View department-scoped academic activity and average turnaround. | Tested | R |
 | DH-002 | Department faculty | Find current faculty and responsibilities. | Tested | lib/department.ts departmentFaculty, app/leadership/boards.tsx; tests/department.test.ts, tests/leadership.e2e.ts |
 | DH-003 | Students and sections | Inspect authorized rosters by section. | Tested | lib/department.ts departmentSections; tests/department.test.ts, tests/leadership.e2e.ts |
-| DH-004 | Department academic schemes | Review applicable scheme and cohort mappings. | Proposed | F |
+| DH-004 | Department academic schemes | Review applicable scheme and cohort mappings. | Tested (read-only scheme, term and section mapping) | db/024, lib/allocation.ts, app/leadership/boards.tsx; tests/allocation-teams.test.ts, tests/allocation-teams.e2e.ts |
 | DH-005 | Course delivery | Compare delivered sessions against approved course plan. | Tested (logged classes against an HOD-approved plan; no institution curriculum source) | lib/course-delivery.ts, app/courses/[id], app/leadership/boards.tsx; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
 | DH-006 | Teaching workload | Review teaching and evaluation allocations. | Tested | Shared workload definition with FC-019; tests/department.test.ts, tests/leadership.e2e.ts |
-| DH-007 | Faculty allocation | Propose or approve department teaching assignments. | Proposed | F |
+| DH-007 | Faculty allocation | Propose or approve department teaching assignments. | Tested | db/024, lib/allocation.ts, app/leadership/boards.tsx; tests/allocation-teams.test.ts, tests/allocation-teams.e2e.ts |
 | DH-008 | Timetable planning | Resolve scheduling constraints before publication. | Proposed | F |
 | DH-009 | Attendance reporting | Aggregate verified attendance with scheme definitions. | Tested (latest-record rate beside planning target) | No scheme eligibility definitions; tests/department.test.ts |
 | DH-010 | Assessment and results reporting | Count published assignments, submissions and published results from records. | Tested | R |
@@ -190,7 +190,7 @@ Principal and authorized leaders need defensible institution-level decisions. Re
 | LE-001 | Institution dashboard | See stored counts of published assignments, submissions, published results and open requests. | Tested | R |
 | LE-002 | Department information | Review department profiles and defined comparisons. | Tested | lib/department.ts departmentComparison; tests/department.test.ts, tests/leadership.e2e.ts |
 | LE-003 | Academic progress | Track approved academic indicators by cohort. | Tested (results, average score and attendance per term and section) | lib/department.ts cohortProgress, app/leadership/boards.tsx; tests/cases.test.ts, tests/cases.e2e.ts |
-| LE-004 | Quality indicators | Inspect defined quality measures and limitations. | Proposed | F |
+| LE-004 | Quality indicators | Inspect defined quality measures and limitations. | Tested (seven fixed record-derived measures with definitions and limitations) | lib/reporting.ts qualityIndicators, app/leadership/boards.tsx; tests/allocation-teams.test.ts, tests/allocation-teams.e2e.ts |
 | LE-005 | Resource planning | Compare available resources to documented demand. | Proposed | F |
 | LE-006 | Financial oversight | Inspect explicitly authorized budget and expenditure reports. | Proposed | F |
 | LE-007 | Institutional notices | Read published authorized notices. | Tested | R; tests/notices.test.ts |

@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { cohortProgress, departmentComparison, departmentFaculty, departmentSections, escalatedRequests } from "../../lib/department";
-import { adminRequestSummary, departmentSummary, institutionSummary, latestDigest, operationsReport, type Digest } from "../../lib/reporting";
+import { adminRequestSummary, departmentSummary, institutionSummary, latestDigest, operationsReport, qualityIndicators, type Digest } from "../../lib/reporting";
 import { notifications } from "../../lib/automation";
 import { coursePlan, departmentDelivery } from "../../lib/course-delivery";
+import { allocationOptions, allocationProposals, departmentSchemes } from "../../lib/allocation";
+import { planningAction } from "../actions/planning";
 import { ActionForm } from "../forms";
 import { courseAction } from "../actions/courses";
 import { workspaceQuery, type Scope } from "../../lib/scope";
@@ -35,6 +37,7 @@ function WeeklyDigest({ digest, timezone }: { digest: Digest | null; timezone: s
 export async function HodBoard({ current }: { current: Scope }) {
   const [summary, faculty, sections, delivery] = await Promise.all([departmentSummary(current), departmentFaculty(current), departmentSections(current),
     departmentDelivery(current)]);
+  const [proposals, allocation, schemes] = await Promise.all([allocationProposals(current), allocationOptions(current), departmentSchemes(current)]);
   const awaitingPlans = await Promise.all(delivery.filter(row => row.plan === "submitted").map(async row => ({ row, plan: await coursePlan(current, row.offering) })));
   const pending = faculty.reduce((n, row) => n + row.pending, 0), awaiting = faculty.reduce((n, row) => n + row.awaiting, 0);
   const unrecorded = faculty.reduce((n, row) => n + row.unrecorded, 0);
@@ -86,6 +89,31 @@ export async function HodBoard({ current }: { current: Scope }) {
     </section>
 
     <div className={styles.columns}>
+      <section className="panel" aria-labelledby="allocation-title">
+        <h2 id="allocation-title">Teaching allocation</h2>
+        <p className="meta">Propose a teacher for an offering. The office approves it, which adds them to the course.</p>
+        {allocation && <ActionForm action={planningAction} context={current} operation="allocation-propose" label="Propose allocation">
+          <label>Offering<select name="offering" required defaultValue=""><option value="" disabled>Choose</option>
+            {allocation.offerings.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}</select></label>
+          <label>Teacher<select name="faculty" required defaultValue=""><option value="" disabled>Choose</option>
+            {allocation.faculty.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}</select></label>
+          <label>Reason<input name="reason" required maxLength={500} /></label>
+        </ActionForm>}
+        {proposals.length > 0 && <ul className={styles.people}>{proposals.map(p => <li key={p.id}>
+          <div className={styles.head}><h3>{p.faculty} → {p.offering}</h3><span className={p.state === "proposed" ? "tag tag-attention" : "tag"}>
+            {{ proposed: "Awaiting the office", approved: "Approved", rejected: "Rejected" }[p.state]}</span></div>
+          <p className="meta">{p.reason}{p.decision_reason && ` · Office: ${p.decision_reason}`}</p>
+        </li>)}</ul>}
+      </section>
+      <section className="panel" aria-labelledby="schemes-title">
+        <h2 id="schemes-title">Schemes and cohorts</h2>
+        <p className="meta">Each course offered in your departments, by scheme and term, with the sections it is mapped to.</p>
+        {schemes.length ? <ul className={styles.people}>{schemes.map(row => <li key={`${row.scheme}|${row.term}|${row.course}`}>
+          <h3>{row.course}</h3><p className="meta">{row.scheme} · {row.term} · {row.sections.join(", ")}</p></li>)}</ul> : <p>No offerings mapped yet.</p>}
+      </section>
+    </div>
+
+    <div className={styles.columns}>
       <section className="panel" aria-labelledby="faculty-title">
         <h2 id="faculty-title">Faculty responsibilities</h2>
         <p className="meta">Current teaching assignments. Evaluation counts cover published assignments; classes cover the next and last seven days.</p>
@@ -123,8 +151,8 @@ export async function HodBoard({ current }: { current: Scope }) {
 
 /** Principal board: escalations and decisions first, then institution totals, then a like-for-like department comparison. */
 export async function PrincipalBoard({ current, timezone }: { current: Scope; timezone: string }) {
-  const [overview, departments, escalations, inbox, digest, cohorts] = await Promise.all([institutionSummary(current), departmentComparison(current),
-    escalatedRequests(current), notifications(current), latestDigest(current), cohortProgress(current)]);
+  const [overview, departments, escalations, inbox, digest, cohorts, quality] = await Promise.all([institutionSummary(current), departmentComparison(current),
+    escalatedRequests(current), notifications(current), latestDigest(current), cohortProgress(current), qualityIndicators(current)]);
   const query = workspaceQuery(current);
   const open = escalations.filter(row => row.status === "submitted" || row.status === "in_progress");
   const when = new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: timezone });
@@ -187,13 +215,23 @@ export async function PrincipalBoard({ current, timezone }: { current: Scope; ti
           <td>{rate(row.results, row.submissions)}</td><td>{row.score === null ? "—" : `${row.score}%`}</td><td>{rate(row.present, row.marked)}</td></tr>)}</tbody>
       </table></div> : <p>No cohorts yet.</p>}
     </section>
+    <section className="panel" aria-labelledby="quality-title">
+      <h2 id="quality-title">Quality indicators</h2>
+      <p className="meta">Each measure is computed from records with the definition shown. Read the limitation before comparing periods.</p>
+      <div className="table-scroll" role="region" aria-label="Quality indicator table" tabIndex={0}><table>
+        <thead><tr><th scope="col">Measure</th><th scope="col">Value</th><th scope="col">Definition</th><th scope="col">Limitation</th></tr></thead>
+        <tbody>{quality.map(q => <tr key={q.name}><th scope="row">{q.name}</th><td>{q.value}</td><td>{q.definition}</td><td>{q.limitation}</td></tr>)}</tbody>
+      </table></div>
+    </section>
     <WeeklyDigest digest={digest} timezone={timezone} />
   </div>;
 }
 
 /** Admin board: the office's open work first, then routed items and tools, then the 30-day operations record. */
 export async function AdminBoard({ current, timezone }: { current: Scope; timezone: string }) {
-  const [summary, inbox, ops, digest] = await Promise.all([adminRequestSummary(current), notifications(current), operationsReport(current), latestDigest(current)]);
+  const [summary, inbox, ops, digest, proposals] = await Promise.all([adminRequestSummary(current), notifications(current), operationsReport(current),
+    latestDigest(current), allocationProposals(current)]);
+  const waiting = proposals.filter(p => p.state === "proposed");
   const counts = summary ?? { submitted: 0, in_review: 0 };
   const query = workspaceQuery(current);
   const open = counts.submitted + counts.in_review;
@@ -239,6 +277,18 @@ export async function AdminBoard({ current, timezone }: { current: Scope; timezo
         <div><dt>Attendance corrections</dt><dd>{ops.attendance_corrections_30d}</dd></div>
         <div><dt>Result corrections</dt><dd>{ops.grade_corrections_30d}</dd></div>
       </dl>
+    </section>}
+    {waiting.length > 0 && <section className="panel" aria-labelledby="allocation-decisions">
+      <h2 id="allocation-decisions">Teaching allocation proposals</h2>
+      <ul className={styles.people}>{waiting.map(p => <li key={p.id}>
+        <h3>{p.faculty} → {p.offering}</h3><p className="meta">Proposed by {p.proposed_by}: {p.reason}</p>
+        <ActionForm action={planningAction} context={current} operation="allocation-decide" label="Record allocation decision">
+          <input type="hidden" name="proposal" value={p.id} />
+          <label>Decision<select name="decision" required defaultValue=""><option value="" disabled>Choose</option>
+            <option value="approve">Approve and add to the course</option><option value="reject">Reject</option></select></label>
+          <label>Reason<input name="reason" required maxLength={500} /></label>
+        </ActionForm>
+      </li>)}</ul>
     </section>}
     <WeeklyDigest digest={digest} timezone={timezone} />
   </div>;

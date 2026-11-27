@@ -10,6 +10,7 @@ import { studentAdmission } from "../actions/student-admission";
 import { studentAdmissions } from "../../lib/student-admission";
 import { onboardingPreviewEnabled } from "../../lib/onboarding-preview";
 import { delegatedRoles, institutionCatalog } from "../../lib/institution";
+import { planningAction } from "../actions/planning";
 
 type Option = { id: string; name: string };
 
@@ -88,6 +89,15 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
             <input type="hidden" name="membership" value={grant.id} />
           </ActionForm>}
         </li>)}</ul>
+      </section>
+      <section className="panel stack" aria-labelledby="offboard-title">
+        <h2 id="offboard-title">Offboard a person</h2>
+        <p className="meta">Ends every post, course roster and mentoring pairing the person holds in this institution, in one step. Their records and history are kept. Open cases and requests they own are reported for reassignment. Administrator posts are not offboarded here.</p>
+        <ActionForm action={planningAction} context={current} operation="offboard" label="Review offboarding"
+          confirmationTitle="Confirm offboarding" confirmationLabel="End all access"
+          confirmation="All current posts, course rosters and mentoring pairings for the selected person in this institution will end now. This cannot be undone from this screen; access can be granted again later.">
+          <Choices label="Person to offboard" field="account" options={Array.from(new Map(setup.grants.filter(grant => !grant.ended_at && grant.role !== "admin").map(grant => [grant.account_id,{ id: grant.account_id, name: grant.account_name }])).values())} />
+        </ActionForm>
       </section>
       {preview && <section className="panel stack">
         <h2 id="student-admission" tabIndex={-1}>Student admissions preview</h2>
