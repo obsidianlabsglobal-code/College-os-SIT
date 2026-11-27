@@ -93,3 +93,44 @@ export function saveProfile(scope: Scope, raw: unknown) {
     await audit(client, scope, scope.institution, "profile.updated", undefined, scope.account);
   });
 }
+
+// SL-013: portfolio entries are references to verified records the student owns — issued certificates, accepted team
+// milestone evidence and published results. Readers follow the profile visibility (readProfile).
+export type PortfolioEntry = { source: "certificate" | "milestone" | "result"; source_id: string; title: string; detail: string; included: boolean };
+export async function portfolioCandidates(scope: Scope, student = scope.account) {
+  const { rows } = await db.query<PortfolioEntry>(`WITH items AS (
+      SELECT 'certificate'::text AS source,k.id AS source_id,'Certificate: '||k.kind AS title,'Issued '||to_char(k.issued_at,'DD Mon YYYY') AS detail
+        FROM certificate k WHERE k.institution_id=$1 AND k.student_id=$2 AND k.state='issued'
+      UNION ALL SELECT 'milestone',e.id,'Project milestone: '||m.title,'Accepted · '||t.name
+        FROM milestone_evidence e JOIN team_milestone m ON (m.institution_id,m.id)=(e.institution_id,e.milestone_id)
+        JOIN project_team t ON (t.institution_id,t.id)=(e.institution_id,e.team_id)
+        JOIN team_member tm ON (tm.institution_id,tm.team_id)=(t.institution_id,t.id) AND tm.student_id=$2
+        WHERE e.institution_id=$1 AND e.review='accepted'
+      UNION ALL SELECT DISTINCT ON (s.id) 'result',s.id,'Result: '||a.title,g.marks||'/'||a.max_marks
+        FROM submission s JOIN assignment a ON (a.institution_id,a.id)=(s.institution_id,s.assignment_id)
+        JOIN grade g ON (g.institution_id,g.submission_id)=(s.institution_id,s.id) AND g.published_at IS NOT NULL
+        WHERE s.institution_id=$1 AND s.student_id=$2)
+    SELECT i.*,EXISTS (SELECT 1 FROM portfolio_item p WHERE p.institution_id=$1 AND p.student_id=$2 AND p.source=i.source AND p.source_id=i.source_id) AS included
+    FROM items i ORDER BY i.source,i.title`, [scope.institution, student]);
+  return rows;
+}
+
+/** The student's own curation, or another reader's view when the profile is visible to them. */
+export async function portfolio(scope: Scope, student: string) {
+  if (student !== scope.account && !(await readProfile(scope, student))) return null;
+  if (scope.role !== "student" && student === scope.account) return null;
+  return (await portfolioCandidates(scope, student)).filter(e => e.included);
+}
+
+export function setPortfolioItem(scope: Scope, raw: unknown) {
+  const input = z.object({ source: z.enum(["certificate", "milestone", "result"]), id: z.uuid(), include: z.boolean() }).parse(raw);
+  if (scope.role !== "student") throw unavailable();
+  return transaction(async client => {
+    const eligible = (await portfolioCandidates(scope)).some(e => e.source === input.source && e.source_id === input.id);
+    if (!eligible) throw new WorkflowError("Only your own verified records can be added.");
+    if (input.include) await client.query("INSERT INTO portfolio_item (institution_id,student_id,source,source_id) VALUES ($1,$2,$3,$4) ON CONFLICT DO NOTHING",
+      [scope.institution, scope.account, input.source, input.id]);
+    else await client.query("DELETE FROM portfolio_item WHERE institution_id=$1 AND student_id=$2 AND source=$3 AND source_id=$4", [scope.institution, scope.account, input.source, input.id]);
+    await audit(client, scope, input.id, input.include ? "portfolio.added" : "portfolio.removed");
+  });
+}

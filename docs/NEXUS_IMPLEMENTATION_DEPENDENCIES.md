@@ -38,6 +38,8 @@ My work (AD-018) only collects items. Each item comes from its own workflow's re
 
 Delegation (AD-019): an admin lends exactly one duty (exam cell or institution calendar) to a current faculty member or HOD, with an expiry of at most 365 days. The admin can revoke it. While it is live, the delegate passes that duty's checks in their own role; nothing else widens. Certificates are drafted and issued only by admins. Public verification shows only the type, institution, date, status and holder initials.
 
+Meetings are visible only to their participants. Only the organizer records minutes and assigns actions, and only to participants; each owner closes their own action. Representation issues are readable by every current student, who can add support once, and the office owns the response. Portfolio entries are restricted to the student's own verified records, and who can read them follows the profile visibility. Decision scenarios are principal-only and read-only.
+
 Source vocabulary has changed over time. The original eight product domains describe subject areas. Later OS names describe user workspaces that cross those areas. Retain both views, with shared identity and records. A prototype name confers no evidence of a working implementation. Operational GPS, model suggestions and policy-sensitive disclosure retain explicit gates.
 
 ## Change procedure

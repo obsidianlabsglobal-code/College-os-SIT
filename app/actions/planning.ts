@@ -14,7 +14,8 @@ import { addCalendarEntry, withdrawCalendarEntry } from "../../lib/calendar";
 import { setCatalogVisibility } from "../../lib/catalog";
 import { grantDelegation, revokeDelegation } from "../../lib/delegation";
 import { draftCertificate, issueCertificate, revokeCertificate } from "../../lib/certificates";
-import { createStudyGroup, joinStudyGroup, leaveStudyGroup, saveProfile } from "../../lib/student-life";
+import { createStudyGroup, joinStudyGroup, leaveStudyGroup, saveProfile, setPortfolioItem } from "../../lib/student-life";
+import { addMeetingAction, completeMeetingAction, recordMinutes, scheduleMeeting } from "../../lib/meetings";
 import { composeAssessment, saveQuestion } from "../../lib/question-bank";
 import { addMilestone, createTeam, reviewEvidence, submitEvidence } from "../../lib/teams";
 import { scope, workspaceQuery } from "../../lib/scope";
@@ -29,7 +30,8 @@ const messages: Record<string, string> = { "exam-draft": "Sitting drafted.", "ex
   "research-done": "Milestone completed.", "calendar-add": "Date published to everyone's calendar.", "calendar-withdraw": "Date withdrawn.",
   "catalog-show": "Offering shown in the catalog.", "delegation-grant": "Duty delegated until its expiry.", "delegation-revoke": "Delegation revoked.",
   "certificate-draft": "Draft prepared from current records.", "certificate-revoke": "Certificate revoked.", "group-create": "Study group created.",
-  "group-join": "You joined the group.", "group-leave": "You left the group.", "profile-save": "Profile saved.", "catalog-hide": "Offering hidden from the catalog.", rename: "Name corrected; the previous name is kept in the history.", compose: "Draft assignment created from the selected questions." };
+  "group-join": "You joined the group.", "meeting-schedule": "Meeting scheduled.", "meeting-minutes": "Minutes recorded.",
+  "meeting-action": "Action assigned.", "meeting-done": "Action completed.", "portfolio-add": "Added to your portfolio.", "portfolio-remove": "Removed from your portfolio.", "group-leave": "You left the group.", "profile-save": "Profile saved.", "catalog-hide": "Offering hidden from the catalog.", rename: "Name corrected; the previous name is kept in the history.", compose: "Draft assignment created from the selected questions." };
 
 export async function planningAction(_state: ActionState, form: FormData): Promise<ActionState> {
   const current = await scope(form.get("institution"), form.get("role"));
@@ -90,6 +92,12 @@ export async function planningAction(_state: ActionState, form: FormData): Promi
     else if (operation === "group-join") await joinStudyGroup(current, value("group"));
     else if (operation === "group-leave") await leaveStudyGroup(current, value("group"));
     else if (operation === "profile-save") await saveProfile(current, { bio: form.get("bio") ?? "", interests: form.get("interests") ?? "", visibility: value("visibility") });
+    else if (operation === "meeting-schedule") await scheduleMeeting(current, { title: value("title"), start: value("start"), agenda: value("agenda"),
+      participants: form.getAll("participants").map(String) });
+    else if (operation === "meeting-minutes") await recordMinutes(current, { meeting: value("meeting"), minutes: value("minutes") });
+    else if (operation === "meeting-action") await addMeetingAction(current, { meeting: value("meeting"), owner: value("owner"), title: value("title"), due: value("due") });
+    else if (operation === "meeting-done") await completeMeetingAction(current, value("action"));
+    else if (operation === "portfolio-add" || operation === "portfolio-remove") await setPortfolioItem(current, { source: value("source"), id: value("id"), include: operation === "portfolio-add" });
     else return { error: "This action is unavailable." };
   } catch (error) {
     if (error instanceof WorkflowError) return { error: error.message };

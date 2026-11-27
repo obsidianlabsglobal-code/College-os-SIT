@@ -181,3 +181,26 @@ export async function sectionCompliance(scope: Scope) {
     FROM rates r CROSS JOIN pol JOIN offering o ON (o.institution_id,o.id)=($1,r.offering_id) JOIN course c ON (c.institution_id,c.id)=(o.institution_id,o.course_id)
     WHERE c.department_id IN (${hodDepartments}) GROUP BY r.offering_id,pol.title,pol.version,pol.threshold`, [scope.institution, scope.account])).rows;
 }
+
+/** LE-018: compare a proposed attendance minimum with the approved one, per section, on the same latest-record rates.
+ * The assumption is explicit: rates so far, with no future classes or leave exceptions. Read-only. */
+export async function thresholdScenario(scope: Scope, proposed: number) {
+  if (scope.role !== "principal" || !Number.isInteger(proposed) || proposed < 1 || proposed > 100) return null;
+  const { rows } = await db.query<{ course: string; section: string; measured: number; below_current: number | null; below_proposed: number; current: number | null }>(`WITH pol AS (
+      SELECT v.attendance_threshold AS threshold FROM policy p JOIN policy_version v ON (v.institution_id,v.policy_id)=(p.institution_id,p.id) AND v.state='approved'
+      WHERE p.institution_id=$1 AND p.kind='attendance' AND v.attendance_threshold IS NOT NULL ORDER BY v.decided_at DESC LIMIT 1),
+    rates AS (SELECT cs.offering_id,m.student_id,100.0*count(*) FILTER (WHERE m.status='present')/count(*) AS rate
+      FROM class_session cs JOIN class_attendance_mark m ON (m.institution_id,m.session_id)=(cs.institution_id,cs.id)
+      JOIN roster r ON (r.institution_id,r.offering_id,r.account_id)=(cs.institution_id,cs.offering_id,m.student_id) AND r.role='student' AND r.ended_at IS NULL
+      WHERE cs.institution_id=$1 AND cs.state IN ('published','conducted')
+        AND m.revision=(SELECT max(revision) FROM class_attendance_revision v WHERE (v.institution_id,v.session_id)=(cs.institution_id,cs.id))
+      GROUP BY cs.offering_id,m.student_id)
+    SELECT c.name AS course,s.name AS section,count(*)::int AS measured,
+      (count(*) FILTER (WHERE r.rate < (SELECT threshold FROM pol)))::int AS below_current,
+      count(*) FILTER (WHERE r.rate < $3)::int AS below_proposed,(SELECT threshold FROM pol) AS current
+    FROM rates r JOIN offering o ON (o.institution_id,o.id)=($1,r.offering_id) JOIN course c ON (c.institution_id,c.id)=(o.institution_id,o.course_id)
+    JOIN section s ON (s.institution_id,s.id)=(o.institution_id,o.section_id)
+    WHERE EXISTS (SELECT 1 FROM membership WHERE institution_id=$1 AND account_id=$2 AND role='principal' AND ended_at IS NULL)
+    GROUP BY c.name,s.name ORDER BY c.name,s.name`, [scope.institution, scope.account, proposed]);
+  return rows.map(r => ({ ...r, below_current: r.current === null ? null : r.below_current }));
+}

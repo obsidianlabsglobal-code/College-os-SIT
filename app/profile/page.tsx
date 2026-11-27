@@ -4,7 +4,7 @@ import { Chrome } from "../chrome";
 import { ActionForm } from "../forms";
 import { planningAction } from "../actions/planning";
 import { account, scope, workspaceQuery } from "../../lib/scope";
-import { readProfile } from "../../lib/student-life";
+import { portfolio, portfolioCandidates, readProfile } from "../../lib/student-life";
 
 export default async function ProfilePage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const [params, user] = await Promise.all([searchParams, account()]);
@@ -13,6 +13,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
   const own = current.role === "student" && student === current.account;
   const profile = student ? await readProfile(current, student) : null;
   if (!own && !profile) notFound();
+  const entries = own ? await portfolioCandidates(current) : (await portfolio(current, student)) ?? [];
   const query = workspaceQuery(current);
   return <Chrome user={user} current={current} section="/profile">
     <PageHeader title={own ? "My profile" : `${profile!.name}’s profile`} parent={{ href: `/?${query}`, label: "Workspace" }}
@@ -25,6 +26,15 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
         <label>Who can see this<select name="visibility" defaultValue={profile?.visibility ?? "private"}>
           <option value="private">Only me</option><option value="teachers">My teachers and mentor</option><option value="classmates">Teachers and classmates</option></select></label>
       </ActionForm> : <><p style={{ whiteSpace: "pre-wrap" }}>{profile!.bio || "No description."}</p>{profile!.interests && <p className="meta">Interests: {profile!.interests}</p>}</>}
+    </section>
+    <section className="panel stack" aria-labelledby="portfolio-title">
+      <h2 id="portfolio-title">{own ? "Portfolio" : "Portfolio highlights"}</h2>
+      <p className="meta">{own ? "Choose verified records to include. Only issued certificates, accepted project milestones and published results can be added; readers follow the visibility above." : "Verified records the student chose to share."}</p>
+      {entries.length ? <ul className="items">{entries.map(e => <li key={`${e.source}:${e.source_id}`}><div className="row spread">
+        <span><strong>{e.title}</strong> · {e.detail}</span>
+        {own && <ActionForm action={planningAction} context={current} operation={e.included ? "portfolio-remove" : "portfolio-add"} label={e.included ? "Remove" : "Include"} secondary>
+          <input type="hidden" name="source" value={e.source} /><input type="hidden" name="id" value={e.source_id} /></ActionForm>}
+      </div></li>)}</ul> : <p>{own ? "No verified records yet." : "Nothing shared yet."}</p>}
     </section>
   </Chrome>;
 }

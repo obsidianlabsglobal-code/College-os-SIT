@@ -11,13 +11,14 @@ import type { Scope } from "./scope";
 //   facility  — AD-031 / AD-032: an estate repair reported by any member, owned by the office; the reporter may reopen it.
 //   integrity — SA-023: a student's confidential appeal tied to a published policy version and one of their assignments.
 //   department — DH-023: a student's request to a department, routed by its HOD.
-export type CaseKind = "support" | "grievance" | "facility" | "integrity" | "department";
+//   representation — SL-016: an issue raised for students generally; every current student can read and support it.
+export type CaseKind = "support" | "grievance" | "facility" | "integrity" | "department" | "representation";
 /** Kinds a role works with, in display order. */
 export const caseKinds: Record<Scope["role"], CaseKind[]> = {
-  student: ["grievance", "integrity", "department", "facility"], faculty: ["support", "department", "integrity", "facility"],
-  hod: ["support", "department", "integrity", "facility"], admin: ["grievance", "facility"], principal: ["grievance"],
+  student: ["grievance", "integrity", "department", "representation", "facility"], faculty: ["support", "department", "integrity", "facility"],
+  hod: ["support", "department", "integrity", "facility"], admin: ["grievance", "representation", "facility"], principal: ["grievance"],
 };
-const officeKinds: CaseKind[] = ["grievance", "facility"];  // coordinated by admins; the rest by the department HOD
+export const officeKinds: CaseKind[] = ["grievance", "facility", "representation"];  // coordinated by admins; the rest by the department HOD
 const REOPEN_DAYS = 14;
 const unavailable = () => new WorkflowError("This case is unavailable or has already changed.");
 const ESCALATE_DAYS = 7;
@@ -31,6 +32,7 @@ const readable = `CASE k.kind
   WHEN 'support' THEN ($3='hod' AND ${hodOf()}) OR ($3='faculty' AND ${member("faculty")} AND (k.assigned_to=$2 OR k.opened_by=$2))
   WHEN 'grievance' THEN ($3='student' AND k.subject_id=$2 AND ${member("student")}) OR ($3='admin' AND ${member("admin")})
     OR ($3='principal' AND ${member("principal")} AND k.state IN ('open','in_progress') AND k.created_at < clock_timestamp()-interval '${ESCALATE_DAYS} days')
+  WHEN 'representation' THEN ($3='student' AND ${member("student")}) OR ($3='admin' AND ${member("admin")})
   WHEN 'facility' THEN (k.opened_by=$2 AND EXISTS (SELECT 1 FROM membership x WHERE x.institution_id=k.institution_id AND x.account_id=$2
     AND x.role=$3 AND x.ended_at IS NULL)) OR ($3='admin' AND ${member("admin")})
   ELSE ($3='student' AND k.subject_id=$2 AND ${member("student")}) OR ($3='hod' AND ${hodOf()})
@@ -39,11 +41,13 @@ END`;
 
 export type CaseRow = { id: string; kind: CaseKind; title: string; body: string; state: "open" | "in_progress" | "resolved" | "declined";
   subject: string; opener: string; opened_by: string; assignee: string | null; assigned_to: string | null; outcome: string | null; department: string | null; department_id: string | null;
-  created_at: Date; closed_at: Date | null; escalated: boolean; reopened: number; policy: string | null; assignment: string | null; notes: { author: string; body: string; created_at: string }[] };
+  created_at: Date; closed_at: Date | null; escalated: boolean; reopened: number; supporters: number; supported: boolean; policy: string | null; assignment: string | null; notes: { author: string; body: string; created_at: string }[] };
 
 export async function cases(scope: Scope, kind: CaseKind) {
   return (await db.query<CaseRow>(`SELECT k.id,k.kind,k.title,k.body,k.state,su.name AS subject,ou.name AS opener,k.opened_by,au.name AS assignee,k.assigned_to,
       k.outcome,d.name AS department,k.department_id,k.created_at,k.closed_at,k.reopened,
+      (SELECT count(*)::int FROM case_support cs WHERE (cs.institution_id,cs.case_id)=(k.institution_id,k.id)) AS supporters,
+      EXISTS (SELECT 1 FROM case_support cs WHERE (cs.institution_id,cs.case_id)=(k.institution_id,k.id) AND cs.account_id=$2) AS supported,
       (SELECT p.title||' v'||k.policy_version FROM policy p WHERE (p.institution_id,p.id)=(k.institution_id,k.policy_id)) AS policy,
       (SELECT a.title FROM assignment a WHERE (a.institution_id,a.id)=(k.institution_id,k.assignment_id)) AS assignment,
       (k.kind='grievance' AND k.state IN ('open','in_progress') AND k.created_at < clock_timestamp()-interval '${ESCALATE_DAYS} days') AS escalated,
@@ -109,6 +113,7 @@ const openInput = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("support"), student: z.string().min(1).max(100), department: z.uuid(), title: text(160), body: text(4000) }),
   z.object({ kind: z.literal("grievance"), title: text(160), body: text(4000) }),
   z.object({ kind: z.literal("facility"), title: text(160), body: text(4000) }),
+  z.object({ kind: z.literal("representation"), title: text(160), body: text(4000) }),
   z.object({ kind: z.literal("integrity"), assignment: z.uuid(), title: text(160), body: text(4000) }),
   z.object({ kind: z.literal("department"), department: z.uuid(), title: text(160), body: text(4000) }),
 ]);
@@ -137,7 +142,7 @@ export function openCase(scope: Scope, raw: unknown) {
     let subject = scope.account, department: string | null = null, assignee: string | null = null;
     let policy: { id: string; version: number } | null = null, assignment: string | null = null;
     if (scope.role === "principal" || !(await locked(client, scope, scope.role))) throw unavailable();
-    if (input.kind === "grievance") {
+    if (input.kind === "grievance" || input.kind === "representation") {
       if (scope.role !== "student") throw unavailable();
     } else if (input.kind === "facility") {
       // Any current member may report a repair; it is theirs to follow and, if needed, reopen.
@@ -244,5 +249,20 @@ export function reopenCase(scope: Scope, raw: unknown) {
       WHERE institution_id=$1 AND id=$2`, [scope.institution, input.case]);
     await client.query("INSERT INTO case_note (institution_id,case_id,author_id,body) VALUES ($1,$2,$3,$4)", [scope.institution, input.case, scope.account, `Reopened: ${input.reason}`]);
     await audit(client, scope, input.case, "case.reopened", row.revision + 1);
+  });
+}
+
+/** SL-016: a current student adds their support to an open representation issue, once. */
+export function supportCase(scope: Scope, id: unknown) {
+  const caseId = z.uuid().parse(id);
+  if (scope.role !== "student") throw unavailable();
+  return transaction(async client => {
+    const { rows: [row] } = await client.query<{ state: string }>(`SELECT k.state FROM case_record k
+      WHERE k.institution_id=$1 AND k.id=$4 AND k.kind='representation' AND ${readable}`, [scope.institution, scope.account, scope.role, caseId]);
+    if (!row || !["open", "in_progress"].includes(row.state)) throw unavailable();
+    const added = await client.query("INSERT INTO case_support (institution_id,case_id,account_id) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING",
+      [scope.institution, caseId, scope.account]);
+    if (!added.rowCount) throw new WorkflowError("You already support this issue.");
+    await audit(client, scope, caseId, "case.supported");
   });
 }

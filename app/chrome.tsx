@@ -20,7 +20,7 @@ export const roleLabels = {
   principal: "Principal",
 } satisfies Record<Scope["role"], string>;
 
-type Destination = "/certificates" | "/groups" | "/profile" | "/work" | "/growth" | "/policies" | "/questions" | "/exams" | "/improvement" | "/cases" | "/mentoring" | "/calendar" | "/catalog" | "/history" | "/audit" | "/automation" | "/fees" | "/letters" | "/opportunities" | "/" | "/grading" | "/notices" | "/requests" | "/admin" | "/clubverse" | "/aura" | "/timetable";
+type Destination = "/meetings" | "/decisions" | "/certificates" | "/groups" | "/profile" | "/work" | "/growth" | "/policies" | "/questions" | "/exams" | "/improvement" | "/cases" | "/mentoring" | "/calendar" | "/catalog" | "/history" | "/audit" | "/automation" | "/fees" | "/letters" | "/opportunities" | "/" | "/grading" | "/notices" | "/requests" | "/admin" | "/clubverse" | "/aura" | "/timetable";
 const labels: Record<Destination, string> = {
   "/fees": "Fees & dues",
   "/opportunities": "Opportunities",
@@ -43,6 +43,8 @@ const labels: Record<Destination, string> = {
   "/growth": "Development and research",
   "/work": "My work",
   "/certificates": "Certificates",
+  "/meetings": "Meetings",
+  "/decisions": "Decision simulation",
   "/groups": "Study groups",
   "/profile": "My profile",
   "/questions": "Question bank",
@@ -55,7 +57,7 @@ const icons: Record<Destination, ComponentProps<typeof Icon>["name"]> = {
   "/fees": "service",
   "/opportunities": "service",
   "/": "home", "/timetable": "calendar", "/grading": "check", "/notices": "notice", "/clubverse": "people",
-  "/aura": "spark", "/automation": "spark", "/audit": "book", "/history": "check", "/calendar": "calendar", "/mentoring": "people", "/cases": "service", "/exams": "calendar", "/policies": "book", "/growth": "spark", "/work": "check", "/certificates": "book", "/groups": "people", "/profile": "people", "/questions": "book", "/improvement": "check", "/catalog": "book", "/requests": "service", "/admin": "book", "/letters": "notice",
+  "/aura": "spark", "/automation": "spark", "/audit": "book", "/history": "check", "/calendar": "calendar", "/mentoring": "people", "/cases": "service", "/exams": "calendar", "/policies": "book", "/growth": "spark", "/work": "check", "/certificates": "book", "/meetings": "people", "/decisions": "spark", "/groups": "people", "/profile": "people", "/questions": "book", "/improvement": "check", "/catalog": "book", "/requests": "service", "/admin": "book", "/letters": "notice",
 };
 
 const dock: Destination[] = ["/", "/timetable", "/aura", "/clubverse", "/notices", "/requests", "/opportunities"];
@@ -94,6 +96,8 @@ export async function Chrome({ user, current, section = "/", children }: {
 
   if (current && current.role !== "student") destinations.splice(1, 0, "/work");
   if (current?.role === "student") destinations.push("/groups", "/profile");
+  if (current && current.role !== "student") destinations.push("/meetings");
+  if (current?.role === "principal") destinations.push("/decisions");
   if (current?.role === "student" || current?.role === "admin") destinations.push("/certificates");
   if (current && feesPreviewAvailable(current,user)) destinations.push("/fees");
 

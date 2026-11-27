@@ -105,10 +105,10 @@ Students need a single route from discovery to action. From a student workspace 
 | SL-010 | Preferences | Control interests, accessibility, locale and discovery settings. | Proposed | F |
 | SL-011 | Notifications | Inspect relevant delivery history and manage subscriptions. | Tested (in-app only) | Student "For you" inbox from assignment and result events with read state. Subscription preferences absent. |
 | SL-012 | Personal AURA activity history | Review owned event-planning tasks, state and output references. | Tested | A |
-| SL-013 | Student development portfolio | Curate verified achievements, skills and projects with sharing controls. | Proposed | F |
+| SL-013 | Student development portfolio | Curate verified achievements, skills and projects with sharing controls. | Tested (certificates, accepted milestones and published results; no skills or club achievements) | lib/student-life.ts portfolio, app/profile; tests/meetings-portfolio.test.ts, tests/meetings-portfolio.e2e.ts |
 | SL-014 | Mentor and study groups | Request mentorship or join opt-in study groups. | Tested (opt-in study groups; mentorship is assigned by the office, not requested) | lib/student-life.ts, app/groups; tests/delegation-certificates.test.ts, tests/delegation-certificates.e2e.ts |
 | SL-015 | Support service discovery | Find approved accessibility and support services. | Proposed | F |
-| SL-016 | Student representation | Raise and track representative issues under institution policy. | Proposed | F |
+| SL-016 | Student representation | Raise and track representative issues under institution policy. | Tested (raise, support and office outcome; no elected representatives) | db/029, lib/cases.ts, app/cases; tests/meetings-portfolio.test.ts, tests/meetings-portfolio.e2e.ts |
 | SL-017 | Community discussions | Participate in scoped and moderated discussions. | Proposed | F |
 
 ## Faculty Intelligence OS
@@ -143,7 +143,7 @@ Faculty need to organize teaching and evaluation by assigned offering. Select as
 | FC-024 | Faculty communities | Collaborate in restricted groups and review draft releases. | Designed | S |
 | FC-025 | Professional development | Plan and record authorized development activities. | Tested (record activities with evidence for HOD verification; no planning) | db/026, lib/faculty-records.ts, app/growth; tests/growth-operations.test.ts, tests/growth-operations.e2e.ts |
 | FC-026 | Faculty notices | Publish notices to assigned academic audiences. | Tested | R |
-| FC-027 | Meetings | Coordinate participants, schedules and follow-up actions. | Proposed | F |
+| FC-027 | Meetings | Coordinate participants, schedules and follow-up actions. | Tested | db/029, lib/meetings.ts, app/meetings; tests/meetings-portfolio.test.ts, tests/meetings-portfolio.e2e.ts |
 | FC-028 | Faculty reports | Produce scoped teaching and workload reports from records. | Tested | lib/exports.ts facultyReport, app/records/export; tests/learning-records.test.ts, tests/learning-records.e2e.ts, tests/work-closing.test.ts, tests/work-closing.e2e.ts |
 | FC-029 | Faculty AURA assistants | Use approved preparation, communication and reporting tools; see agent catalog. | Proposed | F |
 
@@ -204,7 +204,7 @@ Principal and authorized leaders need defensible institution-level decisions. Re
 | LE-015 | Campus operations | Inspect critical issues and verified resolutions. | Tested | lib/reporting.ts campusOperations, app/leadership/boards.tsx; tests/growth-operations.test.ts, tests/growth-operations.e2e.ts |
 | LE-016 | Transport oversight | Review authorized aggregate service health. | Proposed | F |
 | LE-017 | Accreditation evidence | Review approved evidence and provenance for applicable criteria. | Proposed | F |
-| LE-018 | Decision simulation | Compare proposed changes under explicit assumptions. | Proposed | F |
+| LE-018 | Decision simulation | Compare proposed changes under explicit assumptions. | Tested (attendance-minimum scenarios on current records; other decisions not modelled) | lib/department.ts thresholdScenario, app/decisions; tests/meetings-portfolio.test.ts, tests/meetings-portfolio.e2e.ts |
 | LE-019 | Executive reports | Trace summary claims to approved records and time windows. | Tested | lib/exports.ts executiveReport, app/records/export; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts, tests/work-closing.test.ts, tests/work-closing.e2e.ts |
 | LE-020 | Leadership AURA | Prepare authorized briefings and decision-support drafts. | Proposed | F |
 
