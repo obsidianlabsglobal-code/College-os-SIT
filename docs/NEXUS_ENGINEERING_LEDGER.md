@@ -197,3 +197,29 @@ Observed, fresh local PostgreSQL in CI order at 371d1f7:
 - Screenshots: `docs/evidence/cases-2026-11-27/`.
 
 Not migrated onto the case engine: enrollment letters and fees. Digest delivery is in-app only (no email).
+
+## 2026-11-27 — Toward 40, batch 4: examinations, improvement actions, completed workload and attendance records
+
+Implemented (commits 11ae492 and 7157466, `db/023`):
+- **Examination sittings (SA-015, SA-016, AD-009, AD-029, LE-008):**
+  - The office drafts each sitting with a room and an invigilator. External sittings must cite their official source.
+  - Publication is refused for:
+    - a section, room or invigilator overlap (database exclusion constraints, same as classes);
+    - a class in the room, or taught by the invigilator, at that time;
+    - a confirmed booking of the room.
+  - Students see only their courses' published sittings, faculty their duties and courses, the HOD their department.
+  - Sittings appear in the calendar.
+  - Unresolved issues are recomputed from current records: invigilator without a faculty post, room smaller than the cohort.
+- **Improvement actions (LE-010, LE-011, DH-025):**
+  - Each action has one owner, a measure, a due date and dated progress updates. Only the owner closes it.
+  - Measures: open, overdue, done, done on time.
+- **FC-019** is now complete: workload includes current mentees.
+- **SA-005** is now complete: students can request a correction (SA-021).
+- **Test fix:** the page-finder browser test pressed Ctrl+K before hydration on one run. It now waits for the finder button to be enabled; passed 3/3 consecutive runs.
+
+Observed, fresh local PostgreSQL in CI order at 7157466:
+- migrate ×2 + seed, lint, typecheck, build: all passed.
+- 100/100 PostgreSQL and unit tests, 41/41 Chromium, 1/1 tutor (152 files).
+- Screenshots: `docs/evidence/exams-2026-11-27/`.
+
+Traceability: 75 functionally tested (local), 34 partial, 8 unverified, 13 blocked, 350 missing.
