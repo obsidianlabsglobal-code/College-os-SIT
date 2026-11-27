@@ -19,6 +19,9 @@
   --lilac: light-dark(#eae2f6, #2f2847);
   --peach: light-dark(#f8e5d2, #43342a);
   --tint: var(--lilac);
+  --chart-1: light-dark(#5a429e, #cdbff8);
+  --chart-2: light-dark(#8f78d8, #9a86e0);
+  --chart-3: light-dark(#c4b4ee, #6650a8);
   --danger: light-dark(#a03f48, #ffb3ba);
   --warning: light-dark(#7a4e00, #ffd39f);
   --info: light-dark(#2d5c8c, #a9cbf0);

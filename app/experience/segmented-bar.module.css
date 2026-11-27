@@ -1,0 +1,12 @@
+.chart { display: grid; gap: var(--space-2); margin: 0; }
+.bar { display: flex; gap: 2px; height: .5rem; border-radius: 999px; background: var(--border); overflow: hidden; }
+.bar span { border-radius: 999px; min-width: 4px; }
+@media (prefers-reduced-motion: no-preference) { .bar span { transition: width .4s cubic-bezier(.2, .8, .2, 1); } }
+.chart [data-tone="1"] { --swatch: var(--chart-1); }
+.chart [data-tone="2"] { --swatch: var(--chart-2); }
+.chart [data-tone="3"] { --swatch: var(--chart-3); }
+.chart [data-tone="rest"] { --swatch: var(--border); }
+.bar span { background: var(--swatch); }
+.chart figcaption { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); font-size: var(--text-meta); color: var(--ink); font-variant-numeric: tabular-nums; }
+.chart figcaption span::before { content: ""; display: inline-block; inline-size: .6rem; block-size: .6rem; margin-inline-end: .35rem; border-radius: 2px; background: var(--swatch); vertical-align: baseline; }
+@media (forced-colors: active) { .bar span { background: CanvasText; } .chart figcaption span::before { border: 1px solid CanvasText; } }

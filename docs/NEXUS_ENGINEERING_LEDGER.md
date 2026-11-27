@@ -35,3 +35,10 @@ Founder specs (not in repo): Master Handoff PDF, Engineering Reference Pack ZIP,
 ### 2026-11-27 — Timetable Board 03 (SA-009, FC-004)
 - Day/Week segmented control, period stepper with readable dates, 7-day date strip with class dots, day-grouped time rail, explicit Now/Scheduled/Cancelled/Recorded/Draft states with change reasons, attendance rings with planning target.
 - Same URLs, links and actions; e2e updated for the strip. academic-day e2e passes on fresh seed; fails when walkthrough fixtures add an earlier class (test assumes it owns the next class) — fragile test, not a product defect.
+
+## 2026-11-27 — WP1 chart kit, first primitive
+- Added `SegmentedBar` (`app/experience/segmented-bar.tsx`) with data contract `Segment` and validated widths in `lib/segments.ts` (rejects negative, fractional or over-total counts; unit test `tests/segments.test.ts`).
+- Ordinal violet ramp `--chart-1..3` in `app/tokens.css` (light and dark). Colour is never the only cue: exact counts in the legend and in the accessible label; forced-colours fallback; reduced-motion gated.
+- Applied to faculty assignment progress (published / awaiting publication / awaiting evaluation / not submitted), HOD department table (new "Results progress" column) and principal institution activity.
+- Verified on fresh build: lint ✓, typecheck ✓, build ✓, PostgreSQL+unit 51/51, Chromium 24/24. Screenshots: `docs/evidence/chart-kit-2026-11-27/`.
+- Not done: trend/line charts (no time-series data contract yet), hover tooltips beyond native titles, table view toggle.
