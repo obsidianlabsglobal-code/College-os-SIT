@@ -11,6 +11,7 @@ import { studentAdmissions } from "../../lib/student-admission";
 import { onboardingPreviewEnabled } from "../../lib/onboarding-preview";
 import { delegatedRoles, institutionCatalog } from "../../lib/institution";
 import { planningAction } from "../actions/planning";
+import { catalogHistory } from "../../lib/academics";
 
 type Option = { id: string; name: string };
 
@@ -24,8 +25,8 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   const current = await scope(selection.institution,selection.role);
   if (current.role !== "admin") notFound();
   const preview = onboardingPreviewEnabled();
-  const [data, setup, admissions] = await Promise.all([
-    adminCatalog(current), institutionCatalog(current), preview ? studentAdmissions(current) : [],
+  const [data, setup, admissions, history] = await Promise.all([
+    adminCatalog(current), institutionCatalog(current), preview ? studentAdmissions(current) : [], catalogHistory(current),
   ]);
   return <Chrome user={user} current={current} section="/admin">
     <PageHeader title="Academic setup" parent={{ href: `/?${workspaceQuery(current)}`, label: "Workspace" }} />
@@ -89,6 +90,18 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
             <input type="hidden" name="membership" value={grant.id} />
           </ActionForm>}
         </li>)}</ul>
+      </section>
+      <section className="panel stack" aria-labelledby="rename-title">
+        <h2 id="rename-title">Correct a course or section name</h2>
+        <p className="meta">Corrections keep the previous name, the reason and who made the change.</p>
+        <ActionForm action={planningAction} context={current} operation="rename" label="Save correction">
+          <label>Record<select name="target" required defaultValue=""><option value="" disabled>Choose</option>
+            {data.courses.map(c => <option key={c.id} value={`course|${c.id}`}>Course · {c.name}</option>)}
+            {data.sections.map(c => <option key={c.id} value={`section|${c.id}`}>Section · {c.name}</option>)}</select></label>
+          <label>Corrected name<input name="name" required maxLength={160} /></label>
+          <label>Reason<input name="reason" required maxLength={500} /></label>
+        </ActionForm>
+        {history.length > 0 && <ul className="items">{history.map((h, n) => <li key={n} className="meta">{h.entity}: {h.old_name} → {h.new_name} · {h.reason} · {h.changed_by}</li>)}</ul>}
       </section>
       <section className="panel stack" aria-labelledby="offboard-title">
         <h2 id="offboard-title">Offboard a person</h2>

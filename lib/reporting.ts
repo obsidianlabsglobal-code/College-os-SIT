@@ -141,7 +141,56 @@ export async function qualityIndicators(scope: Scope): Promise<Indicator[]> {
       limitation: "Unpublished draft changes are not counted." },
     { name: "Request resolution (median)", value: hours(q.request_hours), definition: "Median hours from submission to recorded outcome, last 90 days.",
       limitation: "Enrollment-letter requests only." },
-    { name: "Case closure (median)", value: hours(q.case_hours), definition: "Median hours from opening to outcome for support cases and grievances, last 90 days.",
-      limitation: "Mixes two case kinds with different urgency." },
+    { name: "Case closure (median)", value: hours(q.case_hours), definition: "Median hours from opening to outcome across all case kinds, last 90 days.",
+      limitation: "Mixes case kinds with different urgency, such as repairs and integrity appeals." },
   ];
+}
+
+/** LE-015: estate repairs for leadership — open and reopened issues first, and resolutions that have held for 14 days. */
+export async function campusOperations(scope: Scope) {
+  if (scope.role !== "principal" && scope.role !== "admin") return null;
+  const { rows: [summary] } = await db.query<{ ok: boolean; open: number; reopened_open: number; oldest_open_days: number | null; resolved_30d: number;
+    verified_30d: number; median_close_hours: number | null }>(`SELECT
+      EXISTS (SELECT 1 FROM membership WHERE institution_id=$1 AND account_id=$2 AND role=$3 AND ended_at IS NULL) AS ok,
+      count(*) FILTER (WHERE state IN ('open','in_progress'))::int AS open,
+      count(*) FILTER (WHERE state IN ('open','in_progress') AND reopened>0)::int AS reopened_open,
+      round((extract(epoch FROM clock_timestamp()-min(created_at) FILTER (WHERE state IN ('open','in_progress')))/86400)::numeric,1)::float8 AS oldest_open_days,
+      count(*) FILTER (WHERE state='resolved' AND closed_at > clock_timestamp()-interval '30 days')::int AS resolved_30d,
+      count(*) FILTER (WHERE state='resolved' AND closed_at > clock_timestamp()-interval '30 days' AND closed_at < clock_timestamp()-interval '14 days')::int AS verified_30d,
+      round((percentile_cont(0.5) WITHIN GROUP (ORDER BY extract(epoch FROM closed_at-created_at)/3600)
+        FILTER (WHERE closed_at > clock_timestamp()-interval '30 days'))::numeric,1)::float8 AS median_close_hours
+    FROM case_record WHERE institution_id=$1 AND kind='facility'`, [scope.institution, scope.account, scope.role]);
+  if (!summary.ok) return null;
+  const { rows: critical } = await db.query<{ id: string; title: string; reopened: number; age_days: number; owner: string | null }>(`SELECT k.id,k.title,k.reopened,
+      round((extract(epoch FROM clock_timestamp()-k.created_at)/86400)::numeric,1)::float8 AS age_days,u.name AS owner
+    FROM case_record k LEFT JOIN "user" u ON u.id=k.assigned_to
+    WHERE k.institution_id=$1 AND k.kind='facility' AND k.state IN ('open','in_progress') AND (k.reopened>0 OR k.created_at < clock_timestamp()-interval '7 days' OR k.assigned_to IS NULL)
+    ORDER BY k.reopened DESC,k.created_at LIMIT 20`, [scope.institution]);
+  return { ...summary, critical };
+}
+
+/** LE-005: room supply against scheduled demand over the next 7 days, and sections larger than any room. */
+export async function resourcePlanning(scope: Scope) {
+  if (scope.role !== "principal" && scope.role !== "admin") return null;
+  const { rows: [ok] } = await db.query<{ ok: boolean }>("SELECT EXISTS (SELECT 1 FROM membership WHERE institution_id=$1 AND account_id=$2 AND role=$3 AND ended_at IS NULL) AS ok",
+    [scope.institution, scope.account, scope.role]);
+  if (!ok.ok) return null;
+  const [rooms, oversized] = await Promise.all([
+    db.query<{ name: string; capacity: number | null; hours: number; largest: number | null }>(`SELECT r.name,r.capacity,
+        round((coalesce((SELECT sum(extract(epoch FROM upper(x.slot)-lower(x.slot))) FROM (
+          SELECT slot FROM class_session WHERE institution_id=r.institution_id AND room_id=r.id AND state IN ('published','conducted')
+          UNION ALL SELECT slot FROM exam_sitting WHERE institution_id=r.institution_id AND room_id=r.id AND state='published'
+          UNION ALL SELECT slot FROM resource_booking WHERE institution_id=r.institution_id AND resource_id=r.id AND state='confirmed') x
+          WHERE x.slot && tstzrange(clock_timestamp(),clock_timestamp()+interval '7 days')),0)/3600)::numeric,1)::float8 AS hours,
+        (SELECT max(n) FROM (SELECT count(*)::int AS n FROM class_session cs JOIN roster ro ON (ro.institution_id,ro.offering_id)=(cs.institution_id,cs.offering_id)
+          AND ro.role='student' AND ro.ended_at IS NULL WHERE cs.institution_id=r.institution_id AND cs.room_id=r.id AND cs.state='published'
+          AND upper(cs.slot) > clock_timestamp() GROUP BY cs.id) s) AS largest
+      FROM campus_resource r WHERE r.institution_id=$1 AND r.kind='room' ORDER BY hours DESC,r.name LIMIT 50`, [scope.institution]),
+    db.query<{ course: string; section: string; students: number }>(`SELECT c.name AS course,s.name AS section,count(*)::int AS students
+      FROM roster r JOIN offering o ON (o.institution_id,o.id)=(r.institution_id,r.offering_id) JOIN course c ON (c.institution_id,c.id)=(o.institution_id,o.course_id)
+      JOIN section s ON (s.institution_id,s.id)=(o.institution_id,o.section_id)
+      WHERE r.institution_id=$1 AND r.role='student' AND r.ended_at IS NULL GROUP BY o.id,c.name,s.name
+      HAVING count(*) > coalesce((SELECT max(capacity) FROM campus_resource WHERE institution_id=$1 AND kind='room'),0)
+      ORDER BY students DESC`, [scope.institution])]);
+  return { rooms: rooms.rows, oversized: oversized.rows };
 }

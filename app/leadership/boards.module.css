@@ -21,4 +21,4 @@
 .roster { columns:12rem auto; padding-top:.4rem; font-size:var(--text-meta); }
 .roster li { break-inside:avoid; padding-block:.1rem; }
 .people details summary { cursor:pointer; min-height:44px; display:flex; align-items:center; font-weight:600; }
-.compare th { overflow-wrap:normal; word-break:normal; hyphens:none; }
+.compare th, .compare td { overflow-wrap:normal; word-break:normal; hyphens:none; }

@@ -8,6 +8,8 @@ import { cancelExam, draftExam, publishExam } from "../../lib/exams";
 import { createAction, updateAction } from "../../lib/improvement";
 import { decideAllocation, offboard, proposeAllocation } from "../../lib/allocation";
 import { decidePolicy, draftPolicy } from "../../lib/policies";
+import { addDevelopmentRecord, addResearchMilestone, completeResearchMilestone, decideDevelopmentRecord, decideProject, proposeProject } from "../../lib/faculty-records";
+import { renameCatalog } from "../../lib/academics";
 import { composeAssessment, saveQuestion } from "../../lib/question-bank";
 import { addMilestone, createTeam, reviewEvidence, submitEvidence } from "../../lib/teams";
 import { scope, workspaceQuery } from "../../lib/scope";
@@ -17,7 +19,9 @@ const messages: Record<string, string> = { "exam-draft": "Sitting drafted.", "ex
   "action-create": "Action created.", "action-update": "Progress recorded.", "allocation-propose": "Allocation proposed to the office.",
   "allocation-decide": "Decision recorded.", "team-create": "Team formed.", "milestone-add": "Milestone set.", "evidence-submit": "Evidence submitted.",
   "evidence-review": "Review recorded.", "policy-draft": "Draft saved for the principal’s decision.", "policy-decide": "Decision recorded.",
-  "question-save": "Question saved as a new version.", compose: "Draft assignment created from the selected questions." };
+  "question-save": "Question saved as a new version.", "dev-add": "Sent to your department head for verification.", "dev-decide": "Decision recorded.",
+  "research-propose": "Proposal sent to your department head.", "research-decide": "Decision recorded.", "research-milestone": "Milestone added.",
+  "research-done": "Milestone completed.", rename: "Name corrected; the previous name is kept in the history.", compose: "Draft assignment created from the selected questions." };
 
 export async function planningAction(_state: ActionState, form: FormData): Promise<ActionState> {
   const current = await scope(form.get("institution"), form.get("role"));
@@ -51,6 +55,17 @@ export async function planningAction(_state: ActionState, form: FormData): Promi
       visibility: value("visibility"), prompt: value("prompt"), marks: value("marks") });
     else if (operation === "compose") destination = `/assignments/${await composeAssessment(current, { offering: value("offering"), title: value("title"),
       deadline: value("deadline"), questions: form.getAll("questions").map(String) })}?${workspaceQuery(current)}`;
+    else if (operation === "dev-add") await addDevelopmentRecord(current, { department: value("department"), title: value("title"), completed: value("completed"),
+      hours: value("hours"), evidence: value("evidence") });
+    else if (operation === "dev-decide") await decideDevelopmentRecord(current, { record: value("record"), decision: value("decision"), reason: value("reason") });
+    else if (operation === "research-propose") await proposeProject(current, { department: value("department"), title: value("title"), summary: value("summary") });
+    else if (operation === "research-decide") await decideProject(current, { project: value("project"), decision: value("decision"), reason: value("reason"), disclosure: value("disclosure") });
+    else if (operation === "research-milestone") await addResearchMilestone(current, { project: value("project"), title: value("title"), due: value("due") });
+    else if (operation === "research-done") await completeResearchMilestone(current, { milestone: value("milestone"), evidence: value("evidence") });
+    else if (operation === "rename") {
+      const [entity, id] = String(value("target") ?? "").split("|");
+      await renameCatalog(current, { entity: entity as "course" | "section", id, name: String(value("name") ?? ""), reason: String(value("reason") ?? "") });
+    }
     else return { error: "This action is unavailable." };
   } catch (error) {
     if (error instanceof WorkflowError) return { error: error.message };

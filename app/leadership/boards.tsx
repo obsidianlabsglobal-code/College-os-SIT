@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { cohortProgress, departmentComparison, departmentFaculty, departmentSections, escalatedRequests } from "../../lib/department";
-import { adminRequestSummary, departmentSummary, institutionSummary, latestDigest, operationsReport, qualityIndicators, type Digest } from "../../lib/reporting";
+import { adminRequestSummary, campusOperations, departmentSummary, institutionSummary, latestDigest, operationsReport, qualityIndicators, resourcePlanning, type Digest } from "../../lib/reporting";
 import { notifications } from "../../lib/automation";
 import { coursePlan, departmentDelivery } from "../../lib/course-delivery";
 import { allocationOptions, allocationProposals, departmentSchemes } from "../../lib/allocation";
@@ -151,8 +151,9 @@ export async function HodBoard({ current }: { current: Scope }) {
 
 /** Principal board: escalations and decisions first, then institution totals, then a like-for-like department comparison. */
 export async function PrincipalBoard({ current, timezone }: { current: Scope; timezone: string }) {
-  const [overview, departments, escalations, inbox, digest, cohorts, quality] = await Promise.all([institutionSummary(current), departmentComparison(current),
-    escalatedRequests(current), notifications(current), latestDigest(current), cohortProgress(current), qualityIndicators(current)]);
+  const [overview, departments, escalations, inbox, digest, cohorts, quality, estate, rooms] = await Promise.all([institutionSummary(current), departmentComparison(current),
+    escalatedRequests(current), notifications(current), latestDigest(current), cohortProgress(current), qualityIndicators(current),
+    campusOperations(current), resourcePlanning(current)]);
   const query = workspaceQuery(current);
   const open = escalations.filter(row => row.status === "submitted" || row.status === "in_progress");
   const when = new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: timezone });
@@ -215,10 +216,31 @@ export async function PrincipalBoard({ current, timezone }: { current: Scope; ti
           <td>{rate(row.results, row.submissions)}</td><td>{row.score === null ? "—" : `${row.score}%`}</td><td>{rate(row.present, row.marked)}</td></tr>)}</tbody>
       </table></div> : <p>No cohorts yet.</p>}
     </section>
+    <div className={styles.columns}>
+      {estate && <section className="panel" aria-labelledby="estate-title">
+        <h2 id="estate-title">Campus operations</h2>
+        <p className="meta">Repair reports. A resolution counts as verified once 14 days pass without the reporter reopening it.</p>
+        <dl className="metrics" aria-label="Repair measures">
+          <div><dt>Open</dt><dd>{estate.open}</dd></div><div><dt>Reopened and open</dt><dd>{estate.reopened_open}</dd></div>
+          <div><dt>Oldest open</dt><dd>{estate.oldest_open_days === null ? "None" : `${estate.oldest_open_days} d`}</dd></div>
+          <div><dt>Resolved · verified (30 d)</dt><dd>{estate.resolved_30d} · {estate.verified_30d}</dd></div>
+        </dl>
+        {estate.critical.length > 0 && <ul className={styles.people}>{estate.critical.map(c => <li key={c.id}>
+          <h3>{c.title}</h3><p className="meta">{c.age_days} days open · {c.owner ? `Owner ${c.owner}` : "No owner"}{c.reopened > 0 && ` · reopened ×${c.reopened}`}</p></li>)}</ul>}
+      </section>}
+      {rooms && <section className="panel" aria-labelledby="rooms-title">
+        <h2 id="rooms-title">Room use · next 7 days</h2>
+        <p className="meta">Scheduled hours from published classes, exams and confirmed bookings, against seats.</p>
+        {rooms.rooms.length ? <ul className={styles.people}>{rooms.rooms.slice(0, 8).map(r => <li key={r.name}>
+          <div className={styles.head}><h3>{r.name}</h3>{r.capacity !== null && r.largest !== null && r.largest > r.capacity && <span className="tag tag-attention">Over capacity</span>}</div>
+          <p className="meta">{r.hours} h booked · {r.capacity ?? "unknown"} seats{r.largest !== null && ` · largest class ${r.largest}`}</p></li>)}</ul> : <p>No rooms are configured.</p>}
+        {rooms.oversized.length > 0 && <p className="meta">Sections larger than any room: {rooms.oversized.map(o => `${o.course} · ${o.section} (${o.students})`).join(", ")}</p>}
+      </section>}
+    </div>
     <section className="panel" aria-labelledby="quality-title">
       <h2 id="quality-title">Quality indicators</h2>
       <p className="meta">Each measure is computed from records with the definition shown. Read the limitation before comparing periods.</p>
-      <div className="table-scroll" role="region" aria-label="Quality indicator table" tabIndex={0}><table>
+      <div className={`table-scroll ${styles.compare}`} role="region" aria-label="Quality indicator table" tabIndex={0}><table>
         <thead><tr><th scope="col">Measure</th><th scope="col">Value</th><th scope="col">Definition</th><th scope="col">Limitation</th></tr></thead>
         <tbody>{quality.map(q => <tr key={q.name}><th scope="row">{q.name}</th><td>{q.value}</td><td>{q.definition}</td><td>{q.limitation}</td></tr>)}</tbody>
       </table></div>

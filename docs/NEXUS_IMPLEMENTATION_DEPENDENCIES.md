@@ -32,6 +32,8 @@ Policies (AD-021) are drafted only by an institution administrator and take effe
 - Integrity appeals: student-only, tied to the published integrity policy version and their own published assignment, and reviewed in the course's department by its HOD or a teacher the HOD assigns.
 - Department requests: student-only, routed by the HOD.
 
+Development records and research projects are decided by an HOD of the department the teacher teaches in. An HOD cannot verify their own records. The HOD also chooses whether an approved project is disclosed to the institution, and only disclosed projects reach the principal. Catalog name corrections are admin-only and keep the old name, reason and actor.
+
 Source vocabulary has changed over time. The original eight product domains describe subject areas. Later OS names describe user workspaces that cross those areas. Retain both views, with shared identity and records. A prototype name confers no evidence of a working implementation. Operational GPS, model suggestions and policy-sensitive disclosure retain explicit gates.
 
 ## Change procedure

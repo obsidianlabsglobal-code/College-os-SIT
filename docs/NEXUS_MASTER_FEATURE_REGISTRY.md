@@ -137,11 +137,11 @@ Faculty need to organize teaching and evaluation by assigned offering. Select as
 | FC-018 | Student team management | Form and oversee authorized project teams. | Tested | db/024, lib/teams.ts, app/courses/[id]; tests/allocation-teams.test.ts, tests/allocation-teams.e2e.ts |
 | FC-019 | Faculty workload | Inspect teaching, assessment and mentoring commitments. | Tested | lib/department.ts facultyWorkload; tests/department.test.ts, tests/exams-improvement.test.ts, tests/leadership.e2e.ts |
 | FC-020 | Teaching resources | Organize authorized learning materials and versions. | Tested (versioned PDF/TXT per offering with withdrawal) | db/021, lib/course-delivery.ts, app/courses/[id]; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
-| FC-021 | Research support | Track research activity and relevant opportunities. | Proposed | F |
+| FC-021 | Research support | Track research activity and relevant opportunities. | Tested (departmental project tracking only; no opportunity discovery) | db/026, lib/faculty-records.ts, app/growth; tests/growth-operations.test.ts, tests/growth-operations.e2e.ts |
 | FC-022 | Literature search | Find and cite accessible publications with provenance. | Proposed | F |
 | FC-023 | Faculty collaboration | Share selected work with approved collaborators. | Proposed | F |
 | FC-024 | Faculty communities | Collaborate in restricted groups and review draft releases. | Designed | S |
-| FC-025 | Professional development | Plan and record authorized development activities. | Proposed | F |
+| FC-025 | Professional development | Plan and record authorized development activities. | Tested (record activities with evidence for HOD verification; no planning) | db/026, lib/faculty-records.ts, app/growth; tests/growth-operations.test.ts, tests/growth-operations.e2e.ts |
 | FC-026 | Faculty notices | Publish notices to assigned academic audiences. | Tested | R |
 | FC-027 | Meetings | Coordinate participants, schedules and follow-up actions. | Proposed | F |
 | FC-028 | Faculty reports | Produce scoped teaching and workload reports from records. | Tested (CSV per current teaching offering) | lib/exports.ts facultyReport, app/records/export; tests/learning-records.test.ts, tests/learning-records.e2e.ts |
@@ -168,8 +168,8 @@ HODs and explicitly delegated coordinators need department-scoped oversight. Sel
 | DH-013 | Outcome-based education workflows | Review mappings, attainment measures and corrective actions. | Proposed | F |
 | DH-014 | Student support coordination | Assign and follow up appropriate academic support. | Tested (HOD-coordinated support cases owned by department teachers) | db/022, lib/cases.ts, app/cases; tests/cases.test.ts, tests/cases.e2e.ts |
 | DH-015 | Department notices | Publish and retrieve notices within department scope. | Tested | R; tests/notices.test.ts |
-| DH-016 | Faculty development | Coordinate training and evidence. | Proposed | F |
-| DH-017 | Research projects | Track approved departmental projects and milestones. | Proposed | F |
+| DH-016 | Faculty development | Coordinate training and evidence. | Tested (HOD verification of development records; no training coordination) | db/026, lib/faculty-records.ts, app/growth; tests/growth-operations.test.ts, tests/growth-operations.e2e.ts |
+| DH-017 | Research projects | Track approved departmental projects and milestones. | Tested | db/026, lib/faculty-records.ts, app/growth; tests/growth-operations.test.ts, tests/growth-operations.e2e.ts |
 | DH-018 | Laboratory resources | Review availability and request allocation. | Proposed | F |
 | DH-019 | Equipment status | See authorized inventory and maintenance state. | Proposed | F |
 | DH-020 | Department clubs | Coordinate recognized departmental associations. | Proposed | F |
@@ -191,17 +191,17 @@ Principal and authorized leaders need defensible institution-level decisions. Re
 | LE-002 | Department information | Review department profiles and defined comparisons. | Tested | lib/department.ts departmentComparison; tests/department.test.ts, tests/leadership.e2e.ts |
 | LE-003 | Academic progress | Track approved academic indicators by cohort. | Tested (results, average score and attendance per term and section) | lib/department.ts cohortProgress, app/leadership/boards.tsx; tests/cases.test.ts, tests/cases.e2e.ts |
 | LE-004 | Quality indicators | Inspect defined quality measures and limitations. | Tested (seven fixed record-derived measures with definitions and limitations) | lib/reporting.ts qualityIndicators, app/leadership/boards.tsx; tests/allocation-teams.test.ts, tests/allocation-teams.e2e.ts |
-| LE-005 | Resource planning | Compare available resources to documented demand. | Proposed | F |
+| LE-005 | Resource planning | Compare available resources to documented demand. | Tested (room hours booked next 7 days against seats; no demand forecast) | lib/reporting.ts resourcePlanning, app/leadership/boards.tsx; tests/growth-operations.test.ts, tests/growth-operations.e2e.ts |
 | LE-006 | Financial oversight | Inspect explicitly authorized budget and expenditure reports. | Proposed | F |
 | LE-007 | Institutional notices | Read published authorized notices. | Tested | R; tests/notices.test.ts |
 | LE-008 | Examination operations | Review approved schedules and unresolved operational issues. | Tested (issues: invigilator without a post, room below cohort size) | db/023, lib/exams.ts, app/exams; tests/exams-improvement.test.ts, tests/exams-improvement.e2e.ts |
 | LE-009 | Departmental requests | Review authorized escalations and decisions. | Tested (service-request escalations) | lib/department.ts escalatedRequests; tests/department.test.ts, tests/leadership.e2e.ts |
 | LE-010 | Strategic priorities | Assign owners and milestones to institutional priorities. | Tested (owner, measure, due date and progress updates; no multi-milestone plans) | db/023, lib/improvement.ts, app/improvement; tests/exams-improvement.test.ts, tests/exams-improvement.e2e.ts |
 | LE-011 | Institutional improvement planning | Measure progress and actions against approved plans. | Tested (open, overdue and on-time measures over owned actions) | db/023, lib/improvement.ts, app/improvement; tests/exams-improvement.test.ts, tests/exams-improvement.e2e.ts |
-| LE-012 | Research and innovation overview | Review disclosure-approved activity and outcomes. | Proposed | F |
+| LE-012 | Research and innovation overview | Review disclosure-approved activity and outcomes. | Tested (HOD-approved projects disclosed to the institution; no outcome metrics) | db/026, lib/faculty-records.ts, app/growth; tests/growth-operations.test.ts, tests/growth-operations.e2e.ts |
 | LE-013 | Industry partnerships | Track approved agreements and responsibilities. | Proposed | F |
 | LE-014 | Placement performance | Review verified and appropriately aggregated outcomes. | Proposed | F |
-| LE-015 | Campus operations | Inspect critical issues and verified resolutions. | Proposed | F |
+| LE-015 | Campus operations | Inspect critical issues and verified resolutions. | Tested (estate repairs: open, reopened, oldest, resolutions held 14 days) | lib/reporting.ts campusOperations, app/leadership/boards.tsx; tests/growth-operations.test.ts, tests/growth-operations.e2e.ts |
 | LE-016 | Transport oversight | Review authorized aggregate service health. | Proposed | F |
 | LE-017 | Accreditation evidence | Review approved evidence and provenance for applicable criteria. | Proposed | F |
 | LE-018 | Decision simulation | Compare proposed changes under explicit assumptions. | Proposed | F |
@@ -240,7 +240,7 @@ Institution administrators, academic office and designated specialists manage ac
 | AD-005 | Student records | Govern student identity details, corrections and authorized record access. | Proposed | F |
 | AD-006 | Academic catalog | Create schemes, terms, courses, sections and offerings. | Tested | R |
 | AD-007 | Enrollments | Enroll or end student and faculty roster assignments. | Tested | R |
-| AD-008 | Course and section management | Maintain existing offerings, corrections, retirement and history beyond creation. | Proposed | F |
+| AD-008 | Course and section management | Maintain existing offerings, corrections, retirement and history beyond creation. | Tested (course and section name corrections with history; no retirement) | db/026, lib/academics.ts renameCatalog, app/admin; tests/growth-operations.test.ts, tests/growth-operations.e2e.ts |
 | AD-009 | Examination management | Schedule examinations, invigilation and authorized publication. | Tested | db/023, lib/exams.ts, app/exams; tests/exams-improvement.test.ts, tests/exams-improvement.e2e.ts |
 | AD-010 | Document requests | Process enrollment-letter request from submission to recorded outcome. | Tested | R |
 | AD-011 | Certificate preparation | Draft official documents from validated records. | Proposed | F |
