@@ -95,7 +95,7 @@ body { margin: 0; }
 .app-sidebar { align-self: end; grid-row: 3; position: sticky; bottom: 0; z-index: 3; min-width: 0; background: var(--surface); border-top: 1px solid var(--border); padding-bottom: env(safe-area-inset-bottom); }
 .app-sidebar nav { display: grid; grid-auto-columns: minmax(0,1fr); grid-auto-flow: column; gap: var(--space-1); padding: var(--space-2); }
 .app-sidebar nav a, .more-trigger { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-height: 44px; padding: .25rem; font-size: .75rem; font-weight: 570; gap: .2rem; line-height: 1.2; border-radius: var(--radius-control); color: var(--ink); text-decoration: none; cursor: pointer; }
-.app-sidebar nav a[aria-current], .more-trigger[data-current="true"] { background: var(--sage); color: var(--accent); font-weight: 700; }
+.app-sidebar nav a[aria-current], .more-trigger[data-current="true"] { background: var(--lilac); color: var(--accent); font-weight: 700; }
 .app-sidebar nav a:hover, .more-trigger:hover { background: var(--tint); }
 .more-trigger span { height: 20px; line-height: 16px; letter-spacing: .12em; }
 .sidebar-role, .sidebar-toggle, #workspace-navigation .nav-secondary { display: none; }

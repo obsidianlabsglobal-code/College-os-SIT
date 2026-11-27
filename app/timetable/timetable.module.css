@@ -34,3 +34,43 @@
 .week ul { margin-top: var(--space-2); }
 .week ul li { padding: var(--space-1); border-inline-start: 2px solid var(--accent); }
 .page .week ul a { border: 0; color: var(--accent); background: var(--tint); }
+
+/* Board 03: segmented view, period stepper, date strip and a time rail with explicit states. */
+.scheduleHead { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.segmented { display: inline-flex; padding: .25rem; border-radius: 999px; background: var(--canvas); border: 1px solid var(--border); }
+.page .segmented a { min-height: 2.25rem; padding: 0 1.1rem; border-radius: 999px; text-decoration: none; font-weight: 650; color: var(--muted); }
+.page .segmented a[aria-current] { background: var(--accent); color: var(--on-accent); box-shadow: 0 6px 16px -8px var(--accent); }
+.period { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-3); }
+.period p { margin: 0; font-weight: 650; font-variant-numeric: tabular-nums; }
+.page .period a[aria-label] { justify-content: center; width: 44px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); text-decoration: none; font-size: 1.3rem; }
+.page .period .today { margin-inline-start: auto; }
+.strip { list-style: none; padding: 0; margin: var(--space-3) 0 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .35rem; }
+.page .strip a { display: grid; justify-items: center; gap: .1rem; padding: .5rem 0 .45rem; border-radius: 1rem; text-decoration: none; color: var(--ink); background: var(--canvas); border: 1px solid transparent; }
+.strip span { font-size: .72rem; color: var(--muted); }
+.strip strong { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+.strip i { display: block; height: .35rem; width: .35rem; border-radius: 50%; background: transparent; }
+.strip i:not([data-count="0"]) { background: var(--accent); box-shadow: .5rem 0 0 -.05rem transparent; }
+.page .strip a[aria-current] { background: var(--accent); color: var(--on-accent); }
+.page .strip a[aria-current] span { color: inherit; opacity: .85; }
+.page .strip a[aria-current] i:not([data-count="0"]) { background: var(--on-accent); }
+.days { display: grid; gap: var(--space-4); margin-top: var(--space-4); }
+.dayLabel { font-size: var(--text-meta); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }
+.session { grid-template-columns: 4.5rem minmax(0,1fr) auto; align-items: center; background: var(--surface); border-inline-start: 4px solid var(--accent); }
+.session time { display: grid; padding: 0; }
+.session time strong { font-size: .95rem; white-space: nowrap; }
+.session time span { white-space: nowrap; }
+.attendanceRow { display: flex; gap: var(--space-4); align-items: center; }
+.attendanceRow h3 { margin: 0 0 .2rem; }
+.session time span { font-size: .75rem; color: var(--muted); }
+.session[data-state="cancelled"] { border-inline-start-color: var(--danger); background: var(--canvas); }
+.session[data-state="cancelled"] a { text-decoration: line-through; color: var(--muted); }
+.session[data-state="conducted"] { border-inline-start-color: var(--success); }
+.session[data-state="draft"] { border-inline-start-style: dashed; }
+.session[data-live] { background: var(--lilac); }
+.state { justify-self: end; border-radius: 999px; padding: .2rem .65rem; font-size: .75rem; font-weight: 650; background: var(--sky); color: var(--ink); white-space: nowrap; }
+.state[data-state="cancelled"] { background: var(--rose); color: var(--danger); }
+.state[data-state="conducted"] { background: var(--sage); color: var(--success); }
+.state[data-state="draft"] { background: var(--peach); color: var(--warning); }
+.session[data-live] .state { background: var(--accent); color: var(--on-accent); }
+.empty { color: var(--muted); padding: var(--space-4); border: 1px dashed var(--border); border-radius: var(--radius-panel); text-align: center; }
+@media (max-width: 30rem) { .session { grid-template-columns: 4.6rem minmax(0,1fr); } .session time strong { font-size: .85rem; } .state { grid-column: 2; justify-self: start; } }

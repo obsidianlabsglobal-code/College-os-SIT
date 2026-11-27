@@ -108,10 +108,9 @@ test("admin publishes a timetable and faculty posts a corrected attendance recor
     await expect(page.getByRole("heading",{name:"Timetable",exact:true})).toBeVisible();
     await page.goto(path("student",historical,oldSession));
 
-    await page.getByText("Week calendar",{exact:true}).click();
     const week = page.getByRole("list",{name:"Week calendar by day"});
     await expect(week.locator(":scope > li")).toHaveCount(7);
-    await expect(week.getByRole("link",{name:course}).first()).toBeVisible();
+    await expect(page.getByRole("region",{name:"Class schedule"}).getByRole("link",{name:course}).first()).toBeVisible();
     await week.locator(":scope > li").first().getByRole("link").first().press("Enter");
     await expect(page).toHaveURL(new RegExp("day="+historical+"&view=day"));
     await page.getByRole("link",{name:"Week view",exact:true}).press("Enter");

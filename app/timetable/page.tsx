@@ -11,6 +11,7 @@ import { planningOptions } from "../../lib/attendance-planning";
 import { AttendanceForecast } from "./forecast";
 import { timetableAction } from "./actions";
 import styles from "./timetable.module.css";
+import { ProgressRing } from "../experience/progress-ring";
 
 export default async function Timetable({searchParams}:{searchParams:Promise<Record<string,string|undefined>>}) {
   const params = await searchParams;
@@ -41,49 +42,60 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
     return `${date.format(instant)}T${clock.format(instant)}`;
   };
   const stateLabel = {draft:"Draft",published:"Scheduled",cancelled:"Cancelled",conducted:"Attendance recorded"};
+  const label = (localDay:string) => new Intl.DateTimeFormat("en-IN",{weekday:"short",day:"numeric",month:"short",timeZone:"UTC"}).format(new Date(localDay));
+  const now = new Date();
+  const groups = [...Map.groupBy(sessions, session => date.format(session.start))];
   return <Chrome user={user} current={current} section="/timetable"><div className={styles.page}>
     <header className={styles.hero}><h1>Timetable</h1><p className="meta">Classes and attendance · {timezone}</p></header>
     {upcoming && <section className={`panel ${styles.next}`} aria-labelledby="next-class">
       <h2 id="next-class">{upcoming.start<=new Date() ? "Class in progress" : "Next class"}</h2>
       <Link href={sessionLink(upcoming.id)}>{upcoming.course}</Link>
-      <p className="meta">{date.format(upcoming.start)} · {time.format(upcoming.start)} · {upcoming.room}</p>
+      <p className="meta">{label(date.format(upcoming.start))} · {time.format(upcoming.start)} · {upcoming.room}</p>
     </section>}
 
     <div className={styles.planner}>
       <section className="panel" aria-labelledby="class-schedule">
-        <h2 id="class-schedule">Class schedule</h2>
-        <nav className="row" aria-label="Timetable period">
-          <Link href={`${base}&day=${offset(-days)}&view=${days===1?"day":"week"}`}>Previous {days===1?"day":"week"}</Link>
-          <Link href={`${base}&day=${today}&view=day`}>Today</Link>
-          <Link href={`${base}&day=${day}&view=${days===1?"week":"day"}`}>{days===1?"Week view":"Day view"}</Link>
-          <Link href={`${base}&day=${offset(days)}&view=${days===1?"day":"week"}`}>Next {days===1?"day":"week"}</Link>
+        <div className={styles.scheduleHead}>
+          <h2 id="class-schedule">Class schedule</h2>
+          <nav className={styles.segmented} aria-label="Timetable view">
+            <Link href={`${base}&day=${day}&view=day`} aria-label="Day view" aria-current={days===1 ? "page" : undefined}>Day</Link>
+            <Link href={`${base}&day=${day}&view=week`} aria-label="Week view" aria-current={days===7 ? "page" : undefined}>Week</Link>
+          </nav>
+        </div>
+        <nav className={styles.period} aria-label="Timetable period">
+          <Link href={`${base}&day=${offset(-days)}&view=${days===1?"day":"week"}`} aria-label={`Previous ${days===1?"day":"week"}`}><span aria-hidden="true">‹</span></Link>
+          <p><time dateTime={day}>{label(day)}</time>{days===7 && <> – <time dateTime={offset(6)}>{label(offset(6))}</time></>}</p>
+          <Link href={`${base}&day=${offset(days)}&view=${days===1?"day":"week"}`} aria-label={`Next ${days===1?"day":"week"}`}><span aria-hidden="true">›</span></Link>
+          {day !== today && <Link className={styles.today} href={`${base}&day=${today}&view=day`}>Today</Link>}
         </nav>
-        <p className="meta">{day}{days===7 ? ` to ${offset(6)}` : ""}</p>
-        {days === 7 && <details className={styles.weekCalendar}>
-          <summary>Week calendar</summary>
-          <ol className={styles.week} aria-label="Week calendar by day">
-            {Array.from({length:7}, (_, index) => {
-              const localDay = offset(index);
-              const records = sessions.filter(session => date.format(session.start) <= localDay &&
-                date.format(new Date(session.finish.getTime()-1)) >= localDay);
-              const label = new Intl.DateTimeFormat("en-IN",{weekday:"short",day:"numeric",month:"short",timeZone:"UTC"}).format(new Date(localDay));
-              return <li key={localDay}>
-                <Link href={`${base}&day=${localDay}&view=day`} aria-current={localDay===today ? "date" : undefined}><time dateTime={localDay}>{label}</time></Link>
-                {records.length === 0 ? <span>No sessions</span> : <ul>{records.map(session=><li key={session.id}>
-                  <Link href={sessionLink(session.id)}>{session.course}</Link>
-                  <span>{time.format(session.start)} · {stateLabel[session.state]}</span>
-                </li>)}</ul>}
-              </li>;
-            })}
-          </ol>
-        </details>}
-        {sessions.length ? <ol className={styles.timeline}>{sessions.map(item=><li className={styles.session} key={item.id}>
-          <time dateTime={item.start.toISOString()}>{date.format(item.start)}<br/>{time.format(item.start)} – {time.format(item.finish)}</time>
-          <div><Link href={sessionLink(item.id)}>{item.course}</Link>
-            <p className="meta">{item.section} · {item.room} · {item.teacher}</p>
-            <span className="tag">{stateLabel[item.state]}{item.attendance ? ` · ${item.attendance}` : ""}</span>
-          </div>
-        </li>)}</ol> : <p>No classes in this period.</p>}
+        {days === 7 && <ol className={styles.strip} aria-label="Week calendar by day">
+          {Array.from({length:7}, (_, index) => {
+            const localDay = offset(index);
+            const count = sessions.filter(session => date.format(session.start) === localDay && session.state !== "cancelled").length;
+            const parts = new Intl.DateTimeFormat("en-IN",{weekday:"short",day:"numeric",timeZone:"UTC"}).formatToParts(new Date(localDay));
+            return <li key={localDay}>
+              <Link href={`${base}&day=${localDay}&view=day`} aria-current={localDay===today ? "date" : undefined}
+                aria-label={`${label(localDay)}: ${count ? `${count} class${count===1?"":"es"}` : "no classes"}`}>
+                <span>{parts.find(part=>part.type==="weekday")?.value}</span><strong>{parts.find(part=>part.type==="day")?.value}</strong>
+                <i data-count={Math.min(count,3)} aria-hidden="true" />
+              </Link>
+            </li>;
+          })}
+        </ol>}
+        {sessions.length ? <div className={styles.days}>{groups.map(([localDay, items]) => <section key={localDay} aria-label={label(localDay)}>
+          {days === 7 && <h3 className={styles.dayLabel}>{label(localDay)}{localDay === today ? " · Today" : ""}</h3>}
+          <ol className={styles.timeline}>{items.map(item=>{
+            const live = item.state === "published" && item.start <= now && now < item.finish;
+            return <li className={styles.session} key={item.id} data-state={item.state} data-live={live || undefined}>
+              <time dateTime={item.start.toISOString()}><strong>{time.format(item.start)}</strong><span>{time.format(item.finish)}</span></time>
+              <div><Link href={sessionLink(item.id)}>{item.course}</Link>
+                <p className="meta">{item.section} · {item.room} · {item.teacher}</p>
+                {item.change_reason && <p className="meta">Change: {item.change_reason}</p>}
+              </div>
+              <span className={styles.state} data-state={item.state}>{live ? "Now" : stateLabel[item.state]}{item.attendance ? ` · ${item.attendance === "present" ? "Present" : "Absent"}` : ""}</span>
+            </li>;
+          })}</ol>
+        </section>)}</div> : <p className={styles.empty}>No classes in this period.</p>}
       </section>
       {current.role==="admin" && <section className="panel">
         <h2>Draft a weekly series</h2>
@@ -135,8 +147,12 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
       <h2 id="attendance-title">My attendance</h2>
       <p className="meta">Present marks divided by classes with a recorded mark for you. Cancelled and unrecorded classes are excluded.</p>
       {summary.length ? <ul className="items">{summary.map(row=><li key={row.offering_id}>
-        <h3>{row.course} · {row.term}</h3><p className={styles.rate}>{attendancePercentage(row.present,row.recorded)}%</p>
-        <p>{row.present} of {row.recorded} recorded classes attended</p>
+        <div className={styles.attendanceRow}>
+          <ProgressRing value={row.present} total={row.recorded} target={row.target} label={`${row.course} attendance`} size={96} />
+          <div><h3>{row.course} · {row.term}</h3>
+            <p>{row.present} of {row.recorded} recorded classes attended · {attendancePercentage(row.present,row.recorded)}%</p>
+            {row.target != null && <p className="meta">Planning target {row.target}%</p>}</div>
+        </div>
         <AttendanceForecast present={row.present} recorded={row.recorded} target={row.target} source={row.source} />
       </li>)}</ul> : <p>No attendance recorded yet.</p>}
     </section>}
