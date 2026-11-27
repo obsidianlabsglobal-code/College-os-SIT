@@ -107,6 +107,26 @@ const handlers: Record<string, (client: PoolClient, job: Job) => Promise<Result>
        WHERE q.institution_id=$1 AND q.id=$2 ON CONFLICT DO NOTHING`,
       [job.institution_id, job.entity_id, job.event_id]);
   },
+  async "attendance-correction-route"(client, job) {
+    const live = await client.query("SELECT 1 FROM attendance_correction WHERE institution_id=$1 AND id=$2 AND status='submitted'", [job.institution_id, job.entity_id]);
+    if (!live.rowCount) return { skip: "handled" };
+    return notify(client,
+      `INSERT INTO notification (institution_id,recipient_id,event_id,kind,entity_id,title)
+       SELECT k.institution_id,s.faculty_id,$3::bigint,'correction',k.id,left('Attendance correction requested: '||c.name||' · '||${when("lower(s.slot)")},300)
+       FROM attendance_correction k JOIN class_session s ON s.institution_id=k.institution_id AND s.id=k.session_id
+       JOIN institution i ON i.id=k.institution_id JOIN offering o ON o.institution_id=s.institution_id AND o.id=s.offering_id
+       JOIN course c ON c.institution_id=o.institution_id AND c.id=o.course_id
+       WHERE k.institution_id=$1 AND k.id=$2 ON CONFLICT DO NOTHING`, [job.institution_id, job.entity_id, job.event_id]);
+  },
+  async "attendance-correction-decided"(client, job) {
+    return notify(client,
+      `INSERT INTO notification (institution_id,recipient_id,event_id,kind,entity_id,title)
+       SELECT k.institution_id,k.student_id,$3::bigint,'correction',k.id,left('Attendance correction '||k.status||': '||c.name||' · '||${when("lower(s.slot)")},300)
+       FROM attendance_correction k JOIN class_session s ON s.institution_id=k.institution_id AND s.id=k.session_id
+       JOIN institution i ON i.id=k.institution_id JOIN offering o ON o.institution_id=s.institution_id AND o.id=s.offering_id
+       JOIN course c ON c.institution_id=o.institution_id AND c.id=o.course_id
+       WHERE k.institution_id=$1 AND k.id=$2 AND k.status<>'submitted' ON CONFLICT DO NOTHING`, [job.institution_id, job.entity_id, job.event_id]);
+  },
   async "request-sla-escalate"(client, job) {
     const { rows: [r] } = await client.query<{ status: string; created_at: Date; now: Date }>(
       "SELECT status,created_at,clock_timestamp() AS now FROM service_request WHERE institution_id=$1 AND id=$2", [job.institution_id, job.entity_id]);
@@ -175,7 +195,7 @@ export async function runJobs({ worker = "local", limit = 20, leaseSeconds = 60 
 }
 
 const roleKinds: Record<Scope["role"], string[]> = {
-  student: ["assignment", "reminder", "result", "class"], faculty: ["attendance"], admin: ["request", "followup"], principal: ["escalation"], hod: [],
+  student: ["assignment", "reminder", "result", "class", "correction"], faculty: ["attendance", "correction"], admin: ["request", "followup"], principal: ["escalation"], hod: [],
 };
 
 /** Inbox read model. Access is re-checked at read time, so a revoked roster, grant or withdrawn record hides the item. */
@@ -197,6 +217,11 @@ export async function notifications(current: Scope) {
            SELECT 1 FROM class_session s JOIN roster r ON r.institution_id=s.institution_id AND r.offering_id=s.offering_id
            WHERE s.institution_id=n.institution_id AND s.id=n.entity_id AND s.faculty_id=n.recipient_id
              AND r.account_id=n.recipient_id AND r.role='faculty' AND r.ended_at IS NULL)
+         WHEN n.kind='correction' THEN EXISTS (
+           SELECT 1 FROM attendance_correction k JOIN class_session s ON s.institution_id=k.institution_id AND s.id=k.session_id
+           JOIN roster r ON r.institution_id=s.institution_id AND r.offering_id=s.offering_id AND r.account_id=n.recipient_id AND r.ended_at IS NULL
+           WHERE k.institution_id=n.institution_id AND k.id=n.entity_id
+             AND ((r.role='student' AND k.student_id=n.recipient_id) OR (r.role='faculty' AND s.faculty_id=n.recipient_id)))
          ELSE EXISTS (SELECT 1 FROM service_request q WHERE q.institution_id=n.institution_id AND q.id=n.entity_id)
        END
      ORDER BY n.created_at DESC LIMIT 20`,

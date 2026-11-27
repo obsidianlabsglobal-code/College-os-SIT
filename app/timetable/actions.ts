@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { savePlanningTarget } from "../../lib/attendance-planning";
 import { changeClass } from "../../lib/academic-day";
+import { decideCorrection, requestCorrection } from "../../lib/corrections";
 import { WorkflowError } from "../../lib/assignments";
 import { scope, workspaceQuery } from "../../lib/scope";
 import type { ActionState } from "../actions/workflow";
@@ -22,6 +23,12 @@ export async function timetableAction(_state:ActionState, form:FormData):Promise
       });
       revalidatePath("/timetable");
       return {message:"Planning target saved."};
+    }
+    if (operation === "correction-request" || operation === "correction-decide") {
+      if (operation === "correction-request") await requestCorrection(current,{session:form.get("session"),reason:form.get("reason")});
+      else await decideCorrection(current,{correction:form.get("correction"),decision:form.get("decision"),reason:form.get("reason")});
+      revalidatePath("/", "layout");
+      return {message:operation === "correction-request" ? "Correction request sent to your teacher." : "Decision recorded."};
     }
     const [offering,faculty] = String(form.get("teaching") ?? "").split("|");
     const marks = [...form.entries()].filter(([name])=>name.startsWith("mark:"))

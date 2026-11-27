@@ -8,6 +8,7 @@ type Item = { id: string; kind: string; entity_id: string; title: string; create
 const target = (item: Item, query: string) =>
   ["assignment", "reminder", "result"].includes(item.kind) ? `/assignments/${item.entity_id}?${query}`
   : item.kind === "class" || item.kind === "attendance" ? `/timetable?${query}&session=${item.entity_id}#class-details`
+  : item.kind === "correction" ? `/timetable?${query}#corrections`
   : item.kind === "escalation" ? `/automation?${query}` : `/requests?${query}`;
 
 /** Automation inbox shared by every role. Items are already access-checked by `notifications()`. */

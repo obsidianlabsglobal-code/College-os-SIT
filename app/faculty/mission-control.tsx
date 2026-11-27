@@ -51,6 +51,7 @@ export async function MissionControl({ current, timezone }: { current: Scope; ti
             href={href("/timetable", query, { view: "day" })}>Today’s timetable</Link>
           {waiting.length>0 && <a className="button secondary" href="#attendance-workbench">Review attendance queue</a>}
           {courses.length>0 && <a className="button secondary" href="#create-assignment">Create assignment</a>}
+          {courses.length>0 && <a className="button secondary" href={`/records/export?${query}`} download>Download teaching report</a>}
         </div>
       </section>
       <div className={styles.timeline}><ClassTimeline current={current} timezone={timezone} /></div>

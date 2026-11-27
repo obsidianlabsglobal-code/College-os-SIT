@@ -23,6 +23,7 @@ export default async function AssessmentHistory({ searchParams }: { searchParams
     <section className="panel stack" aria-labelledby="by-course">
       <h2 id="by-course">By course</h2>
       <p className="meta">Totals use published results only. Unpublished evaluations are not shown until your teacher publishes them.</p>
+      <p><a href={`/records/export?${query}`} download>Download my academic record (CSV)</a></p>
       {courses.length ? <ul className="items">{courses.map(row => <li key={row.course}>
         <p><strong>{row.course}</strong> · {row.graded} of {row.total} results published{row.max > 0 && ` · ${row.marks}/${row.max} marks`}</p>
         <SegmentedBar label={`${row.course} assessments`} total={row.total} rest="awaiting result or not submitted"

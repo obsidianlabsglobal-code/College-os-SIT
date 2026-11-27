@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { departmentComparison, departmentFaculty, departmentSections, escalatedRequests } from "../../lib/department";
-import { departmentSummary, institutionSummary } from "../../lib/reporting";
+import { adminRequestSummary, departmentSummary, institutionSummary, operationsReport } from "../../lib/reporting";
 import { notifications } from "../../lib/automation";
 import { workspaceQuery, type Scope } from "../../lib/scope";
 import { SegmentedBar } from "../experience/segmented-bar";
@@ -132,5 +132,57 @@ export async function PrincipalBoard({ current, timezone }: { current: Scope; ti
           <td>{rate(row.results, row.submissions)}</td><td>{rate(row.present, row.marked)}</td></tr>)}</tbody>
       </table></div> : <p>No departments are configured.</p>}
     </section>
+  </div>;
+}
+
+/** Admin board: the office's open work first, then routed items and tools, then the 30-day operations record. */
+export async function AdminBoard({ current, timezone }: { current: Scope; timezone: string }) {
+  const [summary, inbox, ops] = await Promise.all([adminRequestSummary(current), notifications(current), operationsReport(current)]);
+  const counts = summary ?? { submitted: 0, in_review: 0 };
+  const query = workspaceQuery(current);
+  const open = counts.submitted + counts.in_review;
+  return <div className={styles.board}>
+    <section className={`panel ${styles.hero}`} aria-labelledby="admin-focus">
+      <p className={styles.eyebrow}>Office focus</p>
+      <h2 id="admin-focus">{open === 0 ? "No open service requests" : [plural(open, "open request"),
+        ops?.unassigned ? `${ops.unassigned} without an owner` : null,
+        ops?.oldest_open_hours != null ? `oldest waiting ${ops.oldest_open_hours} h` : null].filter(Boolean).join(" · ")}</h2>
+      <p className="meta">Current enrollment-letter requests in this institution. Starting review claims an unassigned request for you.</p>
+      <dl className={styles.kpis} aria-label="Enrollment-letter queue">
+        <div><dt>Awaiting review</dt><dd>{counts.submitted}</dd></div>
+        <div><dt>In review</dt><dd>{counts.in_review}</dd></div>
+        <div><dt>Without an owner</dt><dd>{ops?.unassigned ?? 0}</dd></div>
+        <div><dt>Unread routed items</dt><dd>{inbox.filter(item => !item.read_at).length}</dd></div>
+      </dl>
+      <div className="row"><Link className="button" href={`/requests?${query}&view=${ops?.unassigned ? "unassigned" : "mine"}`}>
+        {ops?.unassigned ? "Assign waiting requests" : "Open my queue"}</Link></div>
+    </section>
+
+    <div className={styles.columns}>
+      <Inbox items={inbox} current={current} query={query} title="Routed to you" timezone={timezone} className="panel" />
+      <section className="panel" aria-labelledby="admin-tools">
+        <h2 id="admin-tools">Institution operations</h2>
+        <ul className="items">
+          <li><Link href={`/admin?${query}`}>Manage catalog and access</Link><p className="meta">Set up academic offerings, rosters and delegated roles.</p></li>
+          <li><Link href={`/requests?${query}`}>Review the request queue</Link><p className="meta">Process student enrollment-letter requests.</p></li>
+          <li><Link href={`/requests?${query}&view=mine`}>Requests assigned to me</Link><p className="meta">Your owned queue; unassigned requests are claimed when you start review.</p></li>
+          <li><Link href={`/audit?${query}`}>Search the audit log</Link><p className="meta">Who changed which record and when, without record contents.</p></li>
+          <li><Link href={`/notices?${query}`}>Manage institution notices</Link><p className="meta">Publish notices for this institution.</p></li>
+        </ul>
+      </section>
+    </div>
+
+    {ops && <section className="panel" aria-labelledby="ops-title">
+      <h2 id="ops-title">Operations · last 30 days</h2>
+      <p className="meta">Resolution time runs from submission to the recorded outcome. Corrections count new revisions of attendance and published results.</p>
+      <dl className="metrics" aria-label="Operations report">
+        <div><dt>Unassigned open requests</dt><dd>{ops.unassigned}</dd></div>
+        <div><dt>Oldest open request</dt><dd>{ops.oldest_open_hours === null ? "None" : `${ops.oldest_open_hours} h`}</dd></div>
+        <div><dt>Median resolution</dt><dd>{ops.median_resolution_hours === null ? "—" : `${ops.median_resolution_hours} h`}</dd></div>
+        <div><dt>Resolved · declined</dt><dd>{ops.resolved_30d} · {ops.declined_30d}</dd></div>
+        <div><dt>Attendance corrections</dt><dd>{ops.attendance_corrections_30d}</dd></div>
+        <div><dt>Result corrections</dt><dd>{ops.grade_corrections_30d}</dd></div>
+      </dl>
+    </section>}
   </div>;
 }

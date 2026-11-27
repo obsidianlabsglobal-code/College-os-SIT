@@ -41,7 +41,7 @@ Students locate authoritative course work and deadlines for their enrollment. St
 | ID | Capability | Functional workflow or acceptance outcome | Status | Evidence |
 | --- | --- | --- | --- | --- |
 | SA-001 | Student dashboard | Open the earliest outstanding assignment, own published feedback, or active courses from the student workspace. Navigate directly to eligible notices, community and service workflows. | Tested | R/X and [Student Today evidence](evidence/student-today/README.md) |
-| SA-002 | Course directory | Browse institution-published catalog entries with visibility rules. | Proposed | F |
+| SA-002 | Course directory | Browse institution-published catalog entries with visibility rules. | Tested (every institution offering visible to active members; no catalog publication controls) | lib/catalog.ts courseCatalog, app/catalog; tests/learning-records.test.ts, tests/learning-records.e2e.ts |
 | SA-003 | Enrolled course workspaces | Open a roster-scoped offering and its assigned coursework. | Tested | W2 |
 | SA-004 | Academic schemes and terms | Read the offering’s current scheme and term. Cohort-specific eligibility policy remains a separate requirement. | Tested | W2 |
 | SA-005 | Attendance records | Read own recorded marks. A student-initiated correction request remains planned. | Tested (record view) | [Academic day](ACADEMIC_DAY.md) |
@@ -49,7 +49,7 @@ Students locate authoritative course work and deadlines for their enrollment. St
 | SA-007 | Attendance eligibility | Explain eligibility with verified scheme and policy version. | Proposed | F |
 | SA-008 | Attendance what-if planning | Compare recorded marks and hypothetical future counts with the offering’s optional, sourced advisory target. | Tested | [Academic day](ACADEMIC_DAY.md) |
 | SA-009 | Timetable | View published whole-section sessions by day or week. Lab subgroup scheduling remains planned. | Tested (whole section) | [Academic day](ACADEMIC_DAY.md) |
-| SA-010 | Academic calendar | Filter institution and course dates and deadlines. | Proposed | F |
+| SA-010 | Academic calendar | Filter institution and course dates and deadlines. | Tested (own course deadlines, classes and registered campus events; no institution-wide calendar entries) | lib/calendar.ts, app/calendar; tests/learning-records.test.ts, tests/learning-records.e2e.ts |
 | SA-011 | Assignments | Open a published assignment from an enrolled offering. | Tested | R |
 | SA-012 | Submissions | Submit on time once, with an allowed private attachment or text. | Tested | R |
 | SA-013 | Grades | Read own published score and authorized corrections. | Tested | R |
@@ -60,8 +60,8 @@ Students locate authoritative course work and deadlines for their enrollment. St
 | SA-018 | Course resources | Retrieve current authorized course material and versions. | Proposed | F |
 | SA-019 | Learning progress | Inspect concept-level evidence and its limitations. | Proposed | F |
 | SA-020 | Academic announcements | Read published notices in the eligible audience. | Tested | R |
-| SA-021 | Attendance correction workflow | Challenge a record and receive a traceable authorized decision. | Proposed | F |
-| SA-022 | Academic reports and exports | Download an authorized, scheme-aware record with source references. | Proposed | F |
+| SA-021 | Attendance correction workflow | Challenge a record and receive a traceable authorized decision. | Tested | db/020_attendance_correction.sql, lib/corrections.ts, app/timetable; tests/learning-records.test.ts, tests/learning-records.e2e.ts |
+| SA-022 | Academic reports and exports | Download an authorized, scheme-aware record with source references. | Tested (CSV of own published results and latest attendance marks with source IDs) | lib/exports.ts studentRecord, app/records/export; tests/learning-records.test.ts, tests/learning-records.e2e.ts |
 | SA-023 | Academic integrity appeals | Student opens a confidential case tied to a published policy and record. An authorized human reviews and records a reason. Measure review time and verify that outsiders cannot read the case. | Proposed | Master plan §10 |
 
 ## Student Life · personal learning
@@ -144,7 +144,7 @@ Faculty need to organize teaching and evaluation by assigned offering. Select as
 | FC-025 | Professional development | Plan and record authorized development activities. | Proposed | F |
 | FC-026 | Faculty notices | Publish notices to assigned academic audiences. | Tested | R |
 | FC-027 | Meetings | Coordinate participants, schedules and follow-up actions. | Proposed | F |
-| FC-028 | Faculty reports | Produce scoped teaching and workload reports from records. | Proposed | F |
+| FC-028 | Faculty reports | Produce scoped teaching and workload reports from records. | Tested (CSV per current teaching offering) | lib/exports.ts facultyReport, app/records/export; tests/learning-records.test.ts, tests/learning-records.e2e.ts |
 | FC-029 | Faculty AURA assistants | Use approved preparation, communication and reporting tools; see agent catalog. | Proposed | F |
 
 ## Department OS

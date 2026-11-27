@@ -16,6 +16,7 @@ import { AttendanceForecast } from "./forecast";
 import { timetableAction } from "./actions";
 import styles from "./timetable.module.css";
 import { ProgressRing } from "../experience/progress-ring";
+import { corrections } from "../../lib/corrections";
 
 export default async function Timetable({searchParams}:{searchParams:Promise<Record<string,string|undefined>>}) {
   const params = await searchParams;
@@ -31,9 +32,10 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
   const days = params.view==="week" ? 7 : 1;
   const selectedID = z.uuid().safeParse(params.session);
   if (params.session && !selectedID.success) notFound();
-  const [sessions,upcoming,summary,options,detail,targets] = await Promise.all([
+  const [sessions,upcoming,summary,options,detail,targets,requests] = await Promise.all([
     timetable(current,day,days),current.role==="faculty" || current.role==="student" ? nextClass(current) : null,
     attendanceSummary(current),timetableOptions(current),selectedID.success ? sessionDetail(current,selectedID.data) : null,planningOptions(current),
+    corrections(current),
   ]);
   if (selectedID.success && !detail) notFound();
   const [alternatives,changes] = detail ? await Promise.all([campusChangeAlternatives(current,detail.row.id),upcomingRoomChanges(current,detail.row.id)]) : [[],[]];
@@ -134,6 +136,24 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
         <AttendanceForecast present={row.present} recorded={row.recorded} target={row.target} source={row.source} />
       </li>)}</ul> : <p>No attendance recorded yet.</p>}
     </section>}
+      {(current.role==="student" || (current.role==="faculty" && requests.length>0)) && <section id="corrections" className="panel" tabIndex={-1} aria-labelledby="corrections-title">
+        <h2 id="corrections-title">{current.role==="student" ? "Attendance corrections" : "Attendance correction requests"}</h2>
+        <p className="meta">{current.role==="student" ? "Open a recorded class where you are marked absent to request a correction. Your teacher records the decision and reason."
+          : "Accepting writes a new attendance revision that marks the student present. Both decisions are recorded with your reason and sent to the student."}</p>
+        {requests.length ? <ul className="items">{requests.map(row=><li key={row.id}>
+          <div className="row spread"><h3>{row.course} · {row.section} · {date.format(row.start)} {time.format(row.start)}</h3>
+            <span className={row.status==="submitted" ? "tag tag-attention" : "tag"}>{{submitted:"Awaiting decision",accepted:"Accepted",declined:"Declined"}[row.status]}</span></div>
+          <p className="meta">{current.role==="faculty" && `${row.student} · `}Requested {date.format(row.created_at)}</p>
+          <p>{row.reason}</p>
+          {row.decision_reason && <p className="meta">Decision: {row.decision_reason}</p>}
+          {current.role==="faculty" && <ActionForm action={timetableAction} context={current} operation="correction-decide" label="Record decision">
+            <input type="hidden" name="correction" value={row.id} />
+            <label>Decision<select name="decision" required defaultValue=""><option value="" disabled>Choose</option>
+              <option value="accept">Accept and mark present</option><option value="decline">Decline</option></select></label>
+            <label>Reason<input name="reason" maxLength={500} required /></label>
+          </ActionForm>}
+        </li>)}</ul> : <p>No correction requests.</p>}
+      </section>}
       {current.role==="admin" && <section className="panel">
         <h2>Draft a weekly series</h2>
         {options.staff.length && options.rooms.length ? <ActionForm action={timetableAction} context={current} operation="draft" label="Create class draft">
@@ -189,6 +209,14 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
         </details>}
         {groupDraft && <AttendanceGroupCopy key={detail?.row.revision} draft={groupDraft} fictionalPractice={fictionalPractice} />}
         {current.role==="student" && detail.row.attendance && <p>Your attendance: {detail.row.attendance}</p>}
+        {current.role==="student" && detail.row.state==="conducted" && detail.row.attendance==="absent"
+          && !requests.some(row=>row.session_id===detail.row.id && row.status==="submitted") && <details>
+          <summary>Request an attendance correction</summary>
+          <ActionForm action={timetableAction} context={current} operation="correction-request" label="Send correction request">
+            <input type="hidden" name="session" value={detail.row.id} />
+            <label>Why should this mark change?<textarea name="reason" maxLength={500} required /></label>
+          </ActionForm>
+        </details>}
         {current.role==="faculty" && (detail.row.state==="published" || detail.row.state==="conducted") && detail.row.finish<=new Date() && detail.learners.length>0 &&
           <AttendanceForm key={`${detail.row.id}:${detail.row.revision}`} current={{institution:current.institution,role:current.role}} session={detail.row.id}
             revision={detail.row.revision} learners={detail.learners} correction={detail.row.state==="conducted"} />}
