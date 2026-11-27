@@ -295,4 +295,4 @@ Observed, fresh local PostgreSQL in CI order at dd5f518:
 
 Traceability: 83 functionally tested (local), 50 partial, 8 unverified, 13 blocked, 326 missing.
 
-Session summary (seven batches since 30-push): fully tested 69 → 83, partial 14 → 50, missing 376 → 326. Migrations 020–026 add 30 tables. Production readiness is still 0: nothing is hosted, no real users have been measured, and the founder approvals listed in the handoff are still outstanding.
+Session summary (seven batches since 30-push): fully tested 69 → 83, partial 14 → 50, missing 376 → 326. Migrations 020–026 add 27 tables. Production readiness is still 0: nothing is hosted, no real users have been measured, and the founder approvals listed in the handoff are still outstanding.
