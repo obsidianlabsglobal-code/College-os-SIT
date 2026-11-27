@@ -145,3 +145,29 @@ Not done:
 - institution-wide calendar entries;
 - catalog publication controls;
 - AURA unification.
+
+## 2026-11-27 — Toward 40, batch 2: course materials, course plans, mentoring, executive report
+
+Implemented (commit bbdc5fc, `db/021`):
+- **Course materials (SA-018, FC-020):**
+  - Teachers publish PDF or TXT files and upload new versions with a note. The course's teachers can still download earlier versions.
+  - Students and the department HOD get the latest version only.
+  - Withdrawal hides the material. Every change is audited.
+- **Course plans and delivery (FC-006, DH-005, DH-011, DH-022 slice):**
+  - The teacher drafts topics and submits them. An HOD of the course's department approves, or returns with a reason.
+  - Approval freezes the plan, and students see topics only once it is approved.
+  - Each ended class gets a delivery record linked to an approved topic. A correction updates the record (revision), so a topic is not counted twice.
+  - The HOD board shows coverage and logged classes.
+- **Mentoring (FC-016):**
+  - An admin assigns one current faculty mentor per student. A replacement ends the earlier pairing and removes that mentor's access; the records are kept.
+  - The mentor records goals and follow-ups, and the student marks goals agreed.
+- **Executive report (LE-019 slice):** a principal-only CSV where each figure carries its definition, time window and source table.
+
+Observed, fresh local PostgreSQL in CI order at bbdc5fc:
+- migrate ×2 + seed, lint, typecheck, build: all passed.
+- 90/90 PostgreSQL and unit tests, 37/37 Chromium, 1/1 tutor (138 files).
+- Screenshots: `docs/evidence/delivery-2026-11-27/`.
+
+Traceability: 70 functionally tested (local), 26 partial, 8 unverified, 13 blocked, 363 missing. All eight new rows carry a stated scope limit, so they count as partial.
+
+UI note: on a database with many test assignments, the student course page lists every assignment before materials and plan. That is acceptable for the pilot volume but should be paginated.

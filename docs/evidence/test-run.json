@@ -1,7 +1,7 @@
 {
- "commit": "f9da76407f3b5756915c99e29e01d84317638a49",
+ "commit": "bbdc5fc4205b369c52f84fa1c68125a147867152",
  "uncommitted_source_changes": false,
- "recorded_at": "2026-11-27T15:28:41+00:00",
+ "recorded_at": "2026-11-27T16:15:02+00:00",
  "environment": "local fresh PostgreSQL, fictional data, headless Chromium",
  "files": {
   "tests/academic-assistant.test.ts": {
@@ -58,6 +58,14 @@
   },
   "tests/clubverse.test.ts": {
    "passed": 3,
+   "failed": 0
+  },
+  "tests/course-delivery.e2e.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/course-delivery.test.ts": {
+   "passed": 4,
    "failed": 0
   },
   "tests/database-target.test.ts": {
