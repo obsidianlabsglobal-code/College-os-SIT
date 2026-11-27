@@ -92,7 +92,7 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
         </li>)}</ul>
       </section>
       <section className="panel stack" aria-labelledby="rename-title">
-        <h2 id="rename-title">Correct a course or section name</h2>
+        <h2 id="rename-title">Catalog name corrections</h2>
         <p className="meta">Corrections keep the previous name, the reason and who made the change.</p>
         <ActionForm action={planningAction} context={current} operation="rename" label="Save correction">
           <label>Record<select name="target" required defaultValue=""><option value="" disabled>Choose</option>

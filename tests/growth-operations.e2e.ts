@@ -73,7 +73,7 @@ test("the office corrects a section name and the history keeps the previous name
     await page.setExtraHTTPHeaders({ "x-forwarded-for": "198.19.202.102" });
     await signIn(page, "admin");
     await page.goto(at("admin", "/admin"));
-    const form = page.getByRole("region", { name: "Correct a course or section name" });
+    const form = page.getByRole("region", { name: "Catalog name corrections" });
     await form.locator("select[name=target]").selectOption({ label: `Section · ${section.name}` });
     await form.getByLabel("Corrected name").fill(`${section.name} (evening)`);
     await form.getByLabel("Reason").fill("Matches the published timetable");
