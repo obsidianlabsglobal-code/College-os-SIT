@@ -1,7 +1,7 @@
 {
- "commit": "66574f293390b8f46a594161ac08faedb28bb26e",
+ "commit": "f9da76407f3b5756915c99e29e01d84317638a49",
  "uncommitted_source_changes": false,
- "recorded_at": "2026-11-27T13:06:02+00:00",
+ "recorded_at": "2026-11-27T15:28:41+00:00",
  "environment": "local fresh PostgreSQL, fictional data, headless Chromium",
  "files": {
   "tests/academic-assistant.test.ts": {
@@ -102,6 +102,14 @@
   },
   "tests/leadership.e2e.ts": {
    "passed": 1,
+   "failed": 0
+  },
+  "tests/learning-records.e2e.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/learning-records.test.ts": {
+   "passed": 5,
    "failed": 0
   },
   "tests/notices.test.ts": {

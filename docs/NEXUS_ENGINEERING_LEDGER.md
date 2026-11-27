@@ -103,3 +103,45 @@ Recovery: a worker started before this change marked two jobs `unknown_handler`.
 Traceability: 69 functionally tested (local), 14 partial, 0 claims without evidence, 8 unverified, 13 blocked, 376 missing.
 
 Not done: academic calendar (SA-010), scheduled periodic reports, the reusable workflow engine (AD-020), admin home structural redesign, command palette, and AURA unification.
+
+## 2026-11-27 — Progress push toward 40: learning records, corrections, finder, admin board
+
+Implemented (commits b4b27cc, f9da764):
+- **Attendance corrections (SA-021):**
+  - Added in `db/020` and `lib/corrections.ts`.
+  - A student can challenge only their own latest "absent" mark on a recorded class. Only the session's current teacher decides, with a reason.
+  - Acceptance writes a new attendance revision in the same transaction, copying every other mark unchanged. A decline leaves the record as it was.
+  - One open request per class and student.
+  - Requests and decisions are audited and use the outbox: `attendance-correction-route` notifies the teacher and `attendance-correction-decided` notifies the student.
+- **Academic calendar (SA-010, `/calendar`):** shows a month of the student's or teacher's own deadlines and classes plus campus events they registered for. Filters: course and type. Students and faculty only.
+- **Course catalog (SA-002, `/catalog`):** every institution offering for active members, with the current teacher. Own rosters are marked. Search treats `%` and `_` as plain text.
+- **CSV records (`/records/export`):**
+  - Student: own published results and latest attendance marks, each with a source ID and revision (SA-022).
+  - Faculty: one row per current teaching offering (FC-028).
+  - Cells that could run as spreadsheet formulas are neutralised. Downloads are private, not cached, and return 404 for other roles.
+- **Page finder:** Ctrl/⌘+K, or "Find a page" in the More sheet, filters the caller's own role destinations.
+- **Admin home board:** "Office focus" hero (open, unowned, oldest waiting), routed inbox beside the office tools, and the 30-day operations record.
+- **Fixed:**
+  - The student phone dock sorted pages missing from its preferred order (Assessment history, Calendar, Catalog) ahead of Today. They now follow it.
+  - `tests/automation.test.ts` now drains all due jobs. On a reused database, one bounded worker pass could miss the test's own jobs.
+
+Observed, local fresh PostgreSQL, CI order at f9da764:
+- migrate ×2 + seed, lint, typecheck, build: all passed.
+- 86/86 PostgreSQL and unit tests, 35/35 Chromium, 1/1 tutor.
+- Recorded in `docs/evidence/test-run.json` (132 files passed, 0 failed). Screenshots are in `docs/evidence/records-2026-11-27/`.
+
+On a reused, non-fresh database two older tests failed because of accumulated fictional data:
+- automation job starvation, now fixed;
+- an AURA assignment list whose row limit drops a far-future test assignment, not fixed and still order-dependent.
+
+The recorded evidence is from a fresh database only.
+
+Traceability: 70 functionally tested (local), 18 partial, 0 claims without evidence, 8 unverified, 13 blocked, 371 missing.
+
+Not done:
+- scheduled periodic report delivery (notification uniqueness is per event, so recurring delivery needs an occurrence record);
+- the reusable workflow engine (AD-020);
+- HOD or office override of correction decisions (needs a policy);
+- institution-wide calendar entries;
+- catalog publication controls;
+- AURA unification.
