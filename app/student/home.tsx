@@ -12,6 +12,9 @@ import styles from "./home.module.css";
 import { StudentHomeFocus } from "./home-focus";
 import { ProgressRing } from "../experience/progress-ring";
 import { classesNeeded, classesSpare } from "../../lib/attendance-math";
+import { notifications } from "../../lib/automation";
+import { ActionForm } from "../forms";
+import { automation } from "../actions/automation";
 
 export function StudentHomeLoading() {
   return <div className={styles.home} role="status">
@@ -20,9 +23,9 @@ export function StudentHomeLoading() {
 }
 
 export async function StudentHome({current, name, timezone}:{current:Scope;name:string;timezone:string}) {
-  const [assignments, courses, updates, upcoming, attendance, opportunityCount] = await Promise.all([
+  const [assignments, courses, updates, upcoming, attendance, opportunityCount, inbox] = await Promise.all([
     studentAssignmentSummaries(current), offerings(current), notices(current,"published",3), nextClass(current),
-    attendanceSummary(current), openOpportunityCount(current),
+    attendanceSummary(current), openOpportunityCount(current), notifications(current),
   ]);
   const query = workspaceQuery(current);
   const today = new Intl.DateTimeFormat("en-IN",{weekday:"long",day:"numeric",month:"long",timeZone:timezone});
@@ -136,6 +139,21 @@ export async function StudentHome({current, name, timezone}:{current:Scope;name:
           <div className={styles.auraInset}><QuickLookup current={current} /></div>
           <Link className={styles.secondary} href={`/aura?${query}`}>Open AURA activity <span aria-hidden="true">→</span></Link>
         </section>
+        {inbox.length > 0 && <section className={styles.panel} aria-labelledby="student-inbox-title">
+          <div className={styles.sectionHead}>
+            <h2 id="student-inbox-title"><Icon name="spark" />For you</h2>
+            <p>{inbox.filter(n => !n.read_at).length} unread · sent automatically when your courses change.</p>
+          </div>
+          <ul className={styles.list}>{inbox.slice(0, 5).map(n => <li key={n.id} className={styles.inboxItem} data-unread={!n.read_at || undefined}>
+            <div>
+              <Link className={styles.record} href={`/assignments/${n.entity_id}?${query}`}>{n.title}</Link>
+              <p><time dateTime={n.created_at.toISOString()}>{deadline.format(n.created_at)}</time>{n.read_at ? " · Read" : ""}</p>
+            </div>
+            {!n.read_at && <ActionForm action={automation} context={current} operation="read-notification" label="Mark read" secondary>
+              <input type="hidden" name="id" value={n.id} />
+            </ActionForm>}
+          </li>)}</ul>
+        </section>}
         <section className={styles.panel} aria-labelledby="student-notices-title">
           <div className={styles.sectionHead}><h2 id="student-notices-title"><Icon name="notice" />Campus notices</h2></div>
           {updates.length ? <ul className={styles.list}>{updates.map(notice=><li key={notice.id}>

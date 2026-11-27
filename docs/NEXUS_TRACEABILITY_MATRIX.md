@@ -11,9 +11,9 @@ it is not hosted or institutional validation. No row is Hosted and verified or U
 | --- | --- |
 | Functionally tested (local) | 63 |
 | Implemented but unverified | 8 |
-| Partially implemented | 6 |
+| Partially implemented | 9 |
 | Blocked by an actual dependency | 13 |
-| Missing | 390 |
+| Missing | 387 |
 | Hosted and verified | 0 |
 | User-validated | 0 |
 | **Total** | **480** |
@@ -25,19 +25,19 @@ it is not hosted or institutional validation. No row is Hosted and verified or U
 | Identity, delivery and trust | 6 | 0 | 0 | 1 | 6 |
 | Student Life · academics | 9 | 0 | 3 | 0 | 11 |
 | Student Life · personal learning | 0 | 0 | 0 | 0 | 16 |
-| Student Life · campus and growth | 3 | 0 | 0 | 0 | 14 |
+| Student Life · campus and growth | 3 | 0 | 1 | 0 | 13 |
 | Faculty Intelligence OS | 8 | 0 | 1 | 0 | 20 |
 | Department OS | 3 | 0 | 0 | 0 | 24 |
 | Institutional Leadership OS | 2 | 0 | 0 | 0 | 18 |
 | Guardian experience | 0 | 0 | 0 | 12 | 0 |
-| Administration and specialist staff | 7 | 0 | 0 | 0 | 28 |
+| Administration and specialist staff | 7 | 0 | 1 | 0 | 27 |
 | CLUBVERSE · organizations and governance | 14 | 6 | 0 | 0 | 31 |
 | Sports specialization | 0 | 0 | 0 | 0 | 24 |
 | Smart Campus · student mobility | 0 | 0 | 0 | 0 | 26 |
 | Smart Campus · transport operations | 0 | 0 | 0 | 0 | 20 |
 | Careers, research and opportunities | 3 | 0 | 0 | 0 | 34 |
 | Campus operations | 1 | 0 | 0 | 0 | 16 |
-| AURA · shared agent platform | 7 | 2 | 2 | 0 | 9 |
+| AURA · shared agent platform | 7 | 2 | 3 | 0 | 8 |
 | AURA catalog · student and personal | 0 | 0 | 0 | 0 | 15 |
 | AURA catalog · faculty | 0 | 0 | 0 | 0 | 12 |
 | AURA catalog · department | 0 | 0 | 0 | 0 | 9 |
@@ -113,7 +113,7 @@ it is not hosted or institutional validation. No row is Hosted and verified or U
 | SL-008 | Administrative requests | Tested | Functionally tested (local) | R |
 | SL-009 | Student profile | Proposed | Missing | F |
 | SL-010 | Preferences | Proposed | Missing | F |
-| SL-011 | Notifications | Proposed | Missing | F |
+| SL-011 | Notifications | Tested (in-app only) | Partially implemented | Student "For you" inbox from assignment and result events with read state. Subscription preferences absent. |
 | SL-012 | Personal AURA activity history | Tested | Functionally tested (local) | A |
 | SL-013 | Student development portfolio | Proposed | Missing | F |
 | SL-014 | Mentor and study groups | Proposed | Missing | F |
@@ -230,7 +230,7 @@ it is not hosted or institutional validation. No row is Hosted and verified or U
 | AD-020 | Reusable workflow engine | Proposed | Missing | F |
 | AD-021 | Institutional knowledge base | Proposed | Missing | F |
 | AD-022 | Audit viewer | Proposed | Missing | F |
-| AD-023 | Staff notifications | Proposed | Missing | F |
+| AD-023 | Staff notifications | Tested (in-app only) | Partially implemented | Request routing to active admins via outbox job; retry, dedupe, read acknowledgement. tests/automation.test.ts, tests/automation.e2e.ts. No email/WhatsApp channel. |
 | AD-024 | Operational reporting | Proposed | Missing | F |
 | AD-025 | Library desk | Proposed | Missing | F |
 | AD-026 | Laboratory staff | Proposed | Missing | F |
@@ -430,7 +430,7 @@ it is not hosted or institutional validation. No row is Hosted and verified or U
 | AI-010 | Cost management | In development | Partially implemented | Tutor reservations and token estimates tested with injected transport. Billing reconciliation pending. See AURA_ARCHITECTURE.md |
 | AI-011 | Context and knowledge | Proposed | Missing | F |
 | AI-012 | Agent orchestration | Proposed | Missing | F |
-| AI-013 | Durable tasks and workers | Proposed | Missing | F |
+| AI-013 | Durable tasks and workers | Tested (no scheduler) | Partially implemented | db/016_automation.sql + lib/automation.ts + scripts/worker.ts: transactional enqueue, leased SKIP LOCKED claims, fencing, backoff, dead-letter, admin retry, pause. No cron schedules, cancellation or hosted worker. |
 | AI-014 | Agent execution logs | Tested | Functionally tested (local) | A |
 | AI-015 | Agent evaluation | Proposed | Missing | F |
 | AI-016 | Authority levels L0–L4 | Proposed | Missing | F |

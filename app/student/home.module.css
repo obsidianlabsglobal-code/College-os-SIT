@@ -107,3 +107,4 @@
 .bar i { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--accent); }
 .bar b { position: absolute; top: -.2rem; width: 2px; height: .9rem; background: var(--ink); border-radius: 1px; }
 .courseBars small { grid-column: 1/-1; color: var(--muted); }
+.inboxItem[data-unread] .record::before { content: ""; display: inline-block; inline-size: .5rem; block-size: .5rem; margin-inline-end: .45rem; border-radius: 50%; background: var(--accent); vertical-align: middle; }

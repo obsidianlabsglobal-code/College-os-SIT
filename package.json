@@ -11,6 +11,7 @@
     "db:local": "tsx scripts/postgres.ts",
     "db:migrate": "tsx scripts/migrate.ts",
     "db:seed": "tsx scripts/seed.ts",
+    "worker": "tsx scripts/worker.ts",
     "test:e2e": "playwright test"
   },
   "repository": {

@@ -19,7 +19,7 @@ export const roleLabels = {
   principal: "Principal",
 } satisfies Record<Scope["role"], string>;
 
-type Destination = "/opportunities" | "/" | "/grading" | "/notices" | "/requests" | "/admin" | "/clubverse" | "/aura" | "/timetable";
+type Destination = "/automation" | "/opportunities" | "/" | "/grading" | "/notices" | "/requests" | "/admin" | "/clubverse" | "/aura" | "/timetable";
 const labels: Record<Destination, string> = {
   "/opportunities": "Opportunities",
   "/": "Today",
@@ -29,13 +29,14 @@ const labels: Record<Destination, string> = {
   "/clubverse": "CLUBVERSE",
   "/aura": "AURA",
   "/requests": "Service requests",
+  "/automation": "Automation",
   "/admin": "Academic setup and roles",
 };
 
 const icons: Record<Destination, ComponentProps<typeof Icon>["name"]> = {
   "/opportunities": "service",
   "/": "home", "/timetable": "calendar", "/grading": "check", "/notices": "notice", "/clubverse": "people",
-  "/aura": "spark", "/requests": "service", "/admin": "book",
+  "/aura": "spark", "/automation": "spark", "/requests": "service", "/admin": "book",
 };
 
 const dock: Destination[] = ["/", "/timetable", "/aura", "/clubverse", "/notices", "/requests", "/opportunities"];
@@ -56,6 +57,7 @@ export async function Chrome({ user, current, section = "/", children }: {
   if (current?.role === "student" || current?.role === "admin") destinations.push("/requests");
   if (current?.role === "student" || current?.role === "admin") destinations.push("/opportunities");
   if (current?.role === "admin") destinations.push("/admin");
+  if (current?.role === "admin" || current?.role === "principal") destinations.push("/automation");
   if (current?.role === "student" || current?.role === "faculty") destinations.push("/aura");
   // Design Bible student dock: Today, Timetable (learn), AURA, Campus first; the rest sit under More.
   if (current?.role === "student") destinations.sort((a, b) => dock.indexOf(a) - dock.indexOf(b));

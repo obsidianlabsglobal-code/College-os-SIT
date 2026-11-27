@@ -2,6 +2,9 @@ import { MissionControl } from "./faculty/mission-control";
 import Link from "next/link";
 import { account, scope, workspaces, workspaceQuery } from "../lib/scope";
 import { SegmentedBar } from "./experience/segmented-bar";
+import { notifications } from "../lib/automation";
+import { ActionForm } from "./forms";
+import { automation } from "./actions/automation";
 import { adminRequestSummary, departmentSummary, institutionSummary } from "../lib/reporting";
 import { Suspense } from "react";
 import { ExperienceHeading } from "./experience/heading";
@@ -25,9 +28,11 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ i
     </Chrome>;
   }
 
-  const [summary, overview, requestCounts] = current
-    ? await Promise.all([departmentSummary(current), institutionSummary(current), adminRequestSummary(current)])
-    : [[], [], null];
+  const [summary, overview, requestCounts, inbox] = current
+    ? await Promise.all([departmentSummary(current), institutionSummary(current), adminRequestSummary(current),
+      current.role === "admin" ? notifications(current) : []])
+    : [[], [], null, []];
+  const unread = inbox.filter(n => !n.read_at);
   const query = current ? workspaceQuery(current) : "";
   return <Chrome user={user} current={current}>
     <ExperienceHeading title={current ? roleLabels[current.role] : "Your workspace"}
@@ -55,6 +60,15 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ i
         <div><dt>In review</dt><dd>{requestCounts.in_review}</dd></div>
       </dl>}
       <p className="meta">Current enrollment-letter requests in this institution.</p>
+      {unread.length > 0 && <section className="stack" aria-labelledby="admin-inbox-title">
+        <h3 id="admin-inbox-title">Routed to you ({unread.length})</h3>
+        <ul className="items">{unread.slice(0, 5).map(n => <li key={n.id}>
+          <Link href={`/requests?${query}`}>{n.title}</Link>
+          <ActionForm action={automation} context={current!} operation="read-notification" label="Mark read" secondary>
+            <input type="hidden" name="id" value={n.id} />
+          </ActionForm>
+        </li>)}</ul>
+      </section>}
       <ul className="items">
         <li><Link href={`/admin?${query}`}>Manage catalog and access</Link><p className="meta">Set up academic offerings, rosters and delegated roles.</p></li>
         <li><Link href={`/requests?${query}`}>Review the request queue</Link><p className="meta">Process student enrollment-letter requests.</p></li>
