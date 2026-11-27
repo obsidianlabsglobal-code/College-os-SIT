@@ -131,7 +131,7 @@ Faculty need to organize teaching and evaluation by assigned offering. Select as
 | FC-012 | Grade publication and corrections | Save draft, explicitly publish, then revise with reason and history. | Tested | R |
 | FC-013 | Feedback drafting | Prepare and save human-authored feedback before publication. | Tested | R |
 | FC-014 | Classroom concept analysis | Identify concepts needing support using appropriate assessment evidence. | Proposed | F |
-| FC-015 | Academic intervention | Coordinate support with authorized staff and measure resolution. | Proposed | F |
+| FC-015 | Academic intervention | Coordinate support with authorized staff and measure resolution. | Tested (support cases with time-to-close measure) | db/022, lib/cases.ts, app/cases; tests/cases.test.ts, tests/cases.e2e.ts |
 | FC-016 | Student mentorship | Agree mentoring goals and record appropriate follow-ups. | Tested (admin-assigned mentor; goals, follow-ups and student agreement) | lib/mentoring.ts, app/mentoring; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
 | FC-017 | Project supervision | Review assigned milestones and evidence. | Proposed | F |
 | FC-018 | Student team management | Form and oversee authorized project teams. | Proposed | F |
@@ -166,7 +166,7 @@ HODs and explicitly delegated coordinators need department-scoped oversight. Sel
 | DH-011 | Curriculum progress | Review course coverage with source evidence. | Tested (approved topics covered by logged classes) | lib/course-delivery.ts, app/courses/[id], app/leadership/boards.tsx; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
 | DH-012 | CO/PO/PSO evidence | Map assessments to applicable approved outcome definitions. | Proposed | F |
 | DH-013 | Outcome-based education workflows | Review mappings, attainment measures and corrective actions. | Proposed | F |
-| DH-014 | Student support coordination | Assign and follow up appropriate academic support. | Proposed | F |
+| DH-014 | Student support coordination | Assign and follow up appropriate academic support. | Tested (HOD-coordinated support cases owned by department teachers) | db/022, lib/cases.ts, app/cases; tests/cases.test.ts, tests/cases.e2e.ts |
 | DH-015 | Department notices | Publish and retrieve notices within department scope. | Tested | R; tests/notices.test.ts |
 | DH-016 | Faculty development | Coordinate training and evidence. | Proposed | F |
 | DH-017 | Research projects | Track approved departmental projects and milestones. | Proposed | F |
@@ -189,7 +189,7 @@ Principal and authorized leaders need defensible institution-level decisions. Re
 | --- | --- | --- | --- | --- |
 | LE-001 | Institution dashboard | See stored counts of published assignments, submissions, published results and open requests. | Tested | R |
 | LE-002 | Department information | Review department profiles and defined comparisons. | Tested | lib/department.ts departmentComparison; tests/department.test.ts, tests/leadership.e2e.ts |
-| LE-003 | Academic progress | Track approved academic indicators by cohort. | Proposed | F |
+| LE-003 | Academic progress | Track approved academic indicators by cohort. | Tested (results, average score and attendance per term and section) | lib/department.ts cohortProgress, app/leadership/boards.tsx; tests/cases.test.ts, tests/cases.e2e.ts |
 | LE-004 | Quality indicators | Inspect defined quality measures and limitations. | Proposed | F |
 | LE-005 | Resource planning | Compare available resources to documented demand. | Proposed | F |
 | LE-006 | Financial oversight | Inspect explicitly authorized budget and expenditure reports. | Proposed | F |
@@ -249,14 +249,14 @@ Institution administrators, academic office and designated specialists manage ac
 | AD-014 | Scholarship administration | Check eligibility and route applications for authorized decisions. | Proposed | F |
 | AD-015 | Procurement | Request goods, compare proposals and record human authorization. | Proposed | F |
 | AD-016 | Administrative approvals | Route delegated decisions and record reasons. | Proposed | F |
-| AD-017 | Complaints and grievances | Confidential intake, assignment, escalation and resolution. | Proposed | F |
+| AD-017 | Complaints and grievances | Confidential intake, assignment, escalation and resolution. | Tested (student grievance intake, single owner, outcome, 7-day principal visibility) | db/022, lib/cases.ts, app/cases; tests/cases.test.ts, tests/cases.e2e.ts |
 | AD-018 | Staff work queues | Show actionable records only for the assigned office. | Tested (service requests) | db/019, lib/connected.ts assignRequest; tests/operations.test.ts, tests/operations.e2e.ts |
 | AD-019 | Delegated responsibilities | Assign bounded responsibilities with expiry and revocation. | Proposed | F |
-| AD-020 | Reusable workflow engine | Extract proven shared transitions, ownership and audit rules. | Proposed | F |
+| AD-020 | Reusable workflow engine | Extract proven shared transitions, ownership and audit rules. | Tested (shared case engine for two kinds: ownership, transitions, notes, audit, notifications) | db/022, lib/cases.ts, app/cases; tests/cases.test.ts, tests/cases.e2e.ts |
 | AD-021 | Institutional knowledge base | Publish approved, versioned, permission-scoped policies. | Proposed | F |
 | AD-022 | Audit viewer | Search authorized event metadata without exposing private payloads. | Tested | lib/reporting.ts auditEvents, app/audit; tests/operations.test.ts, tests/operations.e2e.ts |
 | AD-023 | Staff notifications | Deliver scoped work updates with retry and acknowledgement. | Tested (in-app only) | Request routing to active admins via outbox job; retry, dedupe, read acknowledgement. tests/automation.test.ts, tests/automation.e2e.ts. No email/WhatsApp channel. |
-| AD-024 | Operational reporting | Measure queue age, service resolution, rework and reopenings. | Tested (on-demand; no scheduled delivery) | lib/reporting.ts operationsReport; tests/operations.test.ts, tests/operations.e2e.ts |
+| AD-024 | Operational reporting | Measure queue age, service resolution, rework and reopenings. | Tested (on-demand 30-day report and a scheduled weekly in-app digest written by the worker) | lib/reporting.ts operationsReport latestDigest, lib/automation.ts deliverDigests; tests/operations.test.ts, tests/operations.e2e.ts, tests/cases.test.ts, tests/cases.e2e.ts |
 | AD-025 | Library desk | Authorize circulation, search and external library integration. | Proposed | F |
 | AD-026 | Laboratory staff | Manage inventory, access, maintenance and equipment issues. | Proposed | F |
 | AD-027 | Research administration | Track grants, approved disclosures and project milestones. | Proposed | F |

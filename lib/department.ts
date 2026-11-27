@@ -124,3 +124,37 @@ export async function escalatedRequests(scope: Scope) {
     GROUP BY r.institution_id,r.id,su.name,h.name ORDER BY (r.status IN ('submitted','in_progress')) DESC,min(n.created_at) DESC LIMIT 50`,
   [scope.institution, scope.account])).rows;
 }
+
+export type Cohort = { term: string; section: string; students: number; submissions: number; results: number; score: number | null;
+  present: number; marked: number };
+
+/** LE-003: academic indicators per term and section, using the same definitions as the department comparison.
+ * `score` is the mean percentage of each submission's latest published result. */
+export async function cohortProgress(scope: Scope) {
+  if (scope.role !== "principal") return [];
+  return (await db.query<Cohort>(`WITH latest AS (
+      SELECT DISTINCT ON (g.submission_id) o.term_id,o.section_id,g.marks,a.max_marks FROM grade g
+      JOIN submission sub ON (sub.institution_id,sub.id)=(g.institution_id,g.submission_id)
+      JOIN assignment a ON (a.institution_id,a.id)=(sub.institution_id,sub.assignment_id)
+      JOIN offering o ON (o.institution_id,o.id)=(a.institution_id,a.offering_id)
+      WHERE g.institution_id=$1 AND g.published_at IS NOT NULL ORDER BY g.submission_id,g.revision DESC),
+    marks AS (SELECT o.term_id,o.section_id,m.status FROM class_session cs
+      JOIN offering o ON (o.institution_id,o.id)=(cs.institution_id,cs.offering_id)
+      JOIN class_attendance_mark m ON (m.institution_id,m.session_id)=(cs.institution_id,cs.id)
+      WHERE cs.institution_id=$1 AND cs.state IN ('published','conducted')
+        AND m.revision=(SELECT max(revision) FROM class_attendance_revision v WHERE (v.institution_id,v.session_id)=(cs.institution_id,cs.id)))
+    SELECT t.name AS term,s.name AS section,count(DISTINCT r.account_id)::int AS students,
+      (SELECT count(*)::int FROM submission sub JOIN assignment a ON (a.institution_id,a.id)=(sub.institution_id,sub.assignment_id)
+        JOIN offering o2 ON (o2.institution_id,o2.id)=(a.institution_id,a.offering_id) WHERE o2.institution_id=$1 AND o2.term_id=t.id AND o2.section_id=s.id) AS submissions,
+      (SELECT count(*)::int FROM latest l WHERE l.term_id=t.id AND l.section_id=s.id) AS results,
+      (SELECT round(avg(100.0*l.marks/l.max_marks)::numeric,1)::float8 FROM latest l WHERE l.term_id=t.id AND l.section_id=s.id) AS score,
+      (SELECT count(*) FILTER (WHERE m.status='present')::int FROM marks m WHERE m.term_id=t.id AND m.section_id=s.id) AS present,
+      (SELECT count(*)::int FROM marks m WHERE m.term_id=t.id AND m.section_id=s.id) AS marked
+    FROM offering o
+    JOIN membership pm ON pm.institution_id=o.institution_id AND pm.account_id=$2 AND pm.role='principal' AND pm.ended_at IS NULL
+    JOIN academic_term t ON (t.institution_id,t.id)=(o.institution_id,o.term_id)
+    JOIN section s ON (s.institution_id,s.id)=(o.institution_id,o.section_id)
+    LEFT JOIN roster r ON (r.institution_id,r.offering_id)=(o.institution_id,o.id) AND r.role='student' AND r.ended_at IS NULL
+    WHERE o.institution_id=$1
+    GROUP BY t.id,t.name,s.id,s.name ORDER BY t.name,s.name`, [scope.institution, scope.account])).rows;
+}

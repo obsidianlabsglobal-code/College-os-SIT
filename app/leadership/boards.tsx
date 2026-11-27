@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { departmentComparison, departmentFaculty, departmentSections, escalatedRequests } from "../../lib/department";
-import { adminRequestSummary, departmentSummary, institutionSummary, operationsReport } from "../../lib/reporting";
+import { cohortProgress, departmentComparison, departmentFaculty, departmentSections, escalatedRequests } from "../../lib/department";
+import { adminRequestSummary, departmentSummary, institutionSummary, latestDigest, operationsReport, type Digest } from "../../lib/reporting";
 import { notifications } from "../../lib/automation";
 import { coursePlan, departmentDelivery } from "../../lib/course-delivery";
 import { ActionForm } from "../forms";
@@ -13,6 +13,23 @@ import styles from "./boards.module.css";
 
 const rate = (part: number, whole: number) => whole ? `${(100 * part / whole).toFixed(1)}%` : "—";
 const statusLabel: Record<string, string> = { submitted: "Awaiting review", in_progress: "In review", resolved: "Resolved", declined: "Declined" };
+
+/** AD-024: the latest weekly digest written by the worker. */
+function WeeklyDigest({ digest, timezone }: { digest: Digest | null; timezone: string }) {
+  return <section className="panel" aria-labelledby="digest-title">
+    <h2 id="digest-title">Weekly operations digest</h2>
+    {digest ? <>
+      <p className="meta">Week starting {digest.period_start} · prepared automatically {new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: timezone }).format(digest.generated_at)}</p>
+      <dl className="metrics" aria-label="Weekly digest">
+        <div><dt>Requests received</dt><dd>{digest.metrics.submitted}</dd></div>
+        <div><dt>Resolved · declined</dt><dd>{digest.metrics.resolved} · {digest.metrics.declined}</dd></div>
+        <div><dt>Open at week end</dt><dd>{digest.metrics.open_at_end}</dd></div>
+        <div><dt>Median resolution</dt><dd>{digest.metrics.median_resolution_hours === null ? "—" : `${digest.metrics.median_resolution_hours} h`}</dd></div>
+        <div><dt>Attendance · result corrections</dt><dd>{digest.metrics.attendance_corrections} · {digest.metrics.result_corrections}</dd></div>
+      </dl>
+    </> : <p>The first digest is prepared after 08:00 local time on Monday by the automation worker.</p>}
+  </section>;
+}
 
 /** HOD board: what needs department attention first, then who carries which work, then each section's record. */
 export async function HodBoard({ current }: { current: Scope }) {
@@ -105,8 +122,8 @@ export async function HodBoard({ current }: { current: Scope }) {
 
 /** Principal board: escalations and decisions first, then institution totals, then a like-for-like department comparison. */
 export async function PrincipalBoard({ current, timezone }: { current: Scope; timezone: string }) {
-  const [overview, departments, escalations, inbox] = await Promise.all([institutionSummary(current), departmentComparison(current),
-    escalatedRequests(current), notifications(current)]);
+  const [overview, departments, escalations, inbox, digest, cohorts] = await Promise.all([institutionSummary(current), departmentComparison(current),
+    escalatedRequests(current), notifications(current), latestDigest(current), cohortProgress(current)]);
   const query = workspaceQuery(current);
   const open = escalations.filter(row => row.status === "submitted" || row.status === "in_progress");
   const when = new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: timezone });
@@ -159,12 +176,23 @@ export async function PrincipalBoard({ current, timezone }: { current: Scope; ti
           <td>{rate(row.results, row.submissions)}</td><td>{rate(row.present, row.marked)}</td></tr>)}</tbody>
       </table></div> : <p>No departments are configured.</p>}
     </section>
+
+    <section className="panel" aria-labelledby="cohort-title">
+      <h2 id="cohort-title">Academic progress by cohort</h2>
+      <p className="meta">Per term and section. Average score is the mean percentage of each submission’s latest published result; attendance uses each class’s latest record.</p>
+      {cohorts.length ? <div className={`table-scroll ${styles.compare}`} role="region" aria-label="Cohort progress" tabIndex={0}><table>
+        <thead><tr><th scope="col">Term · section</th><th scope="col">Students</th><th scope="col">Results published</th><th scope="col">Average score</th><th scope="col">Attendance</th></tr></thead>
+        <tbody>{cohorts.map(row => <tr key={`${row.term}|${row.section}`}><th scope="row">{row.term} · {row.section}</th><td>{row.students}</td>
+          <td>{rate(row.results, row.submissions)}</td><td>{row.score === null ? "—" : `${row.score}%`}</td><td>{rate(row.present, row.marked)}</td></tr>)}</tbody>
+      </table></div> : <p>No cohorts yet.</p>}
+    </section>
+    <WeeklyDigest digest={digest} timezone={timezone} />
   </div>;
 }
 
 /** Admin board: the office's open work first, then routed items and tools, then the 30-day operations record. */
 export async function AdminBoard({ current, timezone }: { current: Scope; timezone: string }) {
-  const [summary, inbox, ops] = await Promise.all([adminRequestSummary(current), notifications(current), operationsReport(current)]);
+  const [summary, inbox, ops, digest] = await Promise.all([adminRequestSummary(current), notifications(current), operationsReport(current), latestDigest(current)]);
   const counts = summary ?? { submitted: 0, in_review: 0 };
   const query = workspaceQuery(current);
   const open = counts.submitted + counts.in_review;
@@ -211,5 +239,6 @@ export async function AdminBoard({ current, timezone }: { current: Scope; timezo
         <div><dt>Result corrections</dt><dd>{ops.grade_corrections_30d}</dd></div>
       </dl>
     </section>}
+    <WeeklyDigest digest={digest} timezone={timezone} />
   </div>;
 }

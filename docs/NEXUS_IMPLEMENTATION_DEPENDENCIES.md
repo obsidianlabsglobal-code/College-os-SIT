@@ -21,6 +21,8 @@ Attendance corrections (SA-021) are decided only by the class's current teacher 
 
 Course plans (DH-022 slice) are approved or returned only by an HOD of the course's department. Approval freezes the topics, and delivery logs can link only to approved topics. Reopening an approved plan is not implemented. Course materials are written by the offering's current teachers and read by its roster and department HOD. Mentors are assigned by an institution administrator; a replacement ends the previous pairing and its mentor loses access, while the records are kept. The executive report is principal-only.
 
+Cases (AD-020 slice) are one engine with per-kind authority. Support cases are opened by an HOD or teacher for a student on their rosters, assigned by the HOD to a teacher in that department, and hidden from the student. Grievances are opened by a student, triaged and owned by the administrative office, and shown to the principal only after 7 days open, without notes. Only the owner records an outcome. Other office workflows (enrollment letters, fees) have not been migrated onto the engine. The weekly digest runs inside the worker loop and needs no audit event.
+
 Source vocabulary has changed over time. The original eight product domains describe subject areas. Later OS names describe user workspaces that cross those areas. Retain both views, with shared identity and records. A prototype name confers no evidence of a working implementation. Operational GPS, model suggestions and policy-sensitive disclosure retain explicit gates.
 
 ## Change procedure

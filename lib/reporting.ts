@@ -89,3 +89,13 @@ export async function auditEvents(scope: Scope, filter: AuditFilter) {
     [scope.institution, scope.account, action, actor, from ?? null, to ?? null, (page - 1) * 50])).rows;
   return { rows: rows.slice(0, 50), more: rows.length > 50, page };
 }
+
+export type Digest = { period_start: string; generated_at: Date; metrics: { submitted: number; resolved: number; declined: number; open_at_end: number;
+  median_resolution_hours: number | null; attendance_corrections: number; result_corrections: number } };
+/** AD-024: the latest scheduled weekly digest, for current admins and the principal. */
+export async function latestDigest(scope: Scope) {
+  if (scope.role !== "admin" && scope.role !== "principal") return null;
+  return (await db.query<Digest>(`SELECT to_char(o.period_start,'YYYY-MM-DD') AS period_start,o.generated_at,o.metrics FROM operations_digest o
+    JOIN membership m ON m.institution_id=o.institution_id AND m.account_id=$2 AND m.role=$3 AND m.ended_at IS NULL
+    WHERE o.institution_id=$1 ORDER BY o.period_start DESC LIMIT 1`, [scope.institution, scope.account, scope.role])).rows[0] ?? null;
+}

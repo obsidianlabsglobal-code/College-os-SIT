@@ -127,6 +127,27 @@ const handlers: Record<string, (client: PoolClient, job: Job) => Promise<Result>
        JOIN course c ON c.institution_id=o.institution_id AND c.id=o.course_id
        WHERE k.institution_id=$1 AND k.id=$2 AND k.status<>'submitted' ON CONFLICT DO NOTHING`, [job.institution_id, job.entity_id, job.event_id]);
   },
+  async "case-assigned-notify"(client, job) {
+    const { rows: [k] } = await client.query<{ open: boolean; current: boolean }>(
+      `SELECT k.state IN ('open','in_progress') AS open, k.assigned_at <= e.occurred_at AS current
+       FROM case_record k JOIN audit_event e ON e.institution_id=k.institution_id AND e.id=$3
+       WHERE k.institution_id=$1 AND k.id=$2 AND k.assigned_to IS NOT NULL`, [job.institution_id, job.entity_id, job.event_id]);
+    if (!k?.open) return { skip: "handled" };
+    if (!k.current) return { skip: "superseded" };
+    return notify(client,
+      `INSERT INTO notification (institution_id,recipient_id,event_id,kind,entity_id,title)
+       SELECT k.institution_id,k.assigned_to,$3::bigint,'case',k.id,CASE k.kind WHEN 'grievance' THEN 'Student grievance assigned to you' ELSE 'Student support case assigned to you' END
+       FROM case_record k WHERE k.institution_id=$1 AND k.id=$2 ON CONFLICT DO NOTHING`, [job.institution_id, job.entity_id, job.event_id]);
+  },
+  async "case-closed-notify"(client, job) {
+    // Titles carry no case contents; the reader opens the case under its own access rules.
+    return notify(client,
+      `INSERT INTO notification (institution_id,recipient_id,event_id,kind,entity_id,title)
+       SELECT k.institution_id,k.opened_by,$3::bigint,'case',k.id,
+         CASE k.kind WHEN 'grievance' THEN 'Your grievance has been ' ELSE 'Support case ' END || k.state
+       FROM case_record k WHERE k.institution_id=$1 AND k.id=$2 AND k.state IN ('resolved','declined') AND k.opened_by<>
+         (SELECT actor_id FROM audit_event WHERE id=$3) ON CONFLICT DO NOTHING`, [job.institution_id, job.entity_id, job.event_id]);
+  },
   async "request-sla-escalate"(client, job) {
     const { rows: [r] } = await client.query<{ status: string; created_at: Date; now: Date }>(
       "SELECT status,created_at,clock_timestamp() AS now FROM service_request WHERE institution_id=$1 AND id=$2", [job.institution_id, job.entity_id]);
@@ -151,8 +172,30 @@ const category = (error: unknown) => {
 const held = `EXISTS (SELECT 1 FROM automation_setting s WHERE s.institution_id=j.institution_id AND s.rule_key=j.rule_key AND s.state<>'active')`;
 
 /** Claim a bounded batch with a lease, then run each job in its own fenced transaction. */
+/** AD-024: once per institution-local week, after Monday 08:00, record the previous full week's operations digest.
+ * Idempotent: the period is the key, so every worker run after the boundary is a no-op until next week. */
+export async function deliverDigests() {
+  return (await db.query(`INSERT INTO operations_digest (institution_id,period_start,metrics)
+    SELECT i.id,w.this_week-7,jsonb_build_object(
+      'submitted',(SELECT count(*) FROM service_request r WHERE r.institution_id=i.id AND r.created_at>=w.from_at AND r.created_at<w.to_at),
+      'resolved',(SELECT count(*) FROM service_request r WHERE r.institution_id=i.id AND r.status='resolved' AND r.closed_at>=w.from_at AND r.closed_at<w.to_at),
+      'declined',(SELECT count(*) FROM service_request r WHERE r.institution_id=i.id AND r.status='declined' AND r.closed_at>=w.from_at AND r.closed_at<w.to_at),
+      'open_at_end',(SELECT count(*) FROM service_request r WHERE r.institution_id=i.id AND r.created_at<w.to_at AND (r.closed_at IS NULL OR r.closed_at>=w.to_at)),
+      'median_resolution_hours',(SELECT round((percentile_cont(0.5) WITHIN GROUP (ORDER BY extract(epoch FROM r.closed_at-r.created_at)/3600))::numeric,1)
+        FROM service_request r WHERE r.institution_id=i.id AND r.closed_at>=w.from_at AND r.closed_at<w.to_at),
+      'attendance_corrections',(SELECT count(*) FROM class_attendance_revision v WHERE v.institution_id=i.id AND v.revision>1 AND v.recorded_at>=w.from_at AND v.recorded_at<w.to_at),
+      'result_corrections',(SELECT count(*) FROM grade g WHERE g.institution_id=i.id AND g.revision>1 AND g.published_at>=w.from_at AND g.published_at<w.to_at))
+    FROM institution i
+    CROSS JOIN LATERAL (SELECT date_trunc('week',clock_timestamp() AT TIME ZONE i.timezone)::date AS this_week) d
+    CROSS JOIN LATERAL (SELECT d.this_week,(d.this_week-7)::timestamp AT TIME ZONE i.timezone AS from_at,
+      d.this_week::timestamp AT TIME ZONE i.timezone AS to_at) w
+    WHERE clock_timestamp() AT TIME ZONE i.timezone >= d.this_week + interval '8 hours'
+    ON CONFLICT DO NOTHING`)).rowCount ?? 0;
+}
+
 export async function runJobs({ worker = "local", limit = 20, leaseSeconds = 60 } = {}) {
   await db.query("INSERT INTO worker_heartbeat (worker,seen_at) VALUES ($1,clock_timestamp()) ON CONFLICT (worker) DO UPDATE SET seen_at=EXCLUDED.seen_at", [worker]);
+  await deliverDigests();
   const { rows: claimed } = await db.query<Job>(
     `WITH next AS (SELECT j.id FROM job j WHERE ((j.status='queued' AND j.run_after<=clock_timestamp()) OR (j.status='running' AND j.lease_until<clock_timestamp()))
        AND NOT ${held} ORDER BY j.run_after,j.id LIMIT $1 FOR UPDATE SKIP LOCKED)
@@ -195,7 +238,8 @@ export async function runJobs({ worker = "local", limit = 20, leaseSeconds = 60 
 }
 
 const roleKinds: Record<Scope["role"], string[]> = {
-  student: ["assignment", "reminder", "result", "class", "correction"], faculty: ["attendance", "correction"], admin: ["request", "followup"], principal: ["escalation"], hod: [],
+  student: ["assignment", "reminder", "result", "class", "correction", "case"], faculty: ["attendance", "correction", "case"],
+  admin: ["request", "followup", "case"], principal: ["escalation"], hod: ["case"],
 };
 
 /** Inbox read model. Access is re-checked at read time, so a revoked roster, grant or withdrawn record hides the item. */
@@ -222,6 +266,9 @@ export async function notifications(current: Scope) {
            JOIN roster r ON r.institution_id=s.institution_id AND r.offering_id=s.offering_id AND r.account_id=n.recipient_id AND r.ended_at IS NULL
            WHERE k.institution_id=n.institution_id AND k.id=n.entity_id
              AND ((r.role='student' AND k.student_id=n.recipient_id) OR (r.role='faculty' AND s.faculty_id=n.recipient_id)))
+         WHEN n.kind='case' THEN EXISTS (
+           SELECT 1 FROM case_record k WHERE k.institution_id=n.institution_id AND k.id=n.entity_id
+             AND (k.assigned_to=n.recipient_id OR k.opened_by=n.recipient_id))
          ELSE EXISTS (SELECT 1 FROM service_request q WHERE q.institution_id=n.institution_id AND q.id=n.entity_id)
        END
      ORDER BY n.created_at DESC LIMIT 20`,

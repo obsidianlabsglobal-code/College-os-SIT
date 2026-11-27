@@ -10,7 +10,7 @@ import styles from "./automation.module.css";
 
 const authority: Record<string, string> = { L0: "Read only", L1: "Prepares drafts only", L2: "Runs after confirmation", L3: "Pre-authorized, low risk" };
 const workflows: Record<string, string> = { attendance: "Attendance communication", assignments: "Assignment coordination",
-  results: "Results communication", requests: "Administrative requests", timetable: "Timetable change coordination" };
+  results: "Results communication", requests: "Administrative requests", timetable: "Timetable change coordination", cases: "Cases and grievances" };
 const stateLabel: Record<string, string> = { active: "Active", paused: "Paused · work is held", disabled: "Disabled · new events ignored" };
 
 export default async function AutomationCentre({ searchParams }: { searchParams: Promise<{ institution?: string; role?: string }> }) {
