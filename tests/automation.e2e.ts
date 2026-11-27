@@ -29,9 +29,11 @@ test("a published assignment reaches the student inbox through the worker, and a
   const deadline = new Intl.DateTimeFormat("sv-SE", { dateStyle: "short", timeStyle: "short", timeZone: "Asia/Kolkata" })
     .format(new Date(Date.now() + 30 * 86_400_000)).replace(" ", "T");
   const title = `Inbox check ${randomUUID().slice(0, 8)}`;
+  const drain = async () => { for (let batch = 0; batch < 50 && Object.values(await runJobs({ worker: "e2e" })).some(Boolean); batch++); };
+  await drain();  // earlier suites' work first, so their notifications cannot push this one out of the six-item panel
   const id = await createAssignment(teacher, { offering: f.offering, title, description: "Fictional.", deadline, marks: 10, file: null });
   await publishAssignment(teacher, id);
-  for (let batch = 0; batch < 50 && Object.values(await runJobs({ worker: "e2e" })).some(Boolean); batch++);  // drain earlier suites' work
+  await drain();
 
   await signIn(page, "student");
   const inbox = page.getByRole("region", { name: "For you" });
