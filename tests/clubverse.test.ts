@@ -1,3 +1,4 @@
+// covers: ID-004, ID-006, SL-001, CL-001, CL-018, CL-019, CL-021, CL-022, CL-023, CL-029, CL-030, CL-031, CL-038, CL-041
 import "../scripts/environment";
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";

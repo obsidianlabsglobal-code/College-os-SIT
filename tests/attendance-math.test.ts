@@ -1,3 +1,4 @@
+// covers: SA-008
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { classesNeeded, classesSpare } from "../lib/attendance-math";

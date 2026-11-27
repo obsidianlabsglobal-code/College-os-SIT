@@ -1,3 +1,4 @@
+// covers: ID-001, ID-002, ID-003, ID-004, ID-005, SA-001, SA-003, SA-004, SA-011, SA-012, SA-013, SA-014, SA-020, SL-001, SL-008, SL-012, FC-002, FC-007, FC-012, FC-013, FC-026, DH-001, DH-010, LE-001, AD-001, AD-003, AD-004, AD-006, AD-007, AD-010, CL-001, CL-017, CL-018, CL-019, CL-021, CL-022, CL-029, CL-030, CL-031, CL-038, CL-041, CL-043, AI-004, AI-006, AI-007, AI-008
 import { openWorkflow } from "./workspace-navigation";
 import { expect, test, type Page } from "@playwright/test";
 import { randomUUID } from "node:crypto";

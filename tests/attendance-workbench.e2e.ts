@@ -1,3 +1,4 @@
+// covers: ID-004, FC-005
 import {expect,test,type Page} from "@playwright/test";
 import {randomUUID} from "node:crypto";
 import {Client} from "pg";

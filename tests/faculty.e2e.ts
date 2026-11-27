@@ -1,3 +1,4 @@
+// covers: ID-004, FC-001, FC-007, FC-011, FC-012, FC-013
 import { expect, test, type Page } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { demoEmail, demoPassword, fixtures } from "../scripts/fixtures";

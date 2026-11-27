@@ -1,3 +1,4 @@
+// covers: ID-004, ID-006, CL-035, OP-008
 import "../scripts/environment";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";

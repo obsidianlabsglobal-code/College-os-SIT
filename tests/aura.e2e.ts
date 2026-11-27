@@ -1,3 +1,4 @@
+// covers: AI-001, AI-003
 import { expect, test, type Page } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { demoEmail, demoPassword, fixtures } from "../scripts/fixtures";

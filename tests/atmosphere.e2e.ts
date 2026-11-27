@@ -1,3 +1,4 @@
+// covers: ID-005, SA-001, SA-005
 import { expect, test } from "@playwright/test";
 import { demoEmail, demoPassword } from "../scripts/fixtures";
 

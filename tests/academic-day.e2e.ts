@@ -1,3 +1,4 @@
+// covers: ID-004, SA-001, SA-005, SA-006, SA-008, SA-009, FC-004, FC-005, AI-003
 import "../scripts/environment";
 import { expect,test,type Page } from "@playwright/test";
 import { randomUUID } from "node:crypto";
