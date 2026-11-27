@@ -1,7 +1,7 @@
 {
- "commit": "f6c0ade745c8021a4eb0785d1bc961dedc8afa42",
+ "commit": "103ab35382fb48300d1686d5a2b3c6617f3e51ae",
  "uncommitted_source_changes": false,
- "recorded_at": "2026-11-27T18:03:27+00:00",
+ "recorded_at": "2026-11-27T18:28:38+00:00",
  "environment": "local fresh PostgreSQL, fictional data, headless Chromium",
  "files": {
   "tests/academic-assistant.test.ts": {
@@ -88,6 +88,14 @@
    "passed": 1,
    "failed": 0
   },
+  "tests/delegation-certificates.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/delegation-certificates.test.ts": {
+   "passed": 5,
+   "failed": 0
+  },
   "tests/department.test.ts": {
    "passed": 4,
    "failed": 0
@@ -150,6 +158,14 @@
   },
   "tests/learning-records.test.ts": {
    "passed": 5,
+   "failed": 0
+  },
+  "tests/meetings-portfolio.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/meetings-portfolio.test.ts": {
+   "passed": 4,
    "failed": 0
   },
   "tests/notices.test.ts": {

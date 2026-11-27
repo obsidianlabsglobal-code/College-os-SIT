@@ -347,3 +347,28 @@ Observed, fresh local PostgreSQL in CI order at f6c0ade:
 Traceability: 109 functionally tested (local), 24 partial, 8 unverified, 13 blocked, 326 missing.
 
 Handoff: `docs/handoff/NEXUS_CODEX_HANDOFF.pdf` (and its HTML source) splits the next work between Claude and Codex, with reserved migration ranges.
+
+## 2026-11-27 — Batches 9–10 (Claude track): delegation, certificates, student life, meetings, scenarios
+
+Implemented (commits 3dfef75, 69e1965 and 103ab35; `db/028`, `db/029`):
+- **Delegated duties (AD-019, ID-008 slice):**
+  - Admins lend the exam cell or the institution calendar to a faculty member or HOD for 1–365 days, and can revoke early.
+  - Exams and calendar checks accept a live delegation in the delegate's own role. A revoked or expired duty grants nothing.
+- **Certificates (AD-011, AD-012):**
+  - Bonafide, attendance and results certificates are drafted from current records, with their sources listed.
+  - An admin issues each one with a 12-character verification code, and can revoke it with a reason.
+  - Public `/verify` shows only the type, institution, date, status and holder initials.
+- **Student life:**
+  - Study groups (SL-014): opt-in, limited to the course roster and a capacity.
+  - Profile (SL-009): visibility is private, teachers (including the mentor) or classmates.
+  - Portfolio (SL-013): only the student's own verified records, shared by the same visibility.
+- **Meetings (FC-027):** invited staff only. The organizer records minutes after the start and assigns actions to participants; owners close their own actions.
+- **Representation issues (SL-016):** a sixth case kind on the shared engine. Every current student can read an issue and support it once; the office owns the response.
+- **Decision simulation (LE-018 slice):** principal-only and read-only. Compares a proposed attendance minimum with the approved one, per section, on the same records, with the assumptions stated.
+- **Test update:** admins now reach `/calendar` (they manage institution dates). The earlier test expected 404 and now checks the principal instead.
+
+Observed, fresh local PostgreSQL in CI order at 103ab35:
+- migrate ×2 + seed, lint, typecheck, build: all passed.
+- 127/127 PostgreSQL and unit tests, 50/50 Chromium, 1/1 tutor (188 files).
+
+Traceability: 113 functionally tested (local), 30 partial, 8 unverified, 13 blocked, 316 missing.

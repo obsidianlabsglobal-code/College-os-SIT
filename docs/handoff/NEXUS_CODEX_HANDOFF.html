@@ -14,15 +14,15 @@ pre { font: 8.6pt/1.35 Menlo, Consolas, monospace; background: #f4f5f8; padding:
 </style></head><body>
 
 <h1>NEXUS College OS — Engineering handoff</h1>
-<p class="meta">For Codex and any engineer joining. Prepared 27 Nov 2026 from branch <code>audit/nexus-engineering-audit</code> (draft PR obsidianlabsglobal-code/College-os-SIT#17), head <code>f6c0ade</code>. Fictional data only. Nothing is merged to <code>main</code> or deployed.</p>
+<p class="meta">For Codex and any engineer joining. Prepared 27 Nov 2026 from branch <code>audit/nexus-engineering-audit</code> (draft PR obsidianlabsglobal-code/College-os-SIT#17), head <code>103ab35</code>. Fictional data only. Nothing is merged to <code>main</code> or deployed.</p>
 
 <div class="box">
-<span class="kpi"><b>109</b>registry rows fully tested</span>
-<span class="kpi"><b>24</b>partly done</span>
-<span class="kpi"><b>326</b>not started (of 480)</span>
-<span class="kpi"><b>118 / 48 / 1</b>DB · browser · tutor tests passing</span>
+<span class="kpi"><b>113</b>registry rows fully tested</span>
+<span class="kpi"><b>30</b>partly done</span>
+<span class="kpi"><b>316</b>not started (of 480)</span>
+<span class="kpi"><b>127 / 50 / 1</b>DB · browser · tutor tests passing</span>
 <span class="kpi"><b>~36 / 100</b>honest overall estimate</span>
-<p class="meta">Recorded on a freshly wiped local PostgreSQL at <code>f6c0ade</code> in CI order (177 test files passed, 0 failed; <code>docs/evidence/test-run.json</code>). 8 rows are implemented but unverified and 13 are blocked by real dependencies. Production readiness and the 90% effort goal remain 0 until founder gates open (section 9).</p>
+<p class="meta">Recorded on a freshly wiped local PostgreSQL at <code>103ab35</code> in CI order (188 test files passed, 0 failed; <code>docs/evidence/test-run.json</code>). 8 rows are implemented but unverified and 13 are blocked by real dependencies. Production readiness and the 90% effort goal remain 0 until founder gates open (section 9).</p>
 </div>
 
 <h2>1. What NEXUS is and how to work in it</h2>
@@ -59,7 +59,7 @@ npx playwright test -c playwright.tutor.config.ts --trace off</pre>
 <div class="box warn"><b>Use a freshly wiped database for recorded evidence.</b> Tests clean up after themselves, but accumulated fictional data from many runs can exceed fixed UI limits (the six-item inbox; a row-limited AURA list). One known order-dependent test remains: <code>tests/aura-runtime.test.ts</code> "read history refreshes…" can fail on a heavily reused DB. Recorded runs in this branch were all on a fresh DB in CI order: migrate ×2, seed, lint, typecheck, build, node tests, Chromium, tutor.</div>
 <p>Personas (password in <code>scripts/fixtures.ts</code>, all <code>@nexus.example.invalid</code>): student Asha Sen, outsider Neel Das (same department, other section), faculty Riya Rao, replacement faculty Rohan Roy (no roster by default), HOD Dev Iyer (ECE), admin Mira Bose, principal Leela Varma, tenant Ira Mehta (second institution).</p>
 
-<h2 class="break">4. What was built in this session (migrations 019–027)</h2>
+<h2 class="break">4. What was built in this session (migrations 019–029)</h2>
 <table>
 <tr><th>Area</th><th>Files</th><th>Registry IDs</th><th>Key rules</th></tr>
 <tr><td>Department &amp; leadership boards</td><td>lib/department.ts, app/leadership/boards.tsx</td><td>DH-002/003/006/009, LE-002/003/009, FC-019</td><td>HOD and faculty share one workload definition; attendance uses each class's latest revision; principal sees escalations and grievances &gt;7 days.</td></tr>
@@ -77,6 +77,10 @@ npx playwright test -c playwright.tutor.config.ts --trace off</pre>
 <tr><td>Question bank</td><td>lib/question-bank.ts, app/questions</td><td>FC-009, FC-008</td><td>Versioned, private or department-shared; composes a private draft assignment.</td></tr>
 <tr><td>Development, research, operations</td><td>db/026, lib/faculty-records.ts, app/growth</td><td>FC-025, DH-016/017, FC-021, LE-012/015/005, AD-008</td><td>HOD verifies records and approves projects with disclosure; campus repairs and room use for principal; catalog name corrections with history.</td></tr>
 <tr><td>My work</td><td>lib/work.ts, app/work</td><td>AD-018</td><td>One queue per role built only from each workflow's own read model.</td></tr>
+<tr><td>Delegated duties</td><td>db/028, lib/delegation.ts, app/admin</td><td>AD-019, ID-008</td><td>Exam cell / calendar lent to staff with expiry and revocation; checks use <code>holdsDuty()</code>.</td></tr>
+<tr><td>Certificates</td><td>lib/certificates.ts, app/certificates, app/verify</td><td>AD-011, AD-012</td><td>Drafted from records with sources; issued with a code; public verify shows initials only.</td></tr>
+<tr><td>Student life</td><td>lib/student-life.ts, app/groups, app/profile</td><td>SL-009, SL-013, SL-014</td><td>Opt-in study groups; profile visibility; portfolio of verified records.</td></tr>
+<tr><td>Meetings, scenarios, representation</td><td>db/029, lib/meetings.ts, app/meetings, app/decisions, lib/cases.ts</td><td>FC-027, LE-018, SL-016</td><td>Participant-only meetings with actions; read-only attendance scenarios; sixth case kind with student support.</td></tr>
 </table>
 <p>The engineering ledger (<code>docs/NEXUS_ENGINEERING_LEDGER.md</code>) has one dated entry per batch with commits, decisions, observed results and the bugs caught. Authority decisions are recorded in <code>docs/NEXUS_IMPLEMENTATION_DEPENDENCIES.md</code> → "Coordination decisions".</p>
 
@@ -91,14 +95,14 @@ npx playwright test -c playwright.tutor.config.ts --trace off</pre>
 </ul>
 
 <h2 class="break">6. Work split so Claude and Codex do not collide</h2>
-<div class="box"><b>Coordination rules.</b> (1) Each agent works on its own branch cut from <code>audit/nexus-engineering-audit</code> and rebases daily; never force-push shared branches, never push to <code>main</code>. (2) Migration numbers are reserved: <b>Claude 028–039</b>, <b>Codex 040–059</b>; a migration must not depend on the other range. Never edit an applied migration. (3) One owner per file area below; touching the other's area needs a note in the ledger. (4) Every change adds <code>// covers:</code> tests, updates the registry row, and records a fresh-DB run.</div>
+<div class="box"><b>Coordination rules.</b> (1) Each agent works on its own branch cut from <code>audit/nexus-engineering-audit</code> and rebases daily; never force-push shared branches, never push to <code>main</code>. (2) Migration numbers are reserved: <b>Claude 028–039</b> (028–029 used), <b>Codex 040–059</b>; a migration must not depend on the other range. Never edit an applied migration. (3) One owner per file area below; touching the other's area needs a note in the ledger. (4) Every change adds <code>// covers:</code> tests, updates the registry row, and records a fresh-DB run.</div>
 <table>
 <tr><th>Track</th><th>Owner</th><th>Registry IDs</th><th>Files it may change</th></tr>
 <tr><td>Outcome-based education: rubrics with criteria, CO/PO mapping, attainment, concept analysis</td><td><b>Codex</b></td><td>FC-010, FC-014, DH-012, DH-013, SA-019, FC-008 (concepts)</td><td>new <code>lib/outcomes.ts</code>, grading UI hooks in <code>app/grading</code>, <code>app/assignments</code>; db 040+</td></tr>
 <tr><td>Sports module (teams, trials, fixtures, results, standings)</td><td><b>Codex</b></td><td>SP-001–SP-024</td><td>new <code>lib/sports.ts</code>, <code>app/sports</code>; db 04x</td></tr>
 <tr><td>Quality pass: accessibility scan, visual baselines, pagination, course page performance</td><td><b>Codex</b></td><td>ID-005 hardening, debt items</td><td>tests, CSS modules, pagination helpers</td></tr>
-<tr><td>Office workflows onto the case engine; delegation with expiry; certificates; onboarding</td><td><b>Claude</b></td><td>AD-020 (full), AD-019, AD-011, AD-002, ID-008</td><td><code>lib/cases.ts</code>, <code>lib/connected.ts</code>, fees libs, <code>app/admin</code>; db 028+</td></tr>
-<tr><td>Student life and profile (portfolio, study groups, preferences, representation)</td><td><b>Claude</b></td><td>SL-009, SL-010, SL-013, SL-014, SL-016</td><td>new <code>lib/student-life.ts</code>, <code>app/student</code></td></tr>
+<tr><td>Office workflows onto the case engine; onboarding (delegation and certificates done)</td><td><b>Claude</b></td><td>AD-020 (full), AD-002</td><td><code>lib/cases.ts</code>, <code>lib/connected.ts</code>, fees libs, <code>app/admin</code>; db 028+</td></tr>
+<tr><td>Student life: preferences, support discovery (portfolio, groups, profile, representation done)</td><td><b>Claude</b></td><td>SL-010, SL-015</td><td>new <code>lib/student-life.ts</code>, <code>app/student</code></td></tr>
 <tr><td>CLUBVERSE items (CL-*)</td><td>Neither on this branch</td><td>CL-*</td><td>Only on the CLUBVERSE branch per AGENTS.md</td></tr>
 <tr><td>AURA / AI tutoring (PL-*, *-AURA)</td><td>Blocked</td><td>PL-*, FC-029, DH-027, LE-020</td><td>Fixture-only until a key and spending cap are approved</td></tr>
 </table>
