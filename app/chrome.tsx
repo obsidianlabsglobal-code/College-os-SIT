@@ -10,6 +10,7 @@ import { signOut } from "./actions/session";
 import { WorkspaceNavigation } from "./workspace-navigation";
 import { chooseWorkspace } from "./actions/workspace";
 import { workspaces, workspaceQuery, type Scope } from "../lib/scope";
+import { feesPreviewAvailable } from "../lib/fees-preview";
 
 export const roleLabels = {
   student: "Student",
@@ -19,8 +20,9 @@ export const roleLabels = {
   principal: "Principal",
 } satisfies Record<Scope["role"], string>;
 
-type Destination = "/automation" | "/opportunities" | "/" | "/grading" | "/notices" | "/requests" | "/admin" | "/clubverse" | "/aura" | "/timetable";
+type Destination = "/automation" | "/fees" | "/opportunities" | "/" | "/grading" | "/notices" | "/requests" | "/admin" | "/clubverse" | "/aura" | "/timetable";
 const labels: Record<Destination, string> = {
+  "/fees": "Fees & dues",
   "/opportunities": "Opportunities",
   "/": "Today",
   "/timetable": "Timetable",
@@ -34,6 +36,7 @@ const labels: Record<Destination, string> = {
 };
 
 const icons: Record<Destination, ComponentProps<typeof Icon>["name"]> = {
+  "/fees": "service",
   "/opportunities": "service",
   "/": "home", "/timetable": "calendar", "/grading": "check", "/notices": "notice", "/clubverse": "people",
   "/aura": "spark", "/automation": "spark", "/requests": "service", "/admin": "book",
@@ -42,7 +45,7 @@ const icons: Record<Destination, ComponentProps<typeof Icon>["name"]> = {
 const dock: Destination[] = ["/", "/timetable", "/aura", "/clubverse", "/notices", "/requests", "/opportunities"];
 
 export async function Chrome({ user, current, section = "/", children }: {
-  user: { id: string; name: string };
+  user: { id: string; name: string; email?: string };
   current: Scope | null;
   section?: Destination;
   children: ReactNode;
@@ -61,6 +64,8 @@ export async function Chrome({ user, current, section = "/", children }: {
   if (current?.role === "student" || current?.role === "faculty") destinations.push("/aura");
   // Design Bible student dock: Today, Timetable (learn), AURA, Campus first; the rest sit under More.
   if (current?.role === "student") destinations.sort((a, b) => dock.indexOf(a) - dock.indexOf(b));
+
+  if (current && feesPreviewAvailable(current,user)) destinations.push("/fees");
 
   return <div className={current ? "app-shell" : "app-shell app-shell-single"}>
     <header className="app-top">

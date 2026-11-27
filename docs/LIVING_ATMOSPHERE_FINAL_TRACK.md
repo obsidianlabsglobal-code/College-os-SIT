@@ -8,11 +8,11 @@ The continuation branch starts from the tested pilot and roster-preview line tha
 | --- | --- | --- |
 | Design system | Shared tokens, responsive shell, theme control and scoped navigation | Review every primary route in light/dark and reduced motion; check keyboard, screen readers, Kannada and long content |
 | Student Today | Scoped priority, timeline, source-backed metrics, assignment and feedback links, AURA lookup; this pass adds Focus mode and the reference hierarchy | Compare real desktop/mobile renders and run a student/guide trial |
-| Faculty Mission Control | Assigned teaching and evaluation queues | Compare with faculty layout and verify draft vs publication and authentic evaluation data |
+| Faculty Mission Control | Reference-style priority panel, today’s authorized teaching timeline, source-backed queue cards and contextual AURA | Manual faculty rehearsal; later design review of advanced grading interactions |
 | HOD | Scoped department view | Validate metrics and reporting coverage against definitions and sample data |
 | Principal | Institutional aggregate workspace | Validate metric provenance, privacy and decision workflows |
 | Administration | Academic setup, role-scoped controls and isolated fictional roster preview | Finish verified Google roster identity flow and separately approve privileged onboarding |
-| Timetable & Attendance | Scoped schedule and attendance | Compare day/week, phone and reduced-motion states; assess official policy and lab-subgroup gaps |
+| Timetable & Attendance | Responsive schedule and attendance workspace; day/week navigation retains the selected date and visible class; student forecast remains read-only | Rehearse the actual department timetable. Official policy, lab subgroups and correction requests remain separate |
 | AURA | Authorized deterministic actions and receipts; no provider calls needed for core flows | Review approval and receipt UX end to end; paid providers stay off |
 | CLUBVERSE | Club and booking workflows | Review role grants, event drafts, booking conflicts and room confirmation evidence |
 | Opportunities | Staff-curated records | Review provenance, expiry and withdrawn/empty states |

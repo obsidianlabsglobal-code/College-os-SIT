@@ -58,6 +58,17 @@ test("faculty mission control leads from pending work through the evaluation que
   await signOut(page);
 
   await signIn(page, "faculty");
+  const cards = page.getByRole("navigation", { name: "Teaching overview" });
+  await expect(cards.getByRole("link")).toHaveCount(4);
+  await expect(cards.getByRole("link",{name:/Pending evaluations/})).toHaveAttribute("href",/\/grading\?.*role=faculty.*status=pending/);
+  await expect(cards.getByRole("link",{name:/Private feedback drafts/})).toHaveAttribute("href",/\/grading\?.*role=faculty.*status=awaiting/);
+  if (process.env.NEXUS_ACADEMIC_SCREENSHOTS) {
+    for (const width of [390,1440]) {
+      await page.setViewportSize({width,height:900});
+      expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(width);
+      await page.screenshot({path:`${process.env.NEXUS_ACADEMIC_SCREENSHOTS}/faculty-${width}.png`,fullPage:true});
+    }
+  }
   const progress = page.getByRole("region", { name: "Assignment progress" }).getByRole("listitem").filter({ hasText: title });
   await expect(progress.getByText(/1 of \d+ enrolled students? submitted/)).toBeVisible();
   await progress.getByRole("link", { name: "1 awaiting evaluation" }).click();
