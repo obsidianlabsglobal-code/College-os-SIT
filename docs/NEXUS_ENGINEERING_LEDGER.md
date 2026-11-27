@@ -85,3 +85,21 @@ Read all 55 pages of `NEXUS_Backend_Integration_and_Automation_Blueprint.pdf`. R
 - **Verified (fresh DB, CI order):** migrate ×2 + seed ✓, lint ✓, typecheck ✓, build ✓, PostgreSQL+unit 69/69, Chromium 31/31, tutor 1/1. Automation browser test passed 3/3 consecutive runs after fixing a reload race.
 - **Known UI debt.** The faculty home shows two "Teaching priorities" sections after the merge (to be fixed in the faculty structural redesign).
 - **Not done yet (next packages):** periodic institutional reports (needs schedule occurrences without an audit event), reusable office workflow engine (AD-020), structural redesigns of faculty/HOD/principal/admin, command palette and sheets, AURA ledger unification.
+
+## 2026-11-27 — Progress push toward 30: institutional boards, office operations, linked evidence
+
+Implemented (commit 66574f2):
+- HOD board: workload, section rosters and attendance. Principal board: escalations with decisions, department comparison. Faculty home gets a workload line; the duplicated "Teaching priorities" heading is fixed. The reports live in `lib/department.ts`; HOD and faculty share one workload definition.
+- Request ownership: `db/019`, `assignRequest`, and the "mine", "unassigned" and "all" queue views. Only the owner can advance a request, and starting review claims it. The new rule `request-assigned-notify` uses the existing outbox; a superseded assignment is skipped.
+- Audit viewer (`/audit`): admin only, metadata only, filters validated with Zod.
+- 30-day operations report (`operationsReport`) on the admin home: queue age, median resolution, and attendance and result corrections. On demand only; no scheduled delivery yet.
+- Student assessment history (`/history`): shows only the latest published result.
+- New tests: notices, internships and competitions, department, operations and history (PostgreSQL); leadership and operations (Chromium).
+
+Observed: a fresh DB in CI order passed migrate ×2, seed, lint, typecheck and build; 81/81 PostgreSQL and unit tests, 33/33 Chromium, 1/1 tutor. Recorded in `docs/evidence/test-run.json` (66574f2, 125 files passed).
+
+Recovery: a worker started before this change marked two jobs `unknown_handler`. After restarting the worker they were retried and correctly skipped because the requests had closed.
+
+Traceability: 69 functionally tested (local), 14 partial, 0 claims without evidence, 8 unverified, 13 blocked, 376 missing.
+
+Not done: academic calendar (SA-010), scheduled periodic reports, the reusable workflow engine (AD-020), admin home structural redesign, command palette, and AURA unification.

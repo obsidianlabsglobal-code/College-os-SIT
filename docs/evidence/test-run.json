@@ -1,7 +1,7 @@
 {
- "commit": "da0ee077e93308a9aeef7ac82b515760e7cc3135",
+ "commit": "66574f293390b8f46a594161ac08faedb28bb26e",
  "uncommitted_source_changes": false,
- "recorded_at": "2026-11-27T11:08:32+00:00",
+ "recorded_at": "2026-11-27T13:06:02+00:00",
  "environment": "local fresh PostgreSQL, fictional data, headless Chromium",
  "files": {
   "tests/academic-assistant.test.ts": {
@@ -64,6 +64,10 @@
    "passed": 1,
    "failed": 0
   },
+  "tests/department.test.ts": {
+   "passed": 4,
+   "failed": 0
+  },
   "tests/faculty.e2e.ts": {
    "passed": 3,
    "failed": 0
@@ -92,12 +96,32 @@
    "passed": 10,
    "failed": 0
   },
+  "tests/history.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/leadership.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/notices.test.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/operations.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/operations.test.ts": {
+   "passed": 4,
+   "failed": 0
+  },
   "tests/opportunities.e2e.ts": {
    "passed": 1,
    "failed": 0
   },
   "tests/opportunities.test.ts": {
-   "passed": 1,
+   "passed": 2,
    "failed": 0
   },
   "tests/prepared-messages.e2e.ts": {

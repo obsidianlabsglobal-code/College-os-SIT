@@ -56,7 +56,7 @@ Students locate authoritative course work and deadlines for their enrollment. St
 | SA-014 | Feedback | Read own published feedback while draft grades remain private. | Tested | R |
 | SA-015 | Internal examinations | Find CIE dates, components, eligibility and approved information. | Proposed | F |
 | SA-016 | External examinations | Find authorized SEE schedule, registration and official sources. | Proposed | F |
-| SA-017 | Assessment history | Inspect a chronological cross-course assessment record. | Proposed | F |
+| SA-017 | Assessment history | Inspect a chronological cross-course assessment record. | Tested | lib/assignments.ts assessmentHistory, app/history; tests/history.test.ts, tests/operations.e2e.ts |
 | SA-018 | Course resources | Retrieve current authorized course material and versions. | Proposed | F |
 | SA-019 | Learning progress | Inspect concept-level evidence and its limitations. | Proposed | F |
 | SA-020 | Academic announcements | Read published notices in the eligible audience. | Tested | R |
@@ -135,7 +135,7 @@ Faculty need to organize teaching and evaluation by assigned offering. Select as
 | FC-016 | Student mentorship | Agree mentoring goals and record appropriate follow-ups. | Proposed | F |
 | FC-017 | Project supervision | Review assigned milestones and evidence. | Proposed | F |
 | FC-018 | Student team management | Form and oversee authorized project teams. | Proposed | F |
-| FC-019 | Faculty workload | Inspect teaching, assessment and mentoring commitments. | Proposed | F |
+| FC-019 | Faculty workload | Inspect teaching, assessment and mentoring commitments. | Tested (teaching and evaluation only) | No mentoring commitments yet; tests/department.test.ts, tests/leadership.e2e.ts |
 | FC-020 | Teaching resources | Organize authorized learning materials and versions. | Proposed | F |
 | FC-021 | Research support | Track research activity and relevant opportunities. | Proposed | F |
 | FC-022 | Literature search | Find and cite accessible publications with provenance. | Proposed | F |
@@ -154,20 +154,20 @@ HODs and explicitly delegated coordinators need department-scoped oversight. Sel
 | ID | Capability | Functional workflow or acceptance outcome | Status | Evidence |
 | --- | --- | --- | --- | --- |
 | DH-001 | Department dashboard | View department-scoped academic activity and average turnaround. | Tested | R |
-| DH-002 | Department faculty | Find current faculty and responsibilities. | Proposed | F |
-| DH-003 | Students and sections | Inspect authorized rosters by section. | Proposed | F |
+| DH-002 | Department faculty | Find current faculty and responsibilities. | Tested | lib/department.ts departmentFaculty, app/leadership/boards.tsx; tests/department.test.ts, tests/leadership.e2e.ts |
+| DH-003 | Students and sections | Inspect authorized rosters by section. | Tested | lib/department.ts departmentSections; tests/department.test.ts, tests/leadership.e2e.ts |
 | DH-004 | Department academic schemes | Review applicable scheme and cohort mappings. | Proposed | F |
 | DH-005 | Course delivery | Compare delivered sessions against approved course plan. | Proposed | F |
-| DH-006 | Teaching workload | Review teaching and evaluation allocations. | Proposed | F |
+| DH-006 | Teaching workload | Review teaching and evaluation allocations. | Tested | Shared workload definition with FC-019; tests/department.test.ts, tests/leadership.e2e.ts |
 | DH-007 | Faculty allocation | Propose or approve department teaching assignments. | Proposed | F |
 | DH-008 | Timetable planning | Resolve scheduling constraints before publication. | Proposed | F |
-| DH-009 | Attendance reporting | Aggregate verified attendance with scheme definitions. | Proposed | F |
+| DH-009 | Attendance reporting | Aggregate verified attendance with scheme definitions. | Tested (latest-record rate beside planning target) | No scheme eligibility definitions; tests/department.test.ts |
 | DH-010 | Assessment and results reporting | Count published assignments, submissions and published results from records. | Tested | R |
 | DH-011 | Curriculum progress | Review course coverage with source evidence. | Proposed | F |
 | DH-012 | CO/PO/PSO evidence | Map assessments to applicable approved outcome definitions. | Proposed | F |
 | DH-013 | Outcome-based education workflows | Review mappings, attainment measures and corrective actions. | Proposed | F |
 | DH-014 | Student support coordination | Assign and follow up appropriate academic support. | Proposed | F |
-| DH-015 | Department notices | Publish and retrieve notices within department scope. | Tested | R |
+| DH-015 | Department notices | Publish and retrieve notices within department scope. | Tested | R; tests/notices.test.ts |
 | DH-016 | Faculty development | Coordinate training and evidence. | Proposed | F |
 | DH-017 | Research projects | Track approved departmental projects and milestones. | Proposed | F |
 | DH-018 | Laboratory resources | Review availability and request allocation. | Proposed | F |
@@ -188,14 +188,14 @@ Principal and authorized leaders need defensible institution-level decisions. Re
 | ID | Capability | Functional workflow or acceptance outcome | Status | Evidence |
 | --- | --- | --- | --- | --- |
 | LE-001 | Institution dashboard | See stored counts of published assignments, submissions, published results and open requests. | Tested | R |
-| LE-002 | Department information | Review department profiles and defined comparisons. | Proposed | F |
+| LE-002 | Department information | Review department profiles and defined comparisons. | Tested | lib/department.ts departmentComparison; tests/department.test.ts, tests/leadership.e2e.ts |
 | LE-003 | Academic progress | Track approved academic indicators by cohort. | Proposed | F |
 | LE-004 | Quality indicators | Inspect defined quality measures and limitations. | Proposed | F |
 | LE-005 | Resource planning | Compare available resources to documented demand. | Proposed | F |
 | LE-006 | Financial oversight | Inspect explicitly authorized budget and expenditure reports. | Proposed | F |
-| LE-007 | Institutional notices | Read published authorized notices. | Tested | R |
+| LE-007 | Institutional notices | Read published authorized notices. | Tested | R; tests/notices.test.ts |
 | LE-008 | Examination operations | Review approved schedules and unresolved operational issues. | Proposed | F |
-| LE-009 | Departmental requests | Review authorized escalations and decisions. | Proposed | F |
+| LE-009 | Departmental requests | Review authorized escalations and decisions. | Tested (service-request escalations) | lib/department.ts escalatedRequests; tests/department.test.ts, tests/leadership.e2e.ts |
 | LE-010 | Strategic priorities | Assign owners and milestones to institutional priorities. | Proposed | F |
 | LE-011 | Institutional improvement planning | Measure progress and actions against approved plans. | Proposed | F |
 | LE-012 | Research and innovation overview | Review disclosure-approved activity and outcomes. | Proposed | F |
@@ -250,13 +250,13 @@ Institution administrators, academic office and designated specialists manage ac
 | AD-015 | Procurement | Request goods, compare proposals and record human authorization. | Proposed | F |
 | AD-016 | Administrative approvals | Route delegated decisions and record reasons. | Proposed | F |
 | AD-017 | Complaints and grievances | Confidential intake, assignment, escalation and resolution. | Proposed | F |
-| AD-018 | Staff work queues | Show actionable records only for the assigned office. | Proposed | F |
+| AD-018 | Staff work queues | Show actionable records only for the assigned office. | Tested (service requests) | db/019, lib/connected.ts assignRequest; tests/operations.test.ts, tests/operations.e2e.ts |
 | AD-019 | Delegated responsibilities | Assign bounded responsibilities with expiry and revocation. | Proposed | F |
 | AD-020 | Reusable workflow engine | Extract proven shared transitions, ownership and audit rules. | Proposed | F |
 | AD-021 | Institutional knowledge base | Publish approved, versioned, permission-scoped policies. | Proposed | F |
-| AD-022 | Audit viewer | Search authorized event metadata without exposing private payloads. | Proposed | F |
+| AD-022 | Audit viewer | Search authorized event metadata without exposing private payloads. | Tested | lib/reporting.ts auditEvents, app/audit; tests/operations.test.ts, tests/operations.e2e.ts |
 | AD-023 | Staff notifications | Deliver scoped work updates with retry and acknowledgement. | Tested (in-app only) | Request routing to active admins via outbox job; retry, dedupe, read acknowledgement. tests/automation.test.ts, tests/automation.e2e.ts. No email/WhatsApp channel. |
-| AD-024 | Operational reporting | Measure queue age, service resolution, rework and reopenings. | Proposed | F |
+| AD-024 | Operational reporting | Measure queue age, service resolution, rework and reopenings. | Tested (on-demand; no scheduled delivery) | lib/reporting.ts operationsReport; tests/operations.test.ts, tests/operations.e2e.ts |
 | AD-025 | Library desk | Authorize circulation, search and external library integration. | Proposed | F |
 | AD-026 | Laboratory staff | Manage inventory, access, maintenance and equipment issues. | Proposed | F |
 | AD-027 | Research administration | Track grants, approved disclosures and project milestones. | Proposed | F |
@@ -267,7 +267,7 @@ Institution administrators, academic office and designated specialists manage ac
 | AD-032 | Maintenance staff | Record repair evidence and reopen unresolved work. | Proposed | F |
 | AD-033 | Sports coordination | Coordinate trials, venues, teams and travel approvals. | Proposed | F |
 | AD-034 | Transport administration | Assign routes, operators and service responsibilities. | Designed | T |
-| AD-035 | Controlled announcements | Draft and publish notices scoped to the allowed institutional audience. | Tested | R |
+| AD-035 | Controlled announcements | Draft and publish notices scoped to the allowed institutional audience. | Tested | R; tests/notices.test.ts |
 
 ## CLUBVERSE · organizations and governance
 

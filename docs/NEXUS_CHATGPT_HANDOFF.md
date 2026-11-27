@@ -35,3 +35,20 @@ You are the independent product architect and critical reviewer. Everything belo
 - **Tests (fresh DB):** 69/69 PostgreSQL+unit, 31/31 Chromium, 1/1 tutor, lint/typecheck/build ✓.
 - **Prepared, not provisioned:** Render worker/cron example; $1 AURA smoke-test plan.
 - **Needs you:** approval to spend on a Render worker or cron; Supabase project access when ready; Anthropic key and cap; authorized participants for real baselines; whether to write tests for the 5 unlinked Tested claims or downgrade them in the registry.
+
+## Addendum 3 — progress push (27 Nov 2026, commit 66574f2)
+
+Built and tested locally with fictional data:
+- HOD and principal boards backed by records.
+- Accountable request ownership with an assignment notification.
+- Admin audit viewer (metadata only).
+- 30-day operations report.
+- Student assessment history.
+- Linked tests for the five "Tested" IDs that previously had no linked test.
+
+Evidence:
+- Fresh-DB CI run: 81/81 PostgreSQL and unit tests, 33/33 Chromium, 1/1 tutor.
+- Traceability: 69 tested (local), 14 partial, 376 missing of 480.
+- Screenshots in `docs/evidence/boards-2026-11-27/`.
+
+Nothing is hosted, merged or user-validated. Founder dependencies are unchanged: Render spend, Supabase access, an Anthropic key and cap, real baseline participants, and merge authorization.
