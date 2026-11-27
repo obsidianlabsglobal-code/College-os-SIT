@@ -171,3 +171,29 @@ Observed, fresh local PostgreSQL in CI order at bbdc5fc:
 Traceability: 70 functionally tested (local), 26 partial, 8 unverified, 13 blocked, 363 missing. All eight new rows carry a stated scope limit, so they count as partial.
 
 UI note: on a database with many test assignments, the student course page lists every assignment before materials and plan. That is acceptable for the pilot volume but should be paginated.
+
+## 2026-11-27 — Toward 40, batch 3: scheduled digest, case engine, cohort progress
+
+Implemented (commit 371d1f7, `db/022`):
+- **Weekly operations digest (AD-024):**
+  - The worker loop writes one digest per institution per local week, after Monday 08:00, covering the previous full week.
+  - The period is the key, so later runs that week do nothing.
+  - Verified running as the least-privilege `nexus_worker` role.
+  - Shown on the admin and principal boards.
+- **Case engine (AD-020 slice):** one record, ownership, transitions (assign → start → resolve/decline), staff notes, audit, and notifications through the outbox.
+  - **Support cases (DH-014, FC-015):**
+    - Opened by an HOD or teacher, assigned by the HOD to a department teacher.
+    - Students never see them.
+    - Time to close is measured over 90 days.
+  - **Grievances (AD-017):**
+    - The student submits; the office triages and owns them.
+    - The student sees the state and outcome but not staff notes or the owner's name.
+    - After 7 days open, the principal sees the title and state only.
+- **Cohort progress (LE-003):** per term and section: students, results-published rate, mean latest score and latest-record attendance.
+
+Observed, fresh local PostgreSQL in CI order at 371d1f7:
+- migrate ×2 + seed, lint, typecheck, build: all passed.
+- 95/95 PostgreSQL and unit tests, 39/39 Chromium, 1/1 tutor.
+- Screenshots: `docs/evidence/cases-2026-11-27/`.
+
+Not migrated onto the case engine: enrollment letters and fees. Digest delivery is in-app only (no email).
