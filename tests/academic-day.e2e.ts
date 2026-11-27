@@ -101,7 +101,7 @@ test("admin publishes a timetable and faculty posts a corrected attendance recor
     await expect(page.getByText("Your attendance: present")).toBeVisible();
     const summary = page.getByRole("region",{name:"My attendance"});
     await expect(summary.getByText(/recorded classes attended/)).toBeVisible();
-    await expect(summary.getByLabel(`Recorded attendance for ${course}`)).toHaveAttribute("value","1");
+    await expect(summary.getByRole("img",{name:new RegExp(`^${course} attendance: 1 of 1, 100\\.0%`)})).toBeVisible();
     const recorded = await summary.locator("li").first().getByText(/recorded classes attended/).textContent();
     await summary.getByText("Try an attendance scenario").first().click();
     await summary.getByLabel("Classes you would attend").first().fill("0");
@@ -128,14 +128,14 @@ test("admin publishes a timetable and faculty posts a corrected attendance recor
     await source.click();
     await expect(page.getByRole("heading",{name:"Timetable",exact:true})).toBeVisible();
     await page.goto(path("student",historical,oldSession));
-
+    await page.getByRole("link",{name:"Week view",exact:true}).click();
     const week = page.getByRole("list",{name:"Week calendar by day"});
     await expect(week.locator(":scope > li")).toHaveCount(7);
     await expect(page.getByRole("region",{name:"Class schedule"}).getByRole("link",{name:course}).first()).toBeVisible();
     await week.locator(":scope > li").first().getByRole("link").first().press("Enter");
     await expect(page).toHaveURL(new RegExp("day="+historical+"&view=day"));
     expect(new URL(page.url()).searchParams.get("session")).toBe(oldSession.split("=")[1]);
-    await page.getByRole("link",{name:"Next 7 days",exact:true}).press("Enter");
+    await page.getByRole("link",{name:"Week view",exact:true}).press("Enter");
     await expect(page).toHaveURL(new RegExp("day="+historical+"&view=week"));
     expect(new URL(page.url()).searchParams.get("session")).toBe(oldSession.split("=")[1]);
     await page.getByRole("link",{name:"My attendance",exact:true}).press("Enter");

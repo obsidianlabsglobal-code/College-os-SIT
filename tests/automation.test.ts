@@ -14,7 +14,7 @@ const owner = new Pool({ connectionString: process.env.MIGRATION_DATABASE_URL })
 const people: Record<string, string> = {};
 const as = (alias: string, role: Scope["role"], institution = f.institution): Scope => ({ account: people[alias], role, institution });
 const future = () => new Intl.DateTimeFormat("sv-SE", { dateStyle: "short", timeStyle: "short", timeZone: "Asia/Kolkata" })
-  .format(new Date(Date.now() + 86_400_000)).replace(" ", "T");
+  .format(new Date(Date.now() + 30 * 86_400_000)).replace(" ", "T");
 const publish = async () => {
   const id = await createAssignment(as("faculty", "faculty"), { offering: f.offering, title: `Automation ${randomUUID()}`, description: "Steps.", deadline: future(), marks: 10, file: null });
   await publishAssignment(as("faculty", "faculty"), id);

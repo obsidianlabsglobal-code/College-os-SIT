@@ -25,7 +25,7 @@ test("a published assignment reaches the student inbox through the worker, and a
   await owner.end();
   const teacher = { account: faculty.id, role: "faculty" as const, institution: f.institution };
   const deadline = new Intl.DateTimeFormat("sv-SE", { dateStyle: "short", timeStyle: "short", timeZone: "Asia/Kolkata" })
-    .format(new Date(Date.now() + 2 * 86_400_000)).replace(" ", "T");
+    .format(new Date(Date.now() + 30 * 86_400_000)).replace(" ", "T");
   const title = `Inbox check ${randomUUID().slice(0, 8)}`;
   const id = await createAssignment(teacher, { offering: f.offering, title, description: "Fictional.", deadline, marks: 10, file: null });
   await publishAssignment(teacher, id);
