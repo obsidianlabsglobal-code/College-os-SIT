@@ -20,7 +20,7 @@ export const roleLabels = {
   principal: "Principal",
 } satisfies Record<Scope["role"], string>;
 
-type Destination = "/exams" | "/improvement" | "/cases" | "/mentoring" | "/calendar" | "/catalog" | "/history" | "/audit" | "/automation" | "/fees" | "/letters" | "/opportunities" | "/" | "/grading" | "/notices" | "/requests" | "/admin" | "/clubverse" | "/aura" | "/timetable";
+type Destination = "/policies" | "/questions" | "/exams" | "/improvement" | "/cases" | "/mentoring" | "/calendar" | "/catalog" | "/history" | "/audit" | "/automation" | "/fees" | "/letters" | "/opportunities" | "/" | "/grading" | "/notices" | "/requests" | "/admin" | "/clubverse" | "/aura" | "/timetable";
 const labels: Record<Destination, string> = {
   "/fees": "Fees & dues",
   "/opportunities": "Opportunities",
@@ -39,6 +39,8 @@ const labels: Record<Destination, string> = {
   "/mentoring": "Mentoring",
   "/cases": "Cases",
   "/exams": "Examinations",
+  "/policies": "Policies",
+  "/questions": "Question bank",
   "/improvement": "Improvement actions",
   "/catalog": "Course catalog",
   "/admin": "Academic setup and roles",
@@ -48,7 +50,7 @@ const icons: Record<Destination, ComponentProps<typeof Icon>["name"]> = {
   "/fees": "service",
   "/opportunities": "service",
   "/": "home", "/timetable": "calendar", "/grading": "check", "/notices": "notice", "/clubverse": "people",
-  "/aura": "spark", "/automation": "spark", "/audit": "book", "/history": "check", "/calendar": "calendar", "/mentoring": "people", "/cases": "service", "/exams": "calendar", "/improvement": "check", "/catalog": "book", "/requests": "service", "/admin": "book", "/letters": "notice",
+  "/aura": "spark", "/automation": "spark", "/audit": "book", "/history": "check", "/calendar": "calendar", "/mentoring": "people", "/cases": "service", "/exams": "calendar", "/policies": "book", "/questions": "book", "/improvement": "check", "/catalog": "book", "/requests": "service", "/admin": "book", "/letters": "notice",
 };
 
 const dock: Destination[] = ["/", "/timetable", "/aura", "/clubverse", "/notices", "/requests", "/opportunities"];
@@ -77,6 +79,8 @@ export async function Chrome({ user, current, section = "/", children }: {
   if (current && ["student", "faculty", "admin"].includes(current.role)) destinations.push("/mentoring");
   if (current) destinations.push("/cases", "/exams");
   if (current && current.role !== "student") destinations.push("/improvement");
+  if (current?.role === "faculty") destinations.push("/questions");
+  if (current) destinations.push("/policies");
   if (current?.role === "student" || current?.role === "faculty") destinations.push("/aura");
   // Design Bible student dock: Today, Timetable (learn), AURA, Campus first; the rest sit under More.
   const rank = (d: Destination) => dock.includes(d) ? dock.indexOf(d) : dock.length;  // unlisted pages follow, in insertion order

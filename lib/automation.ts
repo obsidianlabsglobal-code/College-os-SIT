@@ -136,7 +136,9 @@ const handlers: Record<string, (client: PoolClient, job: Job) => Promise<Result>
     if (!k.current) return { skip: "superseded" };
     return notify(client,
       `INSERT INTO notification (institution_id,recipient_id,event_id,kind,entity_id,title)
-       SELECT k.institution_id,k.assigned_to,$3::bigint,'case',k.id,CASE k.kind WHEN 'grievance' THEN 'Student grievance assigned to you' ELSE 'Student support case assigned to you' END
+       SELECT k.institution_id,k.assigned_to,$3::bigint,'case',k.id,CASE k.kind WHEN 'grievance' THEN 'Student grievance assigned to you'
+         WHEN 'facility' THEN 'Repair report assigned to you' WHEN 'integrity' THEN 'Integrity appeal assigned to you'
+         WHEN 'department' THEN 'Department request assigned to you' ELSE 'Student support case assigned to you' END
        FROM case_record k WHERE k.institution_id=$1 AND k.id=$2 ON CONFLICT DO NOTHING`, [job.institution_id, job.entity_id, job.event_id]);
   },
   async "case-closed-notify"(client, job) {
@@ -144,7 +146,8 @@ const handlers: Record<string, (client: PoolClient, job: Job) => Promise<Result>
     return notify(client,
       `INSERT INTO notification (institution_id,recipient_id,event_id,kind,entity_id,title)
        SELECT k.institution_id,k.opened_by,$3::bigint,'case',k.id,
-         CASE k.kind WHEN 'grievance' THEN 'Your grievance has been ' ELSE 'Support case ' END || k.state
+         CASE k.kind WHEN 'grievance' THEN 'Your grievance has been ' WHEN 'facility' THEN 'Your repair report has been '
+           WHEN 'integrity' THEN 'Your integrity appeal has been ' WHEN 'department' THEN 'Your department request has been ' ELSE 'Support case ' END || k.state
        FROM case_record k WHERE k.institution_id=$1 AND k.id=$2 AND k.state IN ('resolved','declined') AND k.opened_by<>
          (SELECT actor_id FROM audit_event WHERE id=$3) ON CONFLICT DO NOTHING`, [job.institution_id, job.entity_id, job.event_id]);
   },

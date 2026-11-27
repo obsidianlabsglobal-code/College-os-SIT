@@ -27,6 +27,11 @@ Examination sittings are drafted, published and cancelled only by an institution
 
 Teaching allocation (DH-007) splits authority. The HOD proposes a teacher only for offerings in their department, and only an institution administrator approves. Approval writes the faculty roster row in the same transaction. Offboarding (ID-009) is admin-only, refuses the caller's own account and other admins, and ends posts, rosters and mentoring pairings together; cases and requests the person owns are reported for reassignment, not moved. Project teams are formed and reviewed only by the offering's current teachers.
 
+Policies (AD-021) are drafted only by an institution administrator and take effect only after the principal approves the version with a reason. A rejected version never takes effect. Attendance eligibility (SA-007) reads the latest approved attendance policy version and is an explanation, not an official eligibility decision. New case kinds:
+- Facility repairs: office-owned; the reporter can reopen within 14 days.
+- Integrity appeals: student-only, tied to the published integrity policy version and their own published assignment, and reviewed in the course's department by its HOD or a teacher the HOD assigns.
+- Department requests: student-only, routed by the HOD.
+
 Source vocabulary has changed over time. The original eight product domains describe subject areas. Later OS names describe user workspaces that cross those areas. Retain both views, with shared identity and records. A prototype name confers no evidence of a working implementation. Operational GPS, model suggestions and policy-sensitive disclosure retain explicit gates.
 
 ## Change procedure

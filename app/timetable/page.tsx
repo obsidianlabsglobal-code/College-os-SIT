@@ -17,6 +17,7 @@ import { timetableAction } from "./actions";
 import styles from "./timetable.module.css";
 import { ProgressRing } from "../experience/progress-ring";
 import { corrections } from "../../lib/corrections";
+import { attendanceEligibility } from "../../lib/policies";
 
 export default async function Timetable({searchParams}:{searchParams:Promise<Record<string,string|undefined>>}) {
   const params = await searchParams;
@@ -37,6 +38,7 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
     attendanceSummary(current),timetableOptions(current),selectedID.success ? sessionDetail(current,selectedID.data) : null,planningOptions(current),
     corrections(current),
   ]);
+  const eligibility = await attendanceEligibility(current);
   if (selectedID.success && !detail) notFound();
   const [alternatives,changes] = detail ? await Promise.all([campusChangeAlternatives(current,detail.row.id),upcomingRoomChanges(current,detail.row.id)]) : [[],[]];
   const query = workspaceQuery(current);
@@ -125,13 +127,16 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
       </section>
     {current.role==="student" && <section id="attendance" className={`panel ${styles.attendance}`} tabIndex={-1} aria-labelledby="attendance-title">
       <h2 id="attendance-title">My attendance</h2>
-      <p className="meta">Present marks divided by classes with a recorded mark for you. Cancelled and unrecorded classes are excluded.</p>
+      <p className="meta">Present marks divided by classes with a recorded mark for you. Cancelled and unrecorded classes are excluded.
+        {!eligibility && " No attendance policy is published, so eligibility is not shown."}</p>
       {summary.length ? <ul className="items">{summary.map(row=><li key={row.offering_id}>
         <div className={styles.attendanceRow}>
           <ProgressRing value={row.present} total={row.recorded} target={row.target} label={`${row.course} attendance`} size={96} />
           <div><h3>{row.course} · {row.term}</h3>
             <p>{row.present} of {row.recorded} recorded classes attended · {attendancePercentage(row.present,row.recorded)}%</p>
-            {row.target != null && <p className="meta">Planning target {row.target}%</p>}</div>
+            {row.target != null && <p className="meta">Planning target {row.target}%</p>}
+            {eligibility && (() => { const e = eligibility.rows.find(r => r.course === row.course && r.term === row.term); return e && <p className="meta">
+              {e.eligible ? "Meets" : <strong>Below</strong>} the {eligibility.policy.threshold}% minimum in {eligibility.policy.title} (version {eligibility.policy.version}) on recorded classes so far</p>; })()}</div>
         </div>
         <AttendanceForecast present={row.present} recorded={row.recorded} target={row.target} source={row.source} />
       </li>)}</ul> : <p>No attendance recorded yet.</p>}
