@@ -271,3 +271,28 @@ Observed, fresh local PostgreSQL in CI order at 36b543e:
 - 109/109 PostgreSQL and unit tests, 45/45 Chromium, 1/1 tutor (165 files).
 
 Traceability: 82 functionally tested (local), 43 partial, 8 unverified, 13 blocked, 334 missing.
+
+## 2026-11-27 — Toward 40, batch 7: development, research, campus operations, catalog corrections
+
+Implemented (commits 99b5357 and dd5f518, `db/026`):
+- **Professional development (FC-025, DH-016):** teachers record activities with hours and evidence; an HOD of a department they teach in verifies or returns them. An HOD cannot verify their own records.
+- **Research projects (DH-017, FC-021, LE-012):**
+  - A teacher proposes; the HOD approves or returns and chooses department or institution disclosure.
+  - The lead adds milestones and completes them with evidence. The project completes when every milestone is done.
+  - The principal sees only projects disclosed to the institution.
+- **Principal board additions:**
+  - Campus operations (LE-015): open and reopened repairs, oldest open, resolutions that held 14 days.
+  - Room use for the next 7 days (LE-005): booked hours from classes, exams and bookings, against seats, plus sections larger than any room.
+- **Catalog name corrections (AD-008 slice):** admin-only, with the old name, reason and actor kept in a history.
+- **Fixes:**
+  - The quality indicator table no longer breaks words mid-word.
+  - The case-closure definition now covers all case kinds.
+  - The admin heading was renamed because it collided with the Release 1 test's "Section name" label lookup.
+
+Observed, fresh local PostgreSQL in CI order at dd5f518:
+- migrate ×2 + seed, lint, typecheck, build: all passed.
+- 113/113 PostgreSQL and unit tests, 47/47 Chromium, 1/1 tutor (171 files).
+
+Traceability: 83 functionally tested (local), 50 partial, 8 unverified, 13 blocked, 326 missing.
+
+Session summary (seven batches since 30-push): fully tested 69 → 83, partial 14 → 50, missing 376 → 326. Migrations 020–026 add 30 tables. Production readiness is still 0: nothing is hosted, no real users have been measured, and the founder approvals listed in the handoff are still outstanding.

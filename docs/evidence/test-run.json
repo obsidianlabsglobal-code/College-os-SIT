@@ -1,7 +1,7 @@
 {
- "commit": "36b543e6079089fc43553d731f07c4b065417d77",
+ "commit": "dd5f518b7d337f86cae7743cdc1f6f915aa35457",
  "uncommitted_source_changes": false,
- "recorded_at": "2026-11-27T17:02:15+00:00",
+ "recorded_at": "2026-11-27T17:15:11+00:00",
  "environment": "local fresh PostgreSQL, fictional data, headless Chromium",
  "files": {
   "tests/academic-assistant.test.ts": {
@@ -126,6 +126,14 @@
   },
   "tests/fees-preview.e2e.ts": {
    "passed": 10,
+   "failed": 0
+  },
+  "tests/growth-operations.e2e.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/growth-operations.test.ts": {
+   "passed": 4,
    "failed": 0
   },
   "tests/history.test.ts": {
