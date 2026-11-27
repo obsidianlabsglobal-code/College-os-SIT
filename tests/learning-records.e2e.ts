@@ -101,6 +101,7 @@ test("calendar, catalog, exports and the page finder work for each role", async 
   await page.getByRole("button", { name: "Search" }).click();
   await expect(page.getByRole("region", { name: /offerings$/ }).first().getByText("Enrolled").first()).toBeVisible();
 
+  await expect(page.getByRole("button", { name: /^Find a page/ }).first()).toBeEnabled();  // the shortcut is attached on hydration
   await page.keyboard.press("Control+k");
   const finder = page.getByRole("dialog", { name: "Find a page" });
   await expect(finder).toBeVisible();
