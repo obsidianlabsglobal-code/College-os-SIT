@@ -57,7 +57,7 @@ Students locate authoritative course work and deadlines for their enrollment. St
 | SA-015 | Internal examinations | Find CIE dates, components, eligibility and approved information. | Proposed | F |
 | SA-016 | External examinations | Find authorized SEE schedule, registration and official sources. | Proposed | F |
 | SA-017 | Assessment history | Inspect a chronological cross-course assessment record. | Tested | lib/assignments.ts assessmentHistory, app/history; tests/history.test.ts, tests/operations.e2e.ts |
-| SA-018 | Course resources | Retrieve current authorized course material and versions. | Proposed | F |
+| SA-018 | Course resources | Retrieve current authorized course material and versions. | Tested (PDF/TXT materials; students get the latest version) | db/021, lib/course-delivery.ts, app/resources; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
 | SA-019 | Learning progress | Inspect concept-level evidence and its limitations. | Proposed | F |
 | SA-020 | Academic announcements | Read published notices in the eligible audience. | Tested | R |
 | SA-021 | Attendance correction workflow | Challenge a record and receive a traceable authorized decision. | Tested | db/020_attendance_correction.sql, lib/corrections.ts, app/timetable; tests/learning-records.test.ts, tests/learning-records.e2e.ts |
@@ -122,7 +122,7 @@ Faculty need to organize teaching and evaluation by assigned offering. Select as
 | FC-003 | Class management | Organize classes, sections and session activity. | Proposed | F |
 | FC-004 | Faculty timetable | See assigned classes. Faculty change proposals remain planned. | Tested (assigned schedule) | [Academic day](ACADEMIC_DAY.md) |
 | FC-005 | Attendance recording | Record present or absent in bulk for an ended assigned session and save a reasoned revision. | Tested | [Academic day](ACADEMIC_DAY.md) |
-| FC-006 | Teaching records | Log class delivery and coverage against the curriculum. | Proposed | F |
+| FC-006 | Teaching records | Log class delivery and coverage against the curriculum. | Tested (per-class delivery summary linked to an approved plan topic) | lib/course-delivery.ts, app/courses/[id], app/leadership/boards.tsx; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
 | FC-007 | Assignment drafting and publication | Create private draft, attach instructions and publish to assigned offering. | Tested | R |
 | FC-008 | Assessment creation | Prepare assessment instruments against approved concepts. | Proposed | F |
 | FC-009 | Question bank | Version reusable questions with controlled visibility. | Proposed | F |
@@ -132,11 +132,11 @@ Faculty need to organize teaching and evaluation by assigned offering. Select as
 | FC-013 | Feedback drafting | Prepare and save human-authored feedback before publication. | Tested | R |
 | FC-014 | Classroom concept analysis | Identify concepts needing support using appropriate assessment evidence. | Proposed | F |
 | FC-015 | Academic intervention | Coordinate support with authorized staff and measure resolution. | Proposed | F |
-| FC-016 | Student mentorship | Agree mentoring goals and record appropriate follow-ups. | Proposed | F |
+| FC-016 | Student mentorship | Agree mentoring goals and record appropriate follow-ups. | Tested (admin-assigned mentor; goals, follow-ups and student agreement) | lib/mentoring.ts, app/mentoring; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
 | FC-017 | Project supervision | Review assigned milestones and evidence. | Proposed | F |
 | FC-018 | Student team management | Form and oversee authorized project teams. | Proposed | F |
 | FC-019 | Faculty workload | Inspect teaching, assessment and mentoring commitments. | Tested (teaching and evaluation only) | No mentoring commitments yet; tests/department.test.ts, tests/leadership.e2e.ts |
-| FC-020 | Teaching resources | Organize authorized learning materials and versions. | Proposed | F |
+| FC-020 | Teaching resources | Organize authorized learning materials and versions. | Tested (versioned PDF/TXT per offering with withdrawal) | db/021, lib/course-delivery.ts, app/courses/[id]; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
 | FC-021 | Research support | Track research activity and relevant opportunities. | Proposed | F |
 | FC-022 | Literature search | Find and cite accessible publications with provenance. | Proposed | F |
 | FC-023 | Faculty collaboration | Share selected work with approved collaborators. | Proposed | F |
@@ -157,13 +157,13 @@ HODs and explicitly delegated coordinators need department-scoped oversight. Sel
 | DH-002 | Department faculty | Find current faculty and responsibilities. | Tested | lib/department.ts departmentFaculty, app/leadership/boards.tsx; tests/department.test.ts, tests/leadership.e2e.ts |
 | DH-003 | Students and sections | Inspect authorized rosters by section. | Tested | lib/department.ts departmentSections; tests/department.test.ts, tests/leadership.e2e.ts |
 | DH-004 | Department academic schemes | Review applicable scheme and cohort mappings. | Proposed | F |
-| DH-005 | Course delivery | Compare delivered sessions against approved course plan. | Proposed | F |
+| DH-005 | Course delivery | Compare delivered sessions against approved course plan. | Tested (logged classes against an HOD-approved plan; no institution curriculum source) | lib/course-delivery.ts, app/courses/[id], app/leadership/boards.tsx; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
 | DH-006 | Teaching workload | Review teaching and evaluation allocations. | Tested | Shared workload definition with FC-019; tests/department.test.ts, tests/leadership.e2e.ts |
 | DH-007 | Faculty allocation | Propose or approve department teaching assignments. | Proposed | F |
 | DH-008 | Timetable planning | Resolve scheduling constraints before publication. | Proposed | F |
 | DH-009 | Attendance reporting | Aggregate verified attendance with scheme definitions. | Tested (latest-record rate beside planning target) | No scheme eligibility definitions; tests/department.test.ts |
 | DH-010 | Assessment and results reporting | Count published assignments, submissions and published results from records. | Tested | R |
-| DH-011 | Curriculum progress | Review course coverage with source evidence. | Proposed | F |
+| DH-011 | Curriculum progress | Review course coverage with source evidence. | Tested (approved topics covered by logged classes) | lib/course-delivery.ts, app/courses/[id], app/leadership/boards.tsx; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
 | DH-012 | CO/PO/PSO evidence | Map assessments to applicable approved outcome definitions. | Proposed | F |
 | DH-013 | Outcome-based education workflows | Review mappings, attainment measures and corrective actions. | Proposed | F |
 | DH-014 | Student support coordination | Assign and follow up appropriate academic support. | Proposed | F |
@@ -174,7 +174,7 @@ HODs and explicitly delegated coordinators need department-scoped oversight. Sel
 | DH-019 | Equipment status | See authorized inventory and maintenance state. | Proposed | F |
 | DH-020 | Department clubs | Coordinate recognized departmental associations. | Proposed | F |
 | DH-021 | Sports and activity oversight | Review assigned activities within delegated scope. | Proposed | F |
-| DH-022 | Department approvals | Review and record a department decision with reason. | Proposed | F |
+| DH-022 | Department approvals | Review and record a department decision with reason. | Tested (course plan approval or return with reason only) | lib/course-delivery.ts, app/courses/[id], app/leadership/boards.tsx; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
 | DH-023 | Department service requests | Route requests to accountable staff and track resolution. | Proposed | F |
 | DH-024 | Accreditation evidence | Trace approved evidence back to records. | Proposed | F |
 | DH-025 | Improvement tracking | Assign, measure and close department improvement actions. | Proposed | F |
@@ -205,7 +205,7 @@ Principal and authorized leaders need defensible institution-level decisions. Re
 | LE-016 | Transport oversight | Review authorized aggregate service health. | Proposed | F |
 | LE-017 | Accreditation evidence | Review approved evidence and provenance for applicable criteria. | Proposed | F |
 | LE-018 | Decision simulation | Compare proposed changes under explicit assumptions. | Proposed | F |
-| LE-019 | Executive reports | Trace summary claims to approved records and time windows. | Proposed | F |
+| LE-019 | Executive reports | Trace summary claims to approved records and time windows. | Tested (CSV with definitions, windows and source per figure; no custom time window) | lib/exports.ts executiveReport, app/records/export; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
 | LE-020 | Leadership AURA | Prepare authorized briefings and decision-support drafts. | Proposed | F |
 
 ## Guardian experience

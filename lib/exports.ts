@@ -1,5 +1,7 @@
 import { assessmentHistory } from "./assignments";
 import { db } from "./db";
+import { departmentComparison } from "./department";
+import { operationsReport } from "./reporting";
 import type { Scope } from "./scope";
 
 type Cell = string | number | boolean | null | Date;
@@ -63,4 +65,31 @@ export async function facultyReport(scope: Scope) {
   return csv([["course", "section", "term", "active students", "published assignments", "submissions", "submissions with published result",
     "classes with attendance", "present marks", "recorded marks", "source"],
     ...rows.map(r => [r.course, r.section, r.term, r.students, r.assignments, r.submissions, r.published, r.classes, r.present, r.marked, `offering:${r.offering}`])]);
+}
+
+/** LE-019: principal's executive summary. Every figure names its definition, time window and source query, and the file
+ * records when it was generated, so a claim in a briefing can be traced back to records. */
+export async function executiveReport(scope: Scope) {
+  if (scope.role !== "principal") return null;
+  const [departments, ops] = await Promise.all([departmentComparison(scope), operationsReport(scope)]);
+  if (!ops) return null;
+  const now = new Date();
+  const pct = (part: number, whole: number) => whole ? (100 * part / whole).toFixed(1) : "";
+  return csv([["section", "subject", "measure", "value", "window", "definition", "source"],
+    ["report", "institution", "generated at", now, "", "Time this file was produced", "NEXUS executive report"],
+    ...departments.flatMap(d => [
+      ["department", d.name, "active students", d.students, "current", "Distinct students on an active roster", `department:${d.id}`],
+      ["department", d.name, "active faculty", d.faculty, "current", "Distinct faculty on an active roster", `department:${d.id}`],
+      ["department", d.name, "published assignments", d.assignments, "all time", "Assignments with a publication time", `department:${d.id}`],
+      ["department", d.name, "results published %", pct(d.results, d.submissions), "all time", "Submissions with a published result / submissions", `department:${d.id}`],
+      ["department", d.name, "attendance %", pct(d.present, d.marked), "all time", "Present marks in each class's latest attendance revision / marks", `department:${d.id}`],
+    ]),
+    ["operations", "service requests", "open", ops.open, "current", "Submitted or in review", "service_request"],
+    ["operations", "service requests", "unassigned open", ops.unassigned, "current", "Open with no accountable owner", "service_request"],
+    ["operations", "service requests", "oldest open hours", ops.oldest_open_hours, "current", "Age of the oldest open request", "service_request"],
+    ["operations", "service requests", "resolved", ops.resolved_30d, "last 30 days", "Closed as resolved", "service_request"],
+    ["operations", "service requests", "declined", ops.declined_30d, "last 30 days", "Closed as declined", "service_request"],
+    ["operations", "service requests", "median resolution hours", ops.median_resolution_hours, "last 30 days", "Submission to recorded outcome", "service_request"],
+    ["operations", "corrections", "attendance corrections", ops.attendance_corrections_30d, "last 30 days", "New attendance revisions after the first", "class_attendance_revision"],
+    ["operations", "corrections", "result corrections", ops.grade_corrections_30d, "last 30 days", "Published grade revisions after the first", "grade"]]);
 }

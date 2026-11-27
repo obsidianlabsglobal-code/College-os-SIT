@@ -2,6 +2,9 @@ import Link from "next/link";
 import { departmentComparison, departmentFaculty, departmentSections, escalatedRequests } from "../../lib/department";
 import { adminRequestSummary, departmentSummary, institutionSummary, operationsReport } from "../../lib/reporting";
 import { notifications } from "../../lib/automation";
+import { coursePlan, departmentDelivery } from "../../lib/course-delivery";
+import { ActionForm } from "../forms";
+import { courseAction } from "../actions/courses";
 import { workspaceQuery, type Scope } from "../../lib/scope";
 import { SegmentedBar } from "../experience/segmented-bar";
 import { Inbox } from "../experience/inbox";
@@ -13,7 +16,9 @@ const statusLabel: Record<string, string> = { submitted: "Awaiting review", in_p
 
 /** HOD board: what needs department attention first, then who carries which work, then each section's record. */
 export async function HodBoard({ current }: { current: Scope }) {
-  const [summary, faculty, sections] = await Promise.all([departmentSummary(current), departmentFaculty(current), departmentSections(current)]);
+  const [summary, faculty, sections, delivery] = await Promise.all([departmentSummary(current), departmentFaculty(current), departmentSections(current),
+    departmentDelivery(current)]);
+  const awaitingPlans = await Promise.all(delivery.filter(row => row.plan === "submitted").map(async row => ({ row, plan: await coursePlan(current, row.offering) })));
   const pending = faculty.reduce((n, row) => n + row.pending, 0), awaiting = faculty.reduce((n, row) => n + row.awaiting, 0);
   const unrecorded = faculty.reduce((n, row) => n + row.unrecorded, 0);
   const below = sections.filter(row => row.target !== null && row.marked > 0 && 100 * row.present / row.marked < row.target);
@@ -40,6 +45,27 @@ export async function HodBoard({ current }: { current: Scope }) {
         <tbody>{summary.map(row => <tr key={row.name}><th scope="row">{row.name}</th><td>{row.assignments}</td><td>{row.submissions}</td><td>{row.results}</td><td>{row.hours === null ? "—" : `${row.hours.toFixed(1)} h`}</td><td><SegmentedBar label={`${row.name} published results`} total={row.submissions}
           rest="awaiting results" parts={[{ label: "published", value: row.results, tone: 1 }]} /></td></tr>)}</tbody>
       </table></div> : <p>No departments are assigned to this workspace.</p>}
+    </section>
+
+    <section className="panel" aria-labelledby="delivery-title">
+      <h2 id="delivery-title">Course plans and delivery</h2>
+      <p className="meta">Coverage counts approved plan topics with at least one logged class. Logged classes are recorded classes with a delivery record.</p>
+      {awaitingPlans.map(({ row, plan }) => <details key={row.offering} open>
+        <summary>{row.course} · {row.section} — plan awaiting your decision{row.submitted_by && ` (from ${row.submitted_by})`}</summary>
+        <ol className="items">{plan?.items.map(item => <li key={item.id}>{item.topic}</li>)}</ol>
+        <ActionForm action={courseAction} context={current} operation="plan-decide" label="Record plan decision">
+          <input type="hidden" name="offering" value={row.offering} />
+          <label>Decision<select name="decision" required defaultValue=""><option value="" disabled>Choose</option>
+            <option value="approve">Approve</option><option value="return">Return for changes</option></select></label>
+          <label>Reason<input name="reason" required maxLength={500} /></label>
+        </ActionForm>
+      </details>)}
+      {delivery.length ? <div className={`table-scroll ${styles.compare}`} role="region" aria-label="Course delivery" tabIndex={0}><table>
+        <thead><tr><th scope="col">Course</th><th scope="col">Plan</th><th scope="col">Topics covered</th><th scope="col">Classes logged</th></tr></thead>
+        <tbody>{delivery.map(row => <tr key={row.offering}><th scope="row">{row.course} · {row.section}</th>
+          <td>{{ none: "No plan", draft: "Draft", submitted: "Awaiting decision", approved: "Approved", returned: "Returned" }[row.plan]}</td>
+          <td>{row.plan === "approved" ? `${row.covered} of ${row.topics}` : "—"}</td><td>{row.logged} of {row.held}</td></tr>)}</tbody>
+      </table></div> : <p>No offerings in your departments.</p>}
     </section>
 
     <div className={styles.columns}>
@@ -124,7 +150,8 @@ export async function PrincipalBoard({ current, timezone }: { current: Scope; ti
     </section>
 
     <section className="panel" aria-labelledby="compare-title">
-      <h2 id="compare-title">Departments compared</h2>
+      <div className="row spread"><h2 id="compare-title">Departments compared</h2>
+        <a href={`/records/export?${query}`} download>Download executive report (CSV)</a></div>
       <p className="meta">Each measure uses the same definition in every department: active rosters, published assignments, submissions with a published result, and present marks in each class’s latest attendance record.</p>
       {departments.length ? <div className={`table-scroll ${styles.compare}`} role="region" aria-label="Department comparison" tabIndex={0}><table>
         <thead><tr><th scope="col">Department</th><th scope="col">Offerings</th><th scope="col">Faculty</th><th scope="col">Students</th><th scope="col">Published assignments</th><th scope="col">Results published</th><th scope="col">Attendance</th></tr></thead>

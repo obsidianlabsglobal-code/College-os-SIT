@@ -19,6 +19,8 @@ Academic course workspaces are the next independent Wave 2 implementation becaus
 
 Attendance corrections (SA-021) are decided only by the class's current teacher (the session's faculty with an active roster). The student is the only one who can request one. Acceptance writes a new attendance revision in the same transaction, so later reports (DH-009, LE-002, SA-006) read it without a separate path. HOD or office override of a teacher's decision is not implemented and needs an approved policy first. Calendar (SA-010), catalog (SA-002) and CSV exports (SA-022, FC-028) are read-only projections of existing records and add no new authority.
 
+Course plans (DH-022 slice) are approved or returned only by an HOD of the course's department. Approval freezes the topics, and delivery logs can link only to approved topics. Reopening an approved plan is not implemented. Course materials are written by the offering's current teachers and read by its roster and department HOD. Mentors are assigned by an institution administrator; a replacement ends the previous pairing and its mentor loses access, while the records are kept. The executive report is principal-only.
+
 Source vocabulary has changed over time. The original eight product domains describe subject areas. Later OS names describe user workspaces that cross those areas. Retain both views, with shared identity and records. A prototype name confers no evidence of a working implementation. Operational GPS, model suggestions and policy-sensitive disclosure retain explicit gates.
 
 ## Change procedure
