@@ -135,7 +135,7 @@ input::placeholder, textarea::placeholder { color: var(--muted); }
   .app-sidebar nav { display: grid; grid-auto-flow: row; padding: 0; }
   .app-sidebar nav a, #workspace-navigation .nav-secondary { display: flex; flex-direction: row; gap: var(--space-3); justify-content: flex-start; padding: var(--space-3); font-size: .91rem; text-align: start; color: var(--rail-text); }
   .app-sidebar nav a:hover { background: var(--rail-hover); }
-  .app-sidebar nav a[aria-current] { background: var(--rail-text); color: var(--forest); }
+  .app-sidebar nav a[aria-current], #workspace-navigation .nav-secondary[aria-current] { background: var(--rail-text); color: var(--forest); }
   .app-sidebar :focus-visible, .app-top .brand:focus-visible { outline-color: var(--rail-text); outline-offset: -3px; }
   .app-sidebar nav a[aria-current]:focus-visible { outline-color: var(--forest); }
   .sidebar-role { display: block; padding: var(--space-5) var(--space-3) var(--space-2); font-size: var(--text-meta); color: var(--rail-muted); }
