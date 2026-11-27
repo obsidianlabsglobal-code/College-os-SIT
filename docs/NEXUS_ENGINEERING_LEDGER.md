@@ -223,3 +223,28 @@ Observed, fresh local PostgreSQL in CI order at 7157466:
 - Screenshots: `docs/evidence/exams-2026-11-27/`.
 
 Traceability: 75 functionally tested (local), 34 partial, 8 unverified, 13 blocked, 350 missing.
+
+## 2026-11-27 — Toward 40, batch 5: allocation, schemes, quality indicators, project teams, offboarding
+
+Implemented (commit 8398a53, `db/024`):
+- **Teaching allocation (DH-007):** the HOD proposes a current faculty member for an offering in their department. The office approves (which adds the faculty roster row in the same transaction) or rejects, with a reason. Duplicates and existing teachers are refused.
+- **Schemes and cohorts (DH-004):** read-only scheme → term → course → section mapping for the HOD's departments.
+- **Quality indicators (LE-004):** seven measures from records, each with a definition and a stated limitation.
+- **Project teams (FC-017, FC-018):**
+  - Teachers form teams from the active roster (one team per student per offering) and set milestones.
+  - Students submit evidence; the teacher accepts or requests changes; teams can resubmit.
+  - Students see only their own team.
+- **Offboarding (ID-009 slice):**
+  - Admin-only, behind a confirmation dialog. Ends every post, roster and mentoring pairing in this institution in one audited transaction.
+  - Reports the cases and requests the person still owns.
+  - Refuses the caller's own account and other admins.
+- **Caught by the new tests before commit:**
+  - The draft HOD scope check reused the caller's table alias inside its subquery, which made the offering filter always true. Fixed with distinct aliases.
+  - A `FOR SHARE` lock on `team_member` needed a privilege the app role lacks. The lock was removed because membership changes are not a feature.
+
+Observed, fresh local PostgreSQL in CI order at 8398a53:
+- migrate ×2 + seed, lint, typecheck, build: all passed.
+- 104/104 PostgreSQL and unit tests, 43/43 Chromium, 1/1 tutor.
+- Screenshots: `docs/evidence/teams-2026-11-27/`.
+
+Traceability: 77 functionally tested (local), 38 partial, 8 unverified, 13 blocked, 344 missing.
