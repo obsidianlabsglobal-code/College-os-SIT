@@ -18,6 +18,7 @@ import { topics,tutorActivity,tutorEnabled } from "../../lib/aura/tutor";
 import { AcademicPanel } from "./academic-panel";
 import { Composer } from "./composer";
 import styles from "./aura.module.css";
+import { ActionCapsule } from "./capsule";
 
 const suggestions = { student: ["My assignments", "My results", "Latest notices", "My requests"], faculty: ["Pending grading", "My assignments", "Latest notices", "Clubs"] };
 const time = (value: Date | string) => new Intl.DateTimeFormat("en-IN", { timeStyle: "short", dateStyle: "medium", timeZone: "Asia/Kolkata" }).format(new Date(value));
@@ -99,6 +100,7 @@ function RequestCard({ request, current, query }: { request: AuraRequest; curren
       <span className={styles.badge} data-tone={state.tone}>{state.text}</span>
       <span className="meta">{time(request.created_at)}</span>
     </div>
+    <ActionCapsule request={request} />
     {kind === "read" && <><p>{String(result.summary)}</p><Items items={result.items as CapabilityItem[]} /></>}
     {reply && <figure className="stack" style={{ margin: 0 }}>
       <figcaption className="meta">AI-generated {kind === "explanation" ? "explanation. Educational help, not an official statement" : "note"}</figcaption>

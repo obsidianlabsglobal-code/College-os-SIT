@@ -10,6 +10,8 @@ import { workspaceQuery, type Scope } from "../../lib/scope";
 import { Icon } from "../experience/workspace-icon";
 import styles from "./home.module.css";
 import { StudentHomeFocus } from "./home-focus";
+import { ProgressRing } from "../experience/progress-ring";
+import { classesNeeded, classesSpare } from "../../lib/attendance-math";
 
 export function StudentHomeLoading() {
   return <div className={styles.home} role="status">
@@ -68,7 +70,6 @@ export async function StudentHome({current, name, timezone}:{current:Scope;name:
         <h2><Icon name="check" />At a glance</h2>
         <a href="#student-assignments"><Icon name="book" /><span>Open assignments</span><strong>{open.length}</strong></a>
         <a href={latestFeedback ? `/assignments/${latestFeedback.id}?${query}` : "#student-assignments"}><Icon name="check" /><span>Published results</span><strong>{published.length}</strong></a>
-        <Link href={`/timetable?${query}#attendance`}><Icon name="calendar" /><span>Recorded attendance</span><strong>{recorded ? attendancePercentage(present,recorded)+"%" : "—"}</strong><small>{recorded ? `${present} of ${recorded} recorded` : "No marks recorded"}</small></Link>
         <Link href={`/opportunities?${query}`}><Icon name="spark" /><span>Open opportunities</span><strong>{opportunityCount}</strong></Link>
       </nav>
 
@@ -105,6 +106,28 @@ export async function StudentHome({current, name, timezone}:{current:Scope;name:
       </div>
 
       <div className={styles.column} data-focus-secondary>
+        <section className={styles.panel} aria-labelledby="student-attendance-title">
+          <div className={styles.sectionHead}>
+            <h2 id="student-attendance-title"><Icon name="calendar" />Attendance</h2>
+            <p>Present marks divided by classes with a recorded mark. Official eligibility follows institutional policy.</p>
+          </div>
+          <div className={styles.attendance}>
+            <ProgressRing value={present} total={recorded} label="Recorded attendance" />
+            {attendance.length ? <ul className={styles.courseBars}>{attendance.map(row => {
+              const needed = row.target != null ? classesNeeded(row.present,row.recorded,row.target) : null;
+              const spare = row.target != null && needed === 0 ? classesSpare(row.present,row.recorded,row.target) : null;
+              return <li key={row.offering_id}>
+                <span className={styles.courseName}>{row.course}</span>
+                <span className={styles.courseFigure}>{row.present}/{row.recorded} · {attendancePercentage(row.present,row.recorded)}%</span>
+                <span className={styles.bar} aria-hidden="true"><i style={{width:`${row.recorded ? 100*row.present/row.recorded : 0}%`}} />{row.target != null && <b style={{left:`${row.target}%`}} />}</span>
+                {row.target != null && <small>{needed === null ? `A ${row.target}% planning target can no longer be reached.` : needed > 0
+                  ? `Attend the next ${needed} consecutive class${needed === 1 ? "" : "es"} to reach the ${row.target}% planning target.`
+                  : `At or above the ${row.target}% planning target${spare ? ` · ${spare} class${spare === 1 ? "" : "es"} of margin` : ""}.`}</small>}
+              </li>;
+            })}</ul> : <p className={styles.empty}>No attendance has been recorded for your classes yet.</p>}
+          </div>
+          <Link className={styles.secondary} href={`/timetable?${query}#attendance`}>Attendance details and what-if <span aria-hidden="true">→</span></Link>
+        </section>
         <section className={`${styles.panel} ${styles.aura}`} aria-labelledby="student-aura-title">
           <div className={styles.sectionHead}>
             <h2 id="student-aura-title"><Icon name="spark" />AURA at your side</h2>

@@ -271,7 +271,7 @@ test("workspace navigation is scoped, keyboard-operable and responsive", async (
   await page.setViewportSize({ width: 1440, height: 900 });
   await signIn(page, "student");
   const navigation = page.getByRole("navigation", { name: "Campus workflows" });
-  await expect(navigation.getByRole("link", { name: "Overview" })).toHaveAttribute("aria-current", "page");
+  await expect(navigation.getByRole("link", { name: "Today" })).toHaveAttribute("aria-current", "page");
   await expect(navigation.getByRole("link", { name: "Academic setup and roles" })).toHaveCount(0);
   const toggle = page.getByRole("button", { name: "Hide navigation" });
   await toggle.focus();
@@ -279,11 +279,13 @@ test("workspace navigation is scoped, keyboard-operable and responsive", async (
   await expect(navigation).toBeHidden();
   await expect(page.getByRole("button", { name: "Show navigation" })).toHaveAttribute("aria-expanded", "false");
   await page.setViewportSize({ width: 390, height: 844 });
-  const notices = navigation.getByRole("link", { name: "Notices" });
-  await expect(notices).toBeVisible();
-  expect(await notices.evaluate(link => getComputedStyle(link).transitionDuration)).toBe("0s");
-  await notices.click();
-  await expect(navigation.getByRole("link", { name: "Notices" })).toHaveAttribute("aria-current", "page");
+  const aura = navigation.getByRole("link", { name: "AURA" });
+  await expect(aura).toBeVisible();
+  expect(await aura.evaluate(link => getComputedStyle(link).transitionDuration)).toBe("0s");
+  await navigation.getByRole("button", { name: "More" }).click();
+  await page.getByRole("navigation", { name: "More workflows" }).getByRole("link", { name: "Notices" }).click();
+  await expect(page).toHaveURL(/\/notices\?/);
+  await expect(navigation.getByRole("button", { name: "More" })).toHaveAttribute("data-current", "true");
   await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
 });

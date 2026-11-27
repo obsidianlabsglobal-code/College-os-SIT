@@ -20,3 +20,14 @@ Founder specs (not in repo): Master Handoff PDF, Engineering Reference Pack ZIP,
 - Coverage: 63 tested, 8 implemented-unverified, 6 partial, 13 blocked, 390 missing.
 - Defects queued: invisible admin active nav label; seed-walkthrough migration count; missing classes-needed maths; duplicate model ledgers; partial CSP.
 - Next: Design Bible token foundation + Student Today slice; fix defects; Ponytail review.
+
+### 2026-11-27 — Design Bible foundation + Student Today slice (same branch)
+- Ponytail 5.3.3 installed (user scope, this container only; hooks local-only, webhook empty). Rules applied manually this session.
+- Fixed: invisible active secondary nav (all roles, desktop); walkthrough seed migration-count check.
+- Tokens: Bible palette light/dark via existing variable names (one change restyles every screen); sans display type, editorial serif only for hero; violet active rail.
+- Student Today (SA-001, SA-006, SA-008): violet next-class hero; attendance ring with exact counts; per-course bars with target marker and deterministic "attend next N" (`lib/attendance-math.ts`, exhaustive test incl. 130/150→50 at 90%).
+- Dock (Board 02): student order Today, Timetable, AURA (raised centre), CLUBVERSE, More. "Learn" label withheld until a learning studio exists.
+- AURA action capsule (AI-006/007): persisted-state track Proposed → Preview → Approval → Saved; read track Understood → Checked → Answered; no optimistic steps.
+- Verified: 49/49 PostgreSQL; affected Chromium suites pass in CI order; axe 0 violations light (88 pages) and dark phone (74 pages); no overflow. Evidence `docs/evidence/design-bible-slice-2026-11-27/`.
+- Found: e2e tests depend on PostgreSQL suite data (academic-day next-class, atmosphere work list); fail on fresh seed alone or with walkthrough fixtures.
+- Next: timetable Board 03 (segmented day/week, date strip, human dates, now marker, cancelled styling); chart kit; faculty/HOD/principal visual pass.

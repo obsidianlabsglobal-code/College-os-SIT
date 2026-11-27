@@ -53,7 +53,9 @@ test("Student Today focus mode preserves real tasks and restores campus context"
   const aura=page.getByRole("region",{name:"AURA at your side"});
   const schedule=page.getByRole("link",{name:"My timetable",exact:true}).first();
   await expect(schedule).toHaveAttribute("href",/\/timetable\?.*role=student/);
-  await expect(summary.getByRole("link")).toHaveCount(4);
+  await expect(summary.getByRole("link")).toHaveCount(3);
+  const attendance=page.getByRole("region",{name:"Attendance"});
+  await expect(attendance.getByRole("img",{name:/^Recorded attendance: /})).toBeVisible();
   await expect(aura).toBeVisible();
   await focus.focus();
   await focus.press("Enter");
@@ -61,6 +63,7 @@ test("Student Today focus mode preserves real tasks and restores campus context"
   await expect(focus).toBeFocused();
   await expect(summary).toBeHidden();
   await expect(aura).toBeHidden();
+  await expect(attendance).toBeHidden();
   await expect(work).toBeVisible();
   await expect(work.getByRole("link").first()).toHaveAttribute("href",/\/assignments\//);
   await focus.press("Space");

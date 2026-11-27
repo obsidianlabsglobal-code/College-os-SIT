@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import styles from "./timetable.module.css";
+import { classesNeeded } from "../../lib/attendance-math";
 
 export function AttendanceForecast({present,recorded,target,source}:{present:number;recorded:number;target:number|null;source:string|null}) {
   const [future,setFuture] = useState("5");
@@ -12,6 +13,9 @@ export function AttendanceForecast({present,recorded,target,source}:{present:num
   return <details className={styles.forecast}>
     <summary>Try an attendance scenario</summary>
     {target !== null && <p>Planning target {target}% · {source}</p>}
+    {target !== null && (() => { const needed = classesNeeded(present,recorded,target); return <p className="meta">
+      {needed === null ? "The planning target can no longer be reached." : needed === 0 ? "You are at or above the planning target."
+        : `Attending the next ${needed} consecutive class${needed === 1 ? "" : "es"} reaches the planning target.`}</p>; })()}
     <div className="row">
       <label>Future recorded classes<input type="number" min={0} max={100} value={future}
         onChange={event=>setFuture(event.target.value)} /></label>

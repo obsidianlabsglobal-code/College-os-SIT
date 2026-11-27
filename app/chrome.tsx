@@ -22,7 +22,7 @@ export const roleLabels = {
 type Destination = "/opportunities" | "/" | "/grading" | "/notices" | "/requests" | "/admin" | "/clubverse" | "/aura" | "/timetable";
 const labels: Record<Destination, string> = {
   "/opportunities": "Opportunities",
-  "/": "Overview",
+  "/": "Today",
   "/timetable": "Timetable",
   "/grading": "Evaluation queue",
   "/notices": "Notices",
@@ -37,6 +37,8 @@ const icons: Record<Destination, ComponentProps<typeof Icon>["name"]> = {
   "/": "home", "/timetable": "calendar", "/grading": "check", "/notices": "notice", "/clubverse": "people",
   "/aura": "spark", "/requests": "service", "/admin": "book",
 };
+
+const dock: Destination[] = ["/", "/timetable", "/aura", "/clubverse", "/notices", "/requests", "/opportunities"];
 
 export async function Chrome({ user, current, section = "/", children }: {
   user: { id: string; name: string };
@@ -55,6 +57,8 @@ export async function Chrome({ user, current, section = "/", children }: {
   if (current?.role === "student" || current?.role === "admin") destinations.push("/opportunities");
   if (current?.role === "admin") destinations.push("/admin");
   if (current?.role === "student" || current?.role === "faculty") destinations.push("/aura");
+  // Design Bible student dock: Today, Timetable (learn), AURA, Campus first; the rest sit under More.
+  if (current?.role === "student") destinations.sort((a, b) => dock.indexOf(a) - dock.indexOf(b));
 
   return <div className={current ? "app-shell" : "app-shell app-shell-single"}>
     <header className="app-top">
