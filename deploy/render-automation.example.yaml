@@ -1,0 +1,39 @@
+# NOT a live Blueprint. Copy these services into render.yaml only after the founder authorizes the spend.
+# Render background workers and cron jobs are paid services (no free plan). Choose ONE of the two options.
+# Both run the same code as the web app and connect as the least-privilege nexus_worker role.
+services:
+  # Option A: continuous worker. Wakes on LISTEN/NOTIFY when WORKER_DATABASE_URL is a session (non-pooled)
+  # connection; otherwise polls with adaptive back-off (1 s after work, up to 30 s idle).
+  - type: worker
+    name: nexus-automation-worker
+    runtime: node
+    branch: release/nexus-sit-free-pilot
+    plan: starter            # paid; confirm current pricing before enabling
+    region: singapore        # keep in the same region as the database
+    autoDeployTrigger: 'off'
+    buildCommand: npm ci --include=dev
+    startCommand: node --import tsx scripts/worker.ts
+    envVars:
+      - key: WORKER_DATABASE_URL     # postgresql://nexus_worker:...@<host>/nexus?sslmode=verify-full
+        sync: false
+      - key: NEXUS_WORKER_TARGET     # password-free copy of the URL, checked by lib/database-target.ts
+        sync: false
+      - key: NEXUS_FICTIONAL_PILOT
+        value: 'true'
+
+  # Option B: bounded scheduled execution. Each run drains due jobs once and exits, so latency is up to the
+  # schedule interval (T-24h reminders and 48 h escalations tolerate this; new-assignment notices arrive later).
+  - type: cron
+    name: nexus-automation-tick
+    runtime: node
+    branch: release/nexus-sit-free-pilot
+    plan: starter            # paid per run-minute
+    region: singapore
+    schedule: '*/5 * * * *'
+    buildCommand: npm ci --include=dev
+    startCommand: node --import tsx scripts/worker.ts --once
+    envVars:
+      - key: WORKER_DATABASE_URL
+        sync: false
+      - key: NEXUS_WORKER_TARGET
+        sync: false

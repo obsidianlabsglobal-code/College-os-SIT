@@ -24,3 +24,14 @@ You are the independent product architect and critical reviewer. Everything belo
 - **Tests:** PostgreSQL+unit 55/55, Chromium 26/26, tutor 1/1, lint/typecheck/build ✓. Local and fictional only; not hosted.
 - **90% metric:** instrumented but not measured. Baselines are NULL by design until consented timing exists.
 - **Decisions for you:** (1) which always-on host runs the worker (Render worker vs cron `--once`); (2) Neon vs Supabase (code is provider-neutral); (3) which 5 workflows to time for baselines; (4) next package: scheduled reminders (deadline T-24h) and the reusable workflow engine for office requests, or the faculty/HOD visual passes.
+
+## Addendum 2 — after the independent review mandate (27 Nov 2026)
+- **PR:** draft obsidianlabsglobal-code/College-os-SIT#17 from `audit/nexus-engineering-audit`. Not merged.
+- **Recovered:** all ten Codex/Dot branches, via their two tips (fees chain and prepared-messages chain), in the violet identity. Migrations reconciled by filename/checksum; fresh and upgrade paths verified.
+- **Hardened automation:** tenant FKs, read-time access re-checks, paused/disabled/cancel/defer semantics, audited operator actions, `nexus_worker` role, LISTEN + adaptive polling, job health vs worker liveness, sanitized errors, versioned handlers, concurrency-safe fencing (3 parallel workers tested).
+- **New workflows:** T-24h reminders, timetable change notices, teacher attendance summaries, request follow-up/escalation. Not yet done: periodic reports, the office workflow engine.
+- **90%:** instrumented for 5 workflows. Only labelled synthetic data exists; real baselines need authorized participants.
+- **Evidence-linked traceability:** 58 functionally tested (local) with per-file evidence at `da0ee07`; 5 Tested claims have no test (CR-001, CR-006, DH-015, LE-007, AD-035).
+- **Tests (fresh DB):** 69/69 PostgreSQL+unit, 31/31 Chromium, 1/1 tutor, lint/typecheck/build ✓.
+- **Prepared, not provisioned:** Render worker/cron example; $1 AURA smoke-test plan.
+- **Needs you:** approval to spend on a Render worker or cron; Supabase project access when ready; Anthropic key and cap; authorized participants for real baselines; whether to write tests for the 5 unlinked Tested claims or downgrade them in the registry.

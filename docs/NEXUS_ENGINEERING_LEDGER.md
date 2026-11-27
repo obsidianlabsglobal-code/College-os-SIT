@@ -54,3 +54,34 @@ Read all 55 pages of `NEXUS_Backend_Integration_and_Automation_Blueprint.pdf`. R
 - **Verified (local, fictional data).** lint ✓, typecheck ✓, build ✓, PostgreSQL+unit 55/55 (new `tests/automation.test.ts`: atomic enqueue, roster-only delivery, tenant isolation, crash/expired-lease re-run without duplicates, pause, draft-grade privacy, dead-letter, admin-only retry), Chromium 26/26 (new `tests/automation.e2e.ts`), tutor 1/1. Live check: the background worker routed a UI-submitted request to the admin in 0.7–1.6 s. Evidence: `docs/evidence/automation-2026-11-27/`.
 - **Registry.** AI-013, AD-023, SL-011 → Tested (qualified). Matrix: 63 tested, 9 partial, 8 unverified, 13 blocked, 387 missing.
 - **Not done.** Cron schedules and missed-run policy, cancellation, email/WhatsApp channels, notification preferences, attendance recalculation (already computed on read, so no job is needed), the reusable workflow engine (AD-020), hosted worker.
+
+## 2026-11-27 — Independent review mandate: checkpoint, branch recovery, automation hardening
+- **Checkpoint.** Draft PR obsidianlabsglobal-code/College-os-SIT#17 (not merged, no auto-deploy).
+- **Branch recovery.** The ten divergent branches form two chains. `feature/nexus-prepared-messages` contains faculty-timetable, campus-change-brief, ux-quality, sites-direction and attendance-workbench. `feature/nexus-fee-approval` contains fees-preview, reconciliation and batch-review. Both share the faculty-timetable commit. I merged only the two tips (no redundant predecessors, nothing deleted). Conflicts were resolved to the violet identity (Sites blue → violet; `--brand-blue` aliased to `--accent`; brand mark uses `--on-accent`). Board 03 is kept, with the branches' session-preserving links, in-planner attendance, group-message draft and room-change brief ported in. Fixes: a stale hero `::after` ring overflowed phones by 68 px; branch tests updated for Week view and the ring.
+- **Migrations.** `016_automation`, `016_fee_review_rehearsal`, `017_campus_change_brief` and `018_automation_hardening` are independent. Fresh install applied all 21 and a second run was a no-op. Upgrade of the existing DB applied only the missing files. Applied files were not edited.
+- **Hardening (018 + lib/automation.ts + scripts/worker.ts).**
+  - Composite tenant FKs (job/notification → `audit_event(institution_id,id)`).
+  - Read-time re-check of membership, roster and record state for every notification kind.
+  - Explicit states: paused = held (no attempts spent), disabled = events ignored and waiting jobs cancelled; job cancel; defer without spending attempts.
+  - Operator audit (`audit_event.ref` = rule key or `job:<id>`).
+  - `nexus_worker` least-privilege role (no access to `account`/credentials, no domain writes).
+  - LISTEN/NOTIFY wake-ups with adaptive 1–30 s polling.
+  - Per-institution job health vs global worker liveness.
+  - Institution effort evidence table (synthetic vs measured never mixed).
+  - Error storage limited to categories.
+  - Versioned handlers (`handler_version`).
+- **New deterministic workflows.**
+  - T-24h deadline reminders: deferred, reschedule-aware, skip submitters, expire after the deadline.
+  - Class moved/cancelled/room-changed notices: stale revisions skipped as superseded.
+  - Teacher attendance summary (L1 prepared draft, teacher shares it).
+  - 48 h request follow-up to admins and escalation to the principal.
+  - Shared `Inbox` component on student, faculty, admin and principal homes.
+- **90% measurement.** Five workflows are instrumented. The seed holds labelled **synthetic** rehearsal samples (≈89–90% reduction by construction from blueprint example volumes). These are not evidence of real savings. Measured institutional baselines are empty by design.
+- **Traceability.**
+  - The generator no longer trusts a global flag. Rows are Functionally tested only when every `// covers:`-linked test file passed in `docs/evidence/test-run.json` (per-file, recorded at `da0ee07`, fresh DB: 111 passed / 0 failed).
+  - Result: 58 functionally tested (local), 9 partial, **5 Tested claims without linked evidence** (CR-001, CR-006, DH-015, LE-007, AD-035), 8 unverified, 13 blocked, 387 missing.
+- **Deployment prep (not provisioned).** `deploy/render-automation.example.yaml` holds a worker or a 5-minute cron `--once` (both paid on Render). `render.yaml` is unchanged.
+- **AI.** `docs/AURA_SMOKE_TEST_PLAN.md` sets a $1 cap and five cases. Not executed; needs founder approval.
+- **Verified (fresh DB, CI order):** migrate ×2 + seed ✓, lint ✓, typecheck ✓, build ✓, PostgreSQL+unit 69/69, Chromium 31/31, tutor 1/1. Automation browser test passed 3/3 consecutive runs after fixing a reload race.
+- **Known UI debt.** The faculty home shows two "Teaching priorities" sections after the merge (to be fixed in the faculty structural redesign).
+- **Not done yet (next packages):** periodic institutional reports (needs schedule occurrences without an audit event), reusable office workflow engine (AD-020), structural redesigns of faculty/HOD/principal/admin, command palette and sheets, AURA ledger unification.

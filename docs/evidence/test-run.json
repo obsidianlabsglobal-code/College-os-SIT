@@ -1,0 +1,152 @@
+{
+ "commit": "da0ee077e93308a9aeef7ac82b515760e7cc3135",
+ "uncommitted_source_changes": false,
+ "recorded_at": "2026-11-27T11:08:32+00:00",
+ "environment": "local fresh PostgreSQL, fictional data, headless Chromium",
+ "files": {
+  "tests/academic-assistant.test.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/academic-day.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/academic-day.test.ts": {
+   "passed": 4,
+   "failed": 0
+  },
+  "tests/atmosphere.e2e.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/attendance-group-draft.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/attendance-math.test.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/attendance-workbench.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/aura-runtime.test.ts": {
+   "passed": 12,
+   "failed": 0
+  },
+  "tests/aura.e2e.ts": {
+   "passed": 3,
+   "failed": 0
+  },
+  "tests/aura.test.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/automation.e2e.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/automation.test.ts": {
+   "passed": 10,
+   "failed": 0
+  },
+  "tests/campus-change-brief.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/clubverse.test.ts": {
+   "passed": 3,
+   "failed": 0
+  },
+  "tests/database-target.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/faculty.e2e.ts": {
+   "passed": 3,
+   "failed": 0
+  },
+  "tests/faculty.test.ts": {
+   "passed": 7,
+   "failed": 0
+  },
+  "tests/fee-batch-review.test.ts": {
+   "passed": 3,
+   "failed": 0
+  },
+  "tests/fee-reconciliation.test.ts": {
+   "passed": 3,
+   "failed": 0
+  },
+  "tests/fee-review-privileges.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/fee-review-record.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/fees-preview.e2e.ts": {
+   "passed": 10,
+   "failed": 0
+  },
+  "tests/opportunities.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/opportunities.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/prepared-messages.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/release-revision.test.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/release.e2e.ts": {
+   "passed": 12,
+   "failed": 0
+  },
+  "tests/render-pilot.test.ts": {
+   "passed": 3,
+   "failed": 0
+  },
+  "tests/resource-booking.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/resource-booking.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/segments.test.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/shared-controls.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/student-admission.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/student-admission.test.ts": {
+   "passed": 4,
+   "failed": 0
+  },
+  "tests/tutor.spec.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/workflow.test.ts": {
+   "passed": 5,
+   "failed": 0
+  }
+ }
+}
