@@ -115,8 +115,11 @@ test("calendar, catalog, exports and the page finder work for each role", async 
   expect(await report.text()).toContain(`offering:${f.offering}`);
   await signIn(page, "admin");
   expect((await context.request.get(`/records/export?institution=${f.institution}&role=admin`)).status()).toBe(404);
-  expect((await context.request.get(`/calendar?institution=${f.institution}&role=admin`)).status()).toBe(404);
+  expect((await context.request.get(`/calendar?institution=${f.institution}&role=admin`)).status()).toBe(200);  // admins manage institution dates
+  await expect(page.getByRole("heading", { name: "Institution operations" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Institution operations" })).toBeVisible();
   await expect(page.getByLabel("Enrollment-letter queue")).toContainText("Without an owner");
   await page.screenshot({ path: testInfo.outputPath("admin-1280.png"), fullPage: true });
+  await signIn(page, "principal");
+  expect((await context.request.get(`/calendar?institution=${f.institution}&role=principal`)).status()).toBe(404);
 });
