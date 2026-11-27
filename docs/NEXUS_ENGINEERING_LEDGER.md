@@ -248,3 +248,26 @@ Observed, fresh local PostgreSQL in CI order at 8398a53:
 - Screenshots: `docs/evidence/teams-2026-11-27/`.
 
 Traceability: 77 functionally tested (local), 38 partial, 8 unverified, 13 blocked, 344 missing.
+
+## 2026-11-27 — Toward 40, batch 6: policies, eligibility, three more case kinds, question bank
+
+Implemented (commits 90806b3 and 36b543e, `db/025`):
+- **Policies (AD-021, AD-016 slice, SL-007 slice):**
+  - Admins draft versions; the principal approves or rejects each one with a reason. Only approved versions are published, to everyone, staff or students.
+  - One open draft per policy. Rejected versions never take effect.
+- **Attendance eligibility (SA-007):** each course's record-based rate is compared with the latest approved attendance policy version. The student timetable cites the policy and its version. This explains a figure; it is not an official eligibility decision.
+- **Case engine (AD-020) now serves five kinds:**
+  - **Repair reports (AD-031, AD-032):** office-owned; the reporter can reopen within 14 days with a reason.
+  - **Integrity appeals (SA-023):** student-only, tied to the published integrity policy version and one of their own assignments, reviewed in the course's department. Students never see staff notes.
+  - **Department requests (DH-023):** student-only, routed by the HOD.
+- **Question bank (FC-009, FC-008 slice):**
+  - Teachers keep private or department-shared questions. Each edit adds a version.
+  - A draft assignment can be composed from current versions, citing each version and summing the marks.
+- **Caught before commit:** a `FOR UPDATE` lock on `policy` needed a privilege the app role lacks. The lock was removed; the one-draft index already serialises drafts.
+- **Test fix:** the automation inbox browser test now clears earlier suites' job backlog before publishing. In one full run, six later notifications pushed its item out of the six-item panel; the database confirmed the ordering.
+
+Observed, fresh local PostgreSQL in CI order at 36b543e:
+- migrate ×2 + seed, lint, typecheck, build: all passed.
+- 109/109 PostgreSQL and unit tests, 45/45 Chromium, 1/1 tutor (165 files).
+
+Traceability: 82 functionally tested (local), 43 partial, 8 unverified, 13 blocked, 334 missing.
