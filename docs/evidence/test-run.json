@@ -1,7 +1,7 @@
 {
- "commit": "dd5f518b7d337f86cae7743cdc1f6f915aa35457",
+ "commit": "f6c0ade745c8021a4eb0785d1bc961dedc8afa42",
  "uncommitted_source_changes": false,
- "recorded_at": "2026-11-27T17:15:11+00:00",
+ "recorded_at": "2026-11-27T18:03:27+00:00",
  "environment": "local fresh PostgreSQL, fictional data, headless Chromium",
  "files": {
   "tests/academic-assistant.test.ts": {
@@ -222,6 +222,14 @@
   },
   "tests/tutor.spec.ts": {
    "passed": 1,
+   "failed": 0
+  },
+  "tests/work-closing.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/work-closing.test.ts": {
+   "passed": 5,
    "failed": 0
   },
   "tests/workflow.test.ts": {

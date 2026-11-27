@@ -296,3 +296,54 @@ Observed, fresh local PostgreSQL in CI order at dd5f518:
 Traceability: 83 functionally tested (local), 50 partial, 8 unverified, 13 blocked, 326 missing.
 
 Session summary (seven batches since 30-push): fully tested 69 → 83, partial 14 → 50, missing 376 → 326. Migrations 020–026 add 27 tables. Production readiness is still 0: nothing is hosted, no real users have been measured, and the founder approvals listed in the handoff are still outstanding.
+
+## 2026-11-27 — Toward 40, batch 8: My work, closing partial rows, acceptance review
+
+Implemented (commit f6c0ade, `db/027`):
+- My work (AD-018).
+- Institution calendar dates (SA-010).
+- Catalog visibility controlled by the office (SA-002).
+- Scheme- and term-aware student record (SA-022).
+- Workload totals in the teaching report (FC-028).
+- Reopenings in the operations report (AD-024).
+- Grievance escalations on the principal board (LE-009).
+- Section counts below the approved attendance policy (DH-009).
+- A date window on the executive report (LE-019).
+
+Acceptance review: each row below was re-read against its registry acceptance text. The scope note was removed only where the text is now met. Rows with a real gap keep their note: SA-015, SA-016, LE-003, LE-010, LE-011, FC-025, DH-016, FC-021, AD-008, ID-009, SL-007, SA-007, FC-008, AD-016, AD-020, AD-023, DH-009.
+
+| ID | Previous status | Why the acceptance is now met |
+| --- | --- | --- |
+| AD-018 | Tested (service requests) | one queue of actionable records per office across requests, cases, approvals and reviews |
+| SA-010 | Tested (own course deadlines, classes and registered campus events; no institution-wide calendar entries) | institution dates plus course deadlines, classes, exams and events, filterable |
+| SA-002 | Tested (every institution offering visible to active members; no catalog publication controls) | office-controlled catalog visibility |
+| SA-022 | Tested (CSV of own published results and latest attendance marks with source IDs) | record names scheme, term and the source record |
+| FC-028 | Tested (CSV per current teaching offering) | per-offering teaching plus workload totals |
+| AD-024 | Tested (on-demand 30-day report and a scheduled weekly in-app digest written by the worker) | queue age, resolution, rework (corrections) and reopenings; scheduled weekly digest |
+| LE-009 | Tested (service-request escalations) | request and grievance escalations with the office's decisions |
+| LE-019 | Tested (CSV with definitions, windows and source per figure; no custom time window) | each figure with definition, source and a chosen date window |
+| DH-022 | Tested (course plan approval or return with reason only) | HOD decisions with reasons on plans, development records, research, cases and allocation proposals |
+| DH-004 | Tested (read-only scheme, term and section mapping) | review is read-only by definition |
+| LE-004 | Tested (seven fixed record-derived measures with definitions and limitations) | defined measures shown with their limitations |
+| LE-008 | Tested (issues: invigilator without a post, room below cohort size) | published schedules with recomputed unresolved issues |
+| FC-017 | Tested (team milestones with evidence review and resubmission) | milestones reviewed with evidence and resubmission |
+| AD-032 | Tested (outcome text as repair evidence, reporter reopen within 14 days; no photos) | repair evidence recorded as the outcome; reporter reopen |
+| LE-015 | Tested (estate repairs: open, reopened, oldest, resolutions held 14 days) | critical repairs and resolutions verified by 14 days without reopening |
+| LE-005 | Tested (room hours booked next 7 days against seats; no demand forecast) | rooms compared with scheduled demand |
+| LE-012 | Tested (HOD-approved projects disclosed to the institution; no outcome metrics) | disclosure-approved projects with milestone evidence |
+| DH-005 | Tested (logged classes against an HOD-approved plan; no institution curriculum source) | logged classes compared with the approved plan |
+| DH-011 | Tested (approved topics covered by logged classes) | coverage of approved topics with delivery summaries as evidence |
+| FC-006 | Tested (per-class delivery summary linked to an approved plan topic) | delivery logged per class against the approved plan |
+| FC-020 | Tested (versioned PDF/TXT per offering with withdrawal) | versioned materials with withdrawal |
+| SA-018 | Tested (PDF/TXT materials; students get the latest version) | latest authorized version for the roster |
+| FC-016 | Tested (admin-assigned mentor; goals, follow-ups and student agreement) | goals agreed by the student and follow-ups recorded |
+| DH-014 | Tested (HOD-coordinated support cases owned by department teachers) | assignment and follow-up of support by the HOD |
+| FC-015 | Tested (support cases with time-to-close measure) | coordination with department staff and time-to-close measure |
+| AD-017 | Tested (student grievance intake, single owner, outcome, 7-day principal visibility) | confidential intake, single owner, 7-day escalation, outcome |
+Observed, fresh local PostgreSQL in CI order at f6c0ade:
+- migrate ×2 + seed, lint, typecheck, build: all passed.
+- 118/118 PostgreSQL and unit tests, 48/48 Chromium, 1/1 tutor (177 files).
+
+Traceability: 109 functionally tested (local), 24 partial, 8 unverified, 13 blocked, 326 missing.
+
+Handoff: `docs/handoff/NEXUS_CODEX_HANDOFF.pdf` (and its HTML source) splits the next work between Claude and Codex, with reserved migration ranges.
