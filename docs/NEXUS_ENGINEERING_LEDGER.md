@@ -549,3 +549,36 @@ Steps 1–4 of the integration brief were already done (036 in 3794d44, app shel
 Observed:
 - Demo rehearsal on a clean demo database: 1/1 passed.
 - Fresh local PostgreSQL in CI order at 88acb02: migrate ×2 + seed, lint, typecheck and build passed; 154/154 PostgreSQL and unit tests, 58/58 Chromium, 1/1 tutor.
+
+## 2026-11-28 — cc/pilot-access (taken on by the integration session): teacher import, email sign-in, student sign-up, consent
+
+The founder assigned the pilot-access work to this session (branch `cc/pilot-access`, migrations 070–089). It merges into the audit branch at the 18:00 IST review.
+
+Implemented (8f8990c, `db/070`):
+- **Teacher import (ID-012):**
+  - The office uploads or pastes a CSV (`name,email,phone,department,teaches,mentor_of`). The preview checks every row (duplicate emails, switched-off departments, unknown classes or sections, bad phones) and stores only the checked rows.
+  - Confirming re-checks and writes exactly those rows, or nothing: accounts, faculty memberships, rosters, class mentors and phone numbers.
+- **Email sign-in (AD-002):**
+  - better-auth email OTP: 6 digits, 10-minute expiry, 3 attempts, stored hashed.
+  - Limits: 10 requests per address per 10 minutes (auth library) and 5 codes per email per hour (no email is sent past the limit; the reply is identical, so nobody learns whether an email exists).
+  - Mail goes through `lib/email`. Its console adapter runs only against a local database or the fictional pilot; a real provider needs approval.
+  - `/login/code` keeps a safe same-site `next` link.
+- **Student sign-up (ID-009):**
+  - `/join/student?institution=…` asks for code sign-in (which confirms the email), then name, USN, semester, section in a switched-on department, phone and stop. The student sees nothing until a decision.
+  - Only current teachers of that section, or its class mentor who is a current teacher, see and decide requests (bulk approve, reject with a reason the student sees).
+  - Approval records a `student_admission`, the student membership, the section's rosters and the details.
+  - The office's revoke now ends those rosters and the membership.
+  - Every request and decision is audited.
+- **Consent (ID-010 slice):**
+  - A versioned privacy notice. When an institution requires it (office switch), every workspace page sends members to it until they accept.
+  - The office sees who has not accepted.
+  - The wording is a draft until the college approves it.
+- **Step 5 (one search box):** not started.
+
+Fixes during the full run:
+- The pilot-access integration test left a Mechanical-only section that broke the catalog browser test's selector; it now cleans up.
+- The admission preview test expected `/join/student` to return 404; it now expects the code sign-in, and the preview check moved to `/join/faculty`.
+
+Observed, fresh local PostgreSQL in CI order on cc/pilot-access (8f8990c plus the test fixes):
+- migrate ×2 + seed, lint, typecheck, build: all passed.
+- 158/158 PostgreSQL and unit tests, 59/59 Chromium, 1/1 tutor.
