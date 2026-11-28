@@ -524,3 +524,28 @@ Observed, fresh local PostgreSQL in CI order at 542e0e1:
 Request to codex/transport:
 - Send the 5-minute and delay alerts with `sendPush` to riders of that route in switched-on departments (`accountInActiveDepartmentSql`), from the position or notice request, not the worker.
 - Create `app/transport/page.tsx` so the Transport menu entry appears.
+
+## 2026-11-28 — Revised coder assignment and integration step 5: Ask AURA
+
+**Revised assignment (founder, 07:47 UTC):**
+- Integration: this branch, migrations 036–039.
+- Sign-in and consent: Claude Code on `cc/pilot-access`, 070–089.
+- Transport: a ChatGPT Dot on `dot/transport`, 055–069. It replaces codex/transport; the ledger requests above addressed to codex/transport now apply to dot/transport.
+- Mentors and research: Codex on `codex/mentors-research` from 15:00 IST, 090–099.
+- Migrations 040–054 stay unused. The foundation refactor and templates T1–T5 are dropped.
+
+Steps 1–4 of the integration brief were already done (036 in 3794d44, app shell, runbook, push plumbing).
+
+**Step 5, Ask AURA (88acb02):**
+- `lib/aura/ask.ts` answers plain questions without a model. Questions route by keywords to readers that already enforce membership and roster: due work, next classes and rooms, attendance.
+- Process questions quote the latest approved policy versions the asker's role may read, with a version citation and a scoped next step.
+- A student in Section B asking the same question sees only Section B's work. A staff-only policy is never quoted to a student.
+- AI-011 is Tested with a scope note; AI-017 is Tested.
+
+**Step 6:**
+- The demo data adds an approved "Letters and certificates" policy.
+- `docs/DEMO_DEC2.md` and the rehearsal add step 1b, Ask AURA.
+
+Observed:
+- Demo rehearsal on a clean demo database: 1/1 passed.
+- Fresh local PostgreSQL in CI order at 88acb02: migrate ×2 + seed, lint, typecheck and build passed; 154/154 PostgreSQL and unit tests, 58/58 Chromium, 1/1 tutor.

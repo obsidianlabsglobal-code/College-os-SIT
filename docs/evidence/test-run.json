@@ -1,7 +1,7 @@
 {
- "commit": "542e0e1a00e136349248386ed5db3191c5b2dca3",
+ "commit": "88acb02822f17670f23fac3edcdad58306c905aa",
  "uncommitted_source_changes": false,
- "recorded_at": "2026-11-28T07:30:28+00:00",
+ "recorded_at": "2026-11-28T07:55:43+00:00",
  "environment": "local fresh PostgreSQL, fictional data, headless Chromium",
  "files": {
   "tests/academic-assistant.test.ts": {
@@ -26,6 +26,14 @@
   },
   "tests/app-shell.e2e.ts": {
    "passed": 1,
+   "failed": 0
+  },
+  "tests/ask-aura.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/ask-aura.test.ts": {
+   "passed": 3,
    "failed": 0
   },
   "tests/atmosphere.e2e.ts": {
