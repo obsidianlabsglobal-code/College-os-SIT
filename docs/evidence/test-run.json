@@ -1,7 +1,7 @@
 {
- "commit": "8f1b761a7e9f3e6851c48ebf13268232bdd56964",
+ "commit": "bd85542bc4700aa96cd1ea2c7cfd497b0f5979cd",
  "uncommitted_source_changes": false,
- "recorded_at": "2026-11-28T11:03:05+00:00",
+ "recorded_at": "2026-11-28T11:07:54+00:00",
  "environment": "local fresh PostgreSQL, fictional data, headless Chromium",
  "files": {
   "tests/academic-assistant.test.ts": {
@@ -70,6 +70,14 @@
   },
   "tests/automation.test.ts": {
    "passed": 10,
+   "failed": 0
+  },
+  "tests/bus-delay.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/bus-delay.test.ts": {
+   "passed": 1,
    "failed": 0
   },
   "tests/campus-change-brief.e2e.ts": {

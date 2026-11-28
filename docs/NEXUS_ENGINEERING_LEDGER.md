@@ -784,3 +784,17 @@ Observed at 8f1b761 (the merge), fresh local PostgreSQL in CI order, with those 
 - migrate ×2 + seed, lint, typecheck and build passed.
 - 196/196 PostgreSQL and unit tests, 71/71 Chromium, 1/1 tutor.
 - Matrix: 135 tested, 90 partial, 237 missing, 8 unverified, 13 blocked.
+
+**Bus-delay attendance context (9c83fe9–bd85542), FC-030 (Dot's 5b contract):**
+- A teacher's class view shows "Bus delayed this morning" for a student only when all of these hold:
+  - the student's boarding is recorded on an inbound college trip that ran that day;
+  - a disruption was raised on that trip before the class ended;
+  - this is the student's first published or conducted class that day.
+- It's computed on read: no table, no write and no mark change; the teacher's mark stands. It shows only the reported time, never the incident kind, location, injuries or other riders.
+- Route membership alone doesn't count. Other teachers, students and other colleges see nothing.
+- There's no "late" status in attendance (only present and absent), so this is context only, and there's no mentor view yet.
+
+Observed at bd85542, fresh local PostgreSQL in CI order, with the transport test settings:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 197/197 PostgreSQL and unit tests, 72/72 Chromium, 1/1 tutor.
+- Matrix: 135 tested, 91 partial, 237 missing (484 rows), 8 unverified, 13 blocked.
