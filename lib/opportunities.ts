@@ -3,7 +3,7 @@ import { audit,WorkflowError } from "./assignments";
 import { db,transaction } from "./db";
 import type { Scope } from "./scope";
 
-export const kinds = ["internship","scholarship","competition"] as const;
+export const kinds = ["internship","scholarship","competition","job","placement","hackathon","fellowship","research"] as const;
 const kindSchema = z.enum(kinds);
 const name = z.string().trim().min(1).max(140);
 const verifiedSource = z.url({protocol:/^https$/}).max(2048).refine(value=>{
@@ -12,7 +12,7 @@ const verifiedSource = z.url({protocol:/^https$/}).max(2048).refine(value=>{
 });
 const command = z.discriminatedUnion("operation",[
   z.object({operation:z.literal("publish"),id:z.uuid(),kind:kindSchema,title:name,sponsor:name,
-    eligibility:z.string().trim().min(1).max(1500),source:verifiedSource,deadline:z.iso.date(),verified:z.literal("on")}),
+    eligibility:z.string().trim().min(1).max(1500),source:verifiedSource,deadline:z.iso.date(),verified:z.literal("on"),department:z.preprocess(v=>v===""?undefined:v,z.uuid().optional())}),
   z.object({operation:z.literal("withdraw"),id:z.uuid(),reason:z.string().trim().min(1).max(300)}),
 ]);
 
@@ -23,11 +23,12 @@ export async function changeOpportunity(scope:Scope,raw:unknown) {
     const grant=await client.query("SELECT 1 FROM membership WHERE institution_id=$1 AND account_id=$2 AND role='admin' AND ended_at IS NULL FOR SHARE",[scope.institution,scope.account]);
     if (!grant.rowCount) throw new WorkflowError("Opportunity administration is unavailable.");
     if (input.operation==="publish") {
-      const added=await client.query(`INSERT INTO opportunity_listing(institution_id,id,kind,title,sponsor,eligibility,source_url,deadline,verified_by)
-        SELECT id,$2,$3,$4,$5,$6,$7,$8,$9 FROM institution
-        WHERE id=$1 AND $8::date >= (now() AT TIME ZONE timezone)::date ON CONFLICT DO NOTHING`,
-        [scope.institution,input.id,input.kind,input.title,input.sponsor,input.eligibility,input.source,input.deadline,scope.account]);
-      if (!added.rowCount) throw new WorkflowError("Check that the deadline is current and the listing has not already been published.");
+      const added=await client.query(`INSERT INTO opportunity_listing(institution_id,id,kind,title,sponsor,eligibility,source_url,deadline,verified_by,department_id)
+        SELECT id,$2,$3,$4,$5,$6,$7,$8,$9,$10::uuid FROM institution
+        WHERE id=$1 AND $8::date >= (now() AT TIME ZONE timezone)::date
+          AND ($10::uuid IS NULL OR EXISTS (SELECT 1 FROM department d WHERE d.institution_id=$1 AND d.id=$10::uuid)) ON CONFLICT DO NOTHING`,
+        [scope.institution,input.id,input.kind,input.title,input.sponsor,input.eligibility,input.source,input.deadline,scope.account,input.department??null]);
+      if (!added.rowCount) throw new WorkflowError("Check that the deadline is current, the department exists and the listing has not already been published.");
     } else {
       const result=await client.query(`UPDATE opportunity_listing SET withdrawn_at=clock_timestamp(),withdrawn_by=$3,withdrawal_reason=$4
         WHERE institution_id=$1 AND id=$2 AND withdrawn_at IS NULL`,[scope.institution,input.id,scope.account,input.reason]);
@@ -56,8 +57,9 @@ export async function opportunities(scope:Scope,input:z.infer<typeof filters>) {
   const {kind,query,page}=filters.parse(input);
   if (scope.role!=="admin" && scope.role!=="student") throw new WorkflowError("The directory is unavailable.");
   const result=await db.query<{id:string;kind:typeof kinds[number];title:string;sponsor:string;eligibility:string;source_url:string;
-    deadline:string;verified_at:Date;withdrawal_reason:string|null;status:"Open"|"Expired"|"Withdrawn"}>(`
+    deadline:string;verified_at:Date;withdrawal_reason:string|null;department:string|null;status:"Open"|"Expired"|"Withdrawn"}>(`
     SELECT l.id,l.kind,l.title,l.sponsor,l.eligibility,l.source_url,to_char(l.deadline,'YYYY-MM-DD') AS deadline,l.verified_at,l.withdrawal_reason,
+      (SELECT d.name FROM department d WHERE d.institution_id=l.institution_id AND d.id=l.department_id) AS department,
       CASE WHEN withdrawn_at IS NOT NULL THEN 'Withdrawn' WHEN deadline<(now() AT TIME ZONE i.timezone)::date THEN 'Expired' ELSE 'Open' END AS status
     FROM opportunity_listing l JOIN institution i ON i.id=l.institution_id
     WHERE l.institution_id=$1 AND ${currentMember}

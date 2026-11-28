@@ -425,21 +425,21 @@ Students, placement and research offices, opted-in mentors, approved alumni and 
 | ID | Capability | Functional workflow or acceptance outcome | Status | Evidence |
 | --- | --- | --- | --- | --- |
 | CR-001 | Internship search | Discover active verified internships. | Tested | Staff-reviewed directory, lib/opportunities.ts and tests/opportunities.*. Eligibility is displayed for manual review. |
-| CR-002 | Jobs and placement opportunities | Search roles and approved placement drives. | Proposed | F |
+| CR-002 | Jobs and placement opportunities | Search roles and approved placement drives. | Tested (verified job and placement-drive listings) | db/032, lib/careers.ts, lib/opportunities.ts, app/careers, app/opportunities; tests/careers.test.ts, tests/careers.e2e.ts |
 | CR-003 | Course discovery | Compare relevant courses with prerequisites and source links. | Proposed | F |
 | CR-004 | NPTEL and SWAYAM discovery | Discover verified listings through permitted interfaces. | Proposed | F |
 | CR-005 | Scholarships | Find applicable funding and application deadlines. | Tested | Staff-reviewed directory, lib/opportunities.ts and tests/opportunities.*. Eligibility is displayed for manual review. |
 | CR-006 | Competitions | Compare verified competition requirements. | Tested | Staff-reviewed directory, lib/opportunities.ts and tests/opportunities.*. Eligibility is displayed for manual review. |
-| CR-007 | Hackathons | Find challenges, deadlines and team eligibility. | Proposed | F |
-| CR-008 | Research opportunities | Find approved programs and openings. | Proposed | F |
-| CR-009 | Fellowships | Compare eligibility and funding terms. | Proposed | F |
-| CR-010 | Eligibility matching | Explain requirements met, missing evidence and correction paths. | Proposed | F |
+| CR-007 | Hackathons | Find challenges, deadlines and team eligibility. | Tested (verified listings; no team eligibility) | db/032, lib/careers.ts, lib/opportunities.ts, app/careers, app/opportunities; tests/careers.test.ts, tests/careers.e2e.ts |
+| CR-008 | Research opportunities | Find approved programs and openings. | Tested (verified research listings) | db/032, lib/careers.ts, lib/opportunities.ts, app/careers, app/opportunities; tests/careers.test.ts, tests/careers.e2e.ts |
+| CR-009 | Fellowships | Compare eligibility and funding terms. | Tested (verified listings; funding terms in the eligibility text) | db/032, lib/careers.ts, lib/opportunities.ts, app/careers, app/opportunities; tests/careers.test.ts, tests/careers.e2e.ts |
+| CR-010 | Eligibility matching | Explain requirements met, missing evidence and correction paths. | Tested (department enrolment requirement with a correction path) | db/032, lib/careers.ts, lib/opportunities.ts, app/careers, app/opportunities; tests/careers.test.ts, tests/careers.e2e.ts |
 | CR-011 | Skills and skill gaps | Compare evidenced skills with a selected goal. | Proposed | F |
 | CR-012 | Career pathways | Map user-selected goals to courses, projects and opportunities. | Proposed | F |
-| CR-013 | Résumé preparation | Draft and review a résumé using authorized portfolio data. | Proposed | F |
-| CR-014 | Portfolios | Select and share evidence with revocable visibility. | Proposed | F |
-| CR-015 | Application drafts | Prepare required materials for applicant review. | Proposed | F |
-| CR-016 | Application tracking | Track submission, status, deadlines and verified outcome. | Proposed | F |
+| CR-013 | Résumé preparation | Draft and review a résumé using authorized portfolio data. | Tested (plain-text draft from profile and chosen portfolio records) | db/032, lib/careers.ts, lib/opportunities.ts, app/careers, app/opportunities; tests/careers.test.ts, tests/careers.e2e.ts |
+| CR-014 | Portfolios | Select and share evidence with revocable visibility. | Tested (the student portfolio, shared by profile visibility) | lib/student-life.ts, app/profile; tests/meetings-portfolio.test.ts, tests/sports.test.ts |
+| CR-015 | Application drafts | Prepare required materials for applicant review. | Tested (statement draft) | db/032, lib/careers.ts, lib/opportunities.ts, app/careers, app/opportunities; tests/careers.test.ts, tests/careers.e2e.ts |
+| CR-016 | Application tracking | Track submission, status, deadlines and verified outcome. | Tested | db/032, lib/careers.ts, lib/opportunities.ts, app/careers, app/opportunities; tests/careers.test.ts, tests/careers.e2e.ts |
 | CR-017 | Mentor discovery | Find available mentors by approved expertise and request contact. | Proposed | F |
 | CR-018 | Faculty research projects | Publish approved projects and scoped openings. | Proposed | F |
 | CR-019 | Student research teams | Form opt-in teams and manage role-specific access. | Proposed | F |
@@ -454,9 +454,9 @@ Students, placement and research offices, opted-in mentors, approved alumni and 
 | CR-028 | Certifications | Track learning credentials and verification status. | Proposed | F |
 | CR-029 | Project discovery | Find eligible projects, mentors and resources. | Proposed | F |
 | CR-030 | Team formation | Invite opted-in collaborators and track membership. | Proposed | F |
-| CR-031 | Opportunity tracking | Save relevant opportunities and track decisions. | Proposed | F |
-| CR-032 | Placement drives | Register eligible students and track authorized outcomes. | Proposed | F |
-| CR-033 | Graduate outcomes | Aggregate verified outcomes with appropriate definitions. | Proposed | F |
+| CR-031 | Opportunity tracking | Save relevant opportunities and track decisions. | Tested | db/032, lib/careers.ts, lib/opportunities.ts, app/careers, app/opportunities; tests/careers.test.ts, tests/careers.e2e.ts |
+| CR-032 | Placement drives | Register eligible students and track authorized outcomes. | Tested | db/032, lib/careers.ts, lib/opportunities.ts, app/careers, app/opportunities; tests/careers.test.ts, tests/careers.e2e.ts |
+| CR-033 | Graduate outcomes | Aggregate verified outcomes with appropriate definitions. | Tested (office-recorded placement offers per department) | db/032, lib/careers.ts, lib/opportunities.ts, app/careers, app/opportunities; tests/careers.test.ts, tests/careers.e2e.ts |
 | CR-034 | Grant applications | Track calls, budgets, approvals and decisions. | Proposed | F |
 | CR-035 | Intellectual property disclosure | Route private disclosure to authorized reviewers. | Proposed | F |
 | CR-036 | Experiment documentation | Record scoped experimental methods, evidence and revisions. | Proposed | F |

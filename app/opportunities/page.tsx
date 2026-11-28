@@ -7,6 +7,8 @@ import { Chrome } from "../chrome";
 import { ActionForm } from "../forms";
 import { ExperienceHeading } from "../experience/heading";
 import { opportunityAction } from "./actions";
+import { careersAction } from "../actions/careers";
+import { db } from "../../lib/db";
 
 export default async function Directory({searchParams}:{searchParams:Promise<Record<string,string|undefined>>}) {
   const [params,user]=await Promise.all([searchParams,account()]);
@@ -14,6 +16,7 @@ export default async function Directory({searchParams}:{searchParams:Promise<Rec
   const parsed=directoryFilters(params);
   if (!parsed.success || !["student","admin"].includes(current.role)) notFound();
   const {rows,more}=await opportunities(current,parsed.data);
+  const departments=current.role==="admin" ? (await db.query<{id:string;name:string}>("SELECT id,name FROM department WHERE institution_id=$1 ORDER BY name",[current.institution])).rows : [];
   const zone=(await workspaces(user.id)).find(w=>w.id===current.institution && w.role===current.role)?.timezone;
   if (!zone) notFound();
   const date=new Intl.DateTimeFormat("en-IN",{dateStyle:"medium",timeZone:zone});
@@ -23,7 +26,7 @@ export default async function Directory({searchParams}:{searchParams:Promise<Rec
   if (parsed.data.query) filters.set("query",parsed.data.query);
   const link=(page:number)=>`/opportunities?${filters}&page=${page}`;
   return <Chrome current={current} user={user} section="/opportunities">
-    <ExperienceHeading title="Opportunities" context="Internships, scholarships and competitions" />
+    <ExperienceHeading title="Opportunities" context="Verified internships, jobs, placement drives, scholarships, fellowships, research openings, hackathons and competitions" />
     {admin && <details className="panel"><summary>Publish a verified opportunity</summary>
       <ActionForm action={opportunityAction} context={current} label="Publish listing" operation="publish">
         <input name="id" type="hidden" value={randomUUID()}/>
@@ -31,6 +34,7 @@ export default async function Directory({searchParams}:{searchParams:Promise<Rec
         <label>Organizer<input name="sponsor" maxLength={140} required/></label>
         <label>Opportunity type<select name="kind">{kinds.map(k=><option key={k}>{k}</option>)}</select></label>
         <label>Eligibility and requirements<textarea name="eligibility" maxLength={1500} required/></label>
+        <label>Only for students taking a course in<select name="department" defaultValue=""><option value="">Any department</option>{departments.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}</select></label>
         <label>Official source URL<input type="url" name="source" maxLength={2048} required/></label>
         <label>Last application day ({zone})<input type="date" name="deadline" required/></label>
         <label><input type="checkbox" name="verified" required/> I checked the requirements and deadline against the official source.</label>
@@ -48,6 +52,8 @@ export default async function Directory({searchParams}:{searchParams:Promise<Rec
         <p>Apply by {row.deadline} · {zone}</p>
         <p className="meta">Source checked {date.format(row.verified_at)}</p>
         <a href={row.source_url} rel="noreferrer">Official source · {new URL(row.source_url).hostname}</a>
+        {row.department && <p className="meta">Only for students taking a {row.department} course</p>}
+        {current.role==="student" && <ActionForm action={careersAction} context={current} operation="track" label="Track" secondary><input type="hidden" name="listing" value={row.id}/></ActionForm>}
         {admin && (row.withdrawal_reason ? <p>Withdrawal reason · {row.withdrawal_reason}</p> : <details><summary>Withdraw listing</summary>
           <ActionForm action={opportunityAction} context={current} operation="withdraw" label="Confirm withdrawal">
             <input name="id" type="hidden" value={row.id}/><label>Reason<input name="reason" required maxLength={300}/></label>
