@@ -46,3 +46,71 @@ Main at `5af9797` passed GitHub CI. On November 23, 2026, a local exercise and t
 ### Dedicated database allowlist
 
 Before connecting, verify the project identity in the NEXUS provider dashboard. Set the password-free URI including scheme, username, host, port (when specified) and database path as NEXUS_RUNTIME_TARGET in Vercel, and NEXUS_MIGRATION_TARGET in the GitHub release-candidate environment variables. Obtain these allowlist entries independently of the secret URLs. Include any project suffix in a pooler username. Remote secret URLs must match the corresponding entry and use sslmode=verify-full. Use the provider CA through NODE_EXTRA_CA_CERTS when necessary. The runtime role must be nexus_app (or its project-qualified pooler name); verify its restricted grants at provisioning. Use both allowlists for the fictional seed runner. The configuration check validates endpoint identity; provider ownership, Data API settings, actual TLS, role privileges and backup policy require provider-side verification.
+
+## SIT EEE pilot runbook
+
+This section is for the real pilot after 2 December: the EEE department first (about 250 people), with live buses from drivers' phones. **Nothing here may start until**:
+- the college has given written permission naming the data used and who is responsible;
+- the founder has approved hosting spend, an email-sending account and a sending domain.
+
+Until then, every environment uses fictional data, as AGENTS.md requires. No paid resource is created by this repository.
+
+### Shape of the pilot deployment
+
+| Part | Where | Notes |
+| --- | --- | --- |
+| Web app (pages, server actions, the driver-phone position endpoint) | Vercel project `nexus-college-os-pilot` (new, separate from fictional staging) | Node 24, region close to Mumbai. Disable Git auto-deploys; deploy only through the release workflow. Confirm the Vercel plan's terms allow this use. |
+| Database | Managed PostgreSQL 15+ (Supabase in the founder's budget) in the Mumbai region | Separate project from fictional staging. Three logins: owner/migration, `nexus_app`, `nexus_worker`. TLS with certificate checking (`sslmode=verify-full`). |
+| Background worker (inbox notices, reminders, digests) | One of the two options in `deploy/render-automation.example.yaml` (paid), or a scheduled `node --import tsx scripts/worker.ts --once` | The 5-minute bus alert must **not** depend on the worker. It is computed when a position arrives (codex/transport), and phone notifications are sent from that request. |
+| Email sign-in codes | The provider the founder approves, through the adapter in cc/pilot-access | No email leaves the system before approval; local and tests use the console adapter. |
+
+### Secrets and settings
+
+- **Vercel, production environment of the pilot project:**
+  - `DATABASE_URL` and `NEXUS_RUNTIME_TARGET`
+  - `BETTER_AUTH_URL` (the exact HTTPS address) and a generated `BETTER_AUTH_SECRET`
+  - `AURA_MODEL_ENABLED=false` (unless a key and cap are approved)
+  - The email provider's key and sender address (names set by cc/pilot-access)
+  - The phone-notification keys `NEXUS_PUSH_PUBLIC_KEY`, `NEXUS_PUSH_PRIVATE_KEY` and `NEXUS_PUSH_SUBJECT` (generated once; the private key never leaves Vercel)
+- **GitHub environment `release-candidate` (or a new `pilot` environment with the same protections):** `MIGRATION_DATABASE_URL` and `NEXUS_MIGRATION_TARGET`. Keep the migration credential out of Vercel.
+- **Worker host:** `WORKER_DATABASE_URL` and `NEXUS_WORKER_TARGET`.
+- **Never** put secrets in the repository, the ledger or chat. Rotate `BETTER_AUTH_SECRET` and the push keys if they are ever exposed.
+
+### First-time order
+
+1. Create the database project and the three logins. Confirm `btree_gist` is available, then run the migrations through the release workflow (it holds the migration advisory lock).
+2. **Do not run `npm run db:seed` or `npm run db:seed-demo` on the pilot database.** They create fictional people.
+3. Create SIT's record once with `scripts/bootstrap-institution.ts` from an authorized machine, using the migration URL:
+   - Run it first without `--apply`. Check the printed plan: the institution name, every department, only EEE switched on, and the office account.
+   - Then rerun with `--apply`. It prints a one-time office password once; store it in the team's secret manager.
+4. Deploy the web app and check `/api/health` reports the expected revision.
+5. **Backup and restore test before any real person signs in:**
+   - Enable the provider's daily backups; enable point-in-time recovery if the plan has it.
+   - Take a backup, restore it into a separate project, point a separate deployment at it, and sign in as the office.
+   - Record the backup ID, the time taken and the data-loss window in the ledger.
+6. The office signs in and checks **Academic setup → Departments switched on**: only EEE is on.
+7. The office imports EEE teachers from the college's sheet with a dry run first (cc/pilot-access). Teachers sign in by email code.
+8. Students sign up and their section teachers approve them (cc/pilot-access). Each person accepts the privacy notice the college approved on first sign-in.
+9. The transport office enters routes, stops, vehicles and schedules (codex/transport), then binds the driver phones (below).
+
+### Binding a driver's phone
+
+The driver's Android phone runs the free Traccar Client app. It reports positions with the screen locked. The exact server address and identifier format come from the endpoint in codex/transport; confirm them against that code before the first ride.
+1. In NEXUS, the transport office opens the vehicle and creates a phone token. The token is shown once and bound to that vehicle only; a second token can be bound as a backup phone.
+2. On the phone, install Traccar Client. Set the server URL to the NEXUS position endpoint, the device identifier to the token, the frequency to the value in `docs/TRANSPORT_ETA_DESIGN.md`, and allow location "all the time" and background data.
+3. Start a trip in NEXUS, start the service in the app, and check that the bus appears on the route map within a minute.
+4. **Lost or replaced phone:** revoke its token in NEXUS at once; its reports are refused from then on.
+
+Positions are accepted only during an active trip and deleted after 7 days. No student's location is ever collected.
+
+### Rolling back
+
+- **Application:** use the hosting provider's instant rollback to the previous deployment, as long as it is compatible with the current database schema. Migrations only move forward. Fix a bad migration with a new forward migration, never by editing an applied one.
+- **Data:** restore the latest backup into a new project, then switch the application to it. Record the data-loss window, and say what was lost to the affected people through the college contact.
+- **If the app is down, the buses run as usual.** The college contact tells students through the usual channel. NEXUS is not a safety system.
+
+### Daily during the pilot
+
+- **Morning, before the first trip:** check health and each bus phone's last report time.
+- **Evening:** read the ETA feedback and transport reports, and check that the 7-day position deletion ran. Record incidents and fixes in the ledger.
+- **Widening to another department:** switch it on only after a clean week for EEE. Record the date and the reason.
