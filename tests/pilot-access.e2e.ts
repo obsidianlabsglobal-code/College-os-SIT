@@ -70,7 +70,7 @@ test("the office imports a teacher, a new student joins by email code, the teach
     await page.goto(at("faculty", "/approvals/students"));
     await page.getByLabel(new RegExp(`Meera Iyer ${tag}`)).first().check();
     await page.getByRole("button", { name: "Approve selected" }).click();
-    await expect(page.getByRole("status").first()).toContainText("1 request approved");
+    await expect(page.getByRole("region", { name: "Decided in the last 30 days" })).toContainText(`Meera Iyer ${tag} · ${`4SI${tag}`.toUpperCase()} · Section B · Approved`);
 
     // The office requires the privacy notice; the student must accept it before the workspace opens.
     await db.query("UPDATE institution SET consent_required=true WHERE id=$1", [f.institution]);

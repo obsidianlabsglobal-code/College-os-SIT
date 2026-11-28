@@ -58,6 +58,8 @@ before(async () => {
   await owner.query("UPDATE department SET active=false WHERE institution_id=$1 AND id=$2", [i, fixtures.otherDepartment]);
 });
 after(async () => {
+  await owner.query("DELETE FROM offering WHERE institution_id=$1 AND id=$2", [i, ids.mechOffering]);
+  await owner.query("DELETE FROM section WHERE institution_id=$1 AND id=$2", [i, ids.mechSection]);
   await owner.query("UPDATE department SET active=true WHERE institution_id=$1", [i]);
   await owner.query("UPDATE institution SET consent_required=false WHERE id=$1", [i]);
   await Promise.all([db.end(), owner.end()]);
