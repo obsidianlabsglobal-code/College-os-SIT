@@ -170,10 +170,10 @@ HODs and explicitly delegated coordinators need department-scoped oversight. Sel
 | DH-015 | Department notices | Publish and retrieve notices within department scope. | Tested | R; tests/notices.test.ts |
 | DH-016 | Faculty development | Coordinate training and evidence. | Tested (HOD verification of development records; no training coordination) | db/026, lib/faculty-records.ts, app/growth; tests/growth-operations.test.ts, tests/growth-operations.e2e.ts |
 | DH-017 | Research projects | Track approved departmental projects and milestones. | Tested | db/026, lib/faculty-records.ts, app/growth; tests/growth-operations.test.ts, tests/growth-operations.e2e.ts |
-| DH-018 | Laboratory resources | Review availability and request allocation. | Proposed | F |
-| DH-019 | Equipment status | See authorized inventory and maintenance state. | Proposed | F |
+| DH-018 | Laboratory resources | Review availability and request allocation. | Implemented (room-use totals on /facilities; requests use the facility booking flow) | F |
+| DH-019 | Equipment status | See authorized inventory and maintenance state. | Implemented (state, due date and last condition; no borrower names) | F |
 | DH-020 | Department clubs | Coordinate recognized departmental associations. | Proposed | F |
-| DH-021 | Sports and activity oversight | Review assigned activities within delegated scope. | Proposed | F |
+| DH-021 | Sports and activity oversight | Review assigned activities within delegated scope. | Implemented (read-only overview of the department's teams) | F |
 | DH-022 | Department approvals | Review and record a department decision with reason. | Tested | lib/course-delivery.ts, app/courses/[id], app/leadership/boards.tsx; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
 | DH-023 | Department service requests | Route requests to accountable staff and track resolution. | Tested | db/025, lib/cases.ts, app/cases; tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |
 | DH-024 | Accreditation evidence | Trace approved evidence back to records. | Proposed | F |

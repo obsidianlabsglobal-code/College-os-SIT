@@ -1,4 +1,4 @@
-// covers: AD-025, AD-026, OP-002, OP-003, OP-004, OP-005, OP-009, OP-014, ID-004, ID-006
+// covers: DH-018, DH-019, AD-025, AD-026, OP-002, OP-003, OP-004, OP-005, OP-009, OP-014, ID-004, ID-006
 import "../scripts/environment";
 import assert from "node:assert/strict";
 import { test, before, after } from "node:test";
@@ -6,7 +6,7 @@ import { randomUUID } from "node:crypto";
 import { Pool } from "pg";
 import { db } from "../lib/db";
 import { WorkflowError } from "../lib/assignments";
-import { addHolding, bookings, cancelBooking, decideBooking, holdings, issueLoan, loans, requestBooking, returnLoan, roomUse } from "../lib/operations";
+import { addHolding, bookings, cancelBooking, decideBooking, equipmentStatus, holdings, issueLoan, loans, requestBooking, returnLoan, roomUse } from "../lib/operations";
 import { fixtures, demoEmail, personas } from "../scripts/fixtures";
 import type { Scope } from "../lib/scope";
 
@@ -96,4 +96,16 @@ test("room use counts published classes and approved bookings for the office onl
   assert.equal(lab.class_hours, 2);
   assert.equal(lab.booking_hours, 0, "the approved booking was cancelled");
   for (const alias of ["student", "faculty", "principal"]) assert.deepEqual(await roomUse(as.get(alias)!), []);
+});
+
+test("department heads see room use and equipment status, without who booked or holds what", async () => {
+  const hod = as.get("hod")!;
+  const lab = (await roomUse(hod)).find(r => r.room === `Lab ${tag}`)!;
+  assert.equal(lab.class_hours, 2);
+  assert.ok(!("requester" in lab), "totals only");
+  const scope = (await equipmentStatus(hod)).find(e => e.name === `Oscilloscope ${tag}`)!;
+  assert.deepEqual([scope.state, scope.last_condition], ["available", "damaged"], "returned damaged earlier, free now");
+  assert.ok(!("borrower" in scope));
+  for (const alias of ["student", "faculty", "principal"]) assert.deepEqual(await equipmentStatus(as.get(alias)!), []);
+  assert.deepEqual(await equipmentStatus({ ...as.get("tenant")!, role: "hod" }), []);
 });
