@@ -699,3 +699,12 @@ Observed at a051ce8, fresh local PostgreSQL in CI order:
 - migrate ×2 + seed, lint, typecheck and build passed.
 - 171/171 PostgreSQL and unit tests, 66/66 Chromium, 1/1 tutor.
 - Matrix: 135 tested, 86 partial, 238 missing, 8 unverified, 13 blocked.
+
+**Department clubs (63b20b4–f0989b7, `db/081`):**
+- **Safety close notice:** a test now confirms the reporter gets "Your safety report has been resolved" when the office closes a safety case (the case-closed job runs for every kind).
+- **DH-020 (partial):** the office links a recognized club to one department, or removes the link, from the club page. That department's current HOD sees it on their board with state, active members and upcoming published events. Faculty, the principal, students, other HODs and other colleges can't link it, and only that HOD sees it. Moving a club to another department removes it from the first HOD's board. HODs have no actions on the club.
+
+Observed at f0989b7, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 172/172 PostgreSQL and unit tests, 66/66 Chromium, 1/1 tutor.
+- Matrix: 135 tested, 87 partial, 237 missing, 8 unverified, 13 blocked.
