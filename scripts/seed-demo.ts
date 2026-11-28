@@ -85,6 +85,12 @@ async function main() {
     await q(`INSERT INTO calendar_entry (institution_id,id,title,kind,starts_on,ends_on,created_by) VALUES
       ($1,$2,'Internal assessment week','event',current_date+7,current_date+11,$4),($1,$3,'Founders'' day holiday','holiday',current_date+14,current_date+14,$4) ON CONFLICT DO NOTHING`,
     [i, id(74), id(75), people.admin]);
+    // An approved policy Ask AURA can quote, with its version (AI-011, AI-017).
+    await q("INSERT INTO policy (institution_id,id,kind,title,audience,created_by) VALUES ($1,$2,'service','Letters and certificates','students',$3) ON CONFLICT DO NOTHING",
+      [i, id(80), people.admin]);
+    await q(`INSERT INTO policy_version (institution_id,policy_id,version,body,state,drafted_by,decided_by,decided_at,decision_reason)
+      VALUES ($1,$2,1,'To get a bonafide letter, submit a service request with its purpose. The office replies within two working days. Collect the letter from the academic office with your ID card.',
+        'approved',$3,$4,now()-interval '20 days','Approved for the term') ON CONFLICT DO NOTHING`, [i, id(80), people.admin, people.principal]);
     await q("COMMIT");
     console.log(`Demo data ready for ${demoEmail("<alias>")} accounts.`);
   } catch (error) {

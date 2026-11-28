@@ -20,6 +20,7 @@ One fictional college day across five roles, about 20 minutes. Everything runs l
 | 12 | Principal institution dashboard and quality indicators | LE-001, LE-004 | Tested | 13 |
 | 13 | Decision simulation (attendance minimum) | LE-018 | **Partial**: only the attendance-minimum scenario is modelled; that is the part shown | 13 |
 | 14 | Institutional isolation: another college sees nothing | ID-004 | Tested | 14 |
+| 15 | Ask AURA: plain questions answered only from what that person may see, with sources (local, no AI model) | AI-011, AI-017 | Tested | 1b |
 
 ### Changes made today for the demo set
 - **SP-004:** completed. A coach's trial decision now reaches the student's inbox through the automation outbox (`db/035`, `lib/automation.ts`). Students can mute it in Settings. Tested in `tests/sports.test.ts`.
@@ -79,6 +80,12 @@ Open a second browser profile or private window for the public verification page
 **1. Student morning (student)**
 - Sign in as `student`. Today shows the next class in Room 101, "Lab 3 · Signals and sampling", attendance and the at-a-glance counts.
 - Point out: every number comes from records; attendance shows 0/1 because Asha was marked absent this morning.
+
+**1b. Ask AURA (student)**
+- Open **AURA → Ask AURA a question in plain words** and ask "What's due this week and where is my lab?".
+- It lists Lab 3 with its deadline and the next classes with rooms, each with its source.
+- Ask "How do I get a bonafide letter?". It quotes the approved "Letters and certificates" policy with its version and offers **Request a letter**.
+- Point out: there is no AI model here. A student in another section asking the same question sees only their own section's work (shown in step 14's spirit and in the tests).
 
 **2. Submit work (student)**
 - Open **Lab 3 · Signals and sampling**, enter a short answer and submit.

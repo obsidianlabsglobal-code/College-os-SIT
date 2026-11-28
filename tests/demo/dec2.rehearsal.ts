@@ -26,6 +26,18 @@ test("the 2 December demo script runs end to end", async ({ page, browser }, tes
   await expect(page.getByText("Lab 3 · Signals and sampling").first()).toBeVisible();
   await shot("01-student-today");
 
+  // 1b. Ask AURA
+  await page.goto(at("student", "/aura/ask"));
+  await page.getByRole("textbox", { name: "Question" }).fill("What's due this week and where is my lab?");
+  await page.getByRole("button", { name: "Ask", exact: true }).click();
+  await expect(page.getByRole("region", { name: "Due in the next seven days" })).toContainText("Lab 3 · Signals and sampling");
+  await expect(page.getByRole("region", { name: "Your next classes and rooms" })).toContainText("Room 101");
+  await page.getByRole("textbox", { name: "Question" }).fill("How do I get a bonafide letter?");
+  await page.getByRole("button", { name: "Ask", exact: true }).click();
+  await expect(page.getByRole("region", { name: "Letters and certificates" })).toContainText("version 1");
+  await expect(page.getByRole("link", { name: "Request a letter" })).toBeVisible();
+  await page.goto(at("student", "/"));
+
   // 2. Submit work
   await page.getByRole("region", { name: "My assignments", exact: true }).getByRole("link", { name: "Lab 3 · Signals and sampling", exact: true }).click();
   await page.getByLabel("Response").fill("Sampling below the Nyquist rate folds high frequencies onto low ones.");

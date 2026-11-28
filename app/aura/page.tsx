@@ -139,6 +139,7 @@ export default async function Aura({ searchParams }: { searchParams: Promise<Rec
   const linked = new Set(requests.map(request => request.task_id).filter(Boolean));
   return <Chrome user={user} current={current} section="/aura">
     <ExperienceHeading title="AURA" context="Ask about your coursework, notices and clubs. AURA reads NEXUS records directly and uses a language model only when a request needs interpretation." />
+    <p><Link className="button secondary" href={`/aura/ask?${workspaceQuery(current)}`}>Ask AURA a question in plain words</Link></p>
     <div className={styles.layout}>
       <div className="stack">
         <Composer institution={current.institution} role={current.role} nonce={randomUUID()} suggestions={[...suggestions[current.role],"My timetable",...(current.role==="student"?["My attendance"]:[])]} modelEnabled={!spend.gate} />

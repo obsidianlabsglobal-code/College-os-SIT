@@ -502,13 +502,13 @@ Authenticated user and accountable tool owners. Route task from session → scop
 | AI-008 | Execution evidence | Return one private persisted draft on replay-safe confirmation. | Tested | A |
 | AI-009 | Rate limits | Bound preview admission by account and institution. | Implemented | A |
 | AI-010 | Cost management | Reserve and reconcile provider usage and spend per institution and feature. | In development | Tutor reservations and token estimates tested with injected transport. Billing reconciliation pending. See AURA_ARCHITECTURE.md |
-| AI-011 | Context and knowledge | Retrieve only approved versions with document-level access and citations. | Proposed | F |
+| AI-011 | Context and knowledge | Retrieve only approved versions with document-level access and citations. | Tested (approved policy versions by audience, quoted with version citations; keyword matching, no model) | lib/aura/ask.ts, app/aura/ask; tests/ask-aura.test.ts, tests/ask-aura.e2e.ts |
 | AI-012 | Agent orchestration | Bound planning and dependent tools with failure handling. | Proposed | F |
 | AI-013 | Durable tasks and workers | Resume eligible long-running work with actual scheduler, cancellation and idempotent retries. | Tested (no scheduler) | db/016_automation.sql + lib/automation.ts + scripts/worker.ts: transactional enqueue, leased SKIP LOCKED claims, fencing, backoff, dead-letter, admin retry, pause. No cron schedules, cancellation or hosted worker. |
 | AI-014 | Agent execution logs | Persist task/tool metadata and outcomes for the deterministic planner. | Tested | A |
 | AI-015 | Agent evaluation | Evaluate groundedness, prompt injection, model cost, tool selection and failure recovery. | Proposed | F |
 | AI-016 | Authority levels L0–L4 | Enforce read, draft, confirmation, pre-authorized low-risk action and human-only sensitive decisions. | Proposed | F |
-| AI-017 | Institutional Knowledge Assistant | Explain enrollment-letter process from approved source and offer scoped next action. | Proposed | F |
+| AI-017 | Institutional Knowledge Assistant | Explain enrollment-letter process from approved source and offer scoped next action. | Tested (local, no model) | lib/aura/ask.ts, app/aura/ask; tests/ask-aura.test.ts, tests/ask-aura.e2e.ts |
 | AI-018 | Faculty Workflow Assistant | Prepare editable course assignment draft under current faculty authority. | Proposed | F |
 | AI-019 | Policy and prompt versioning | Pin tool, prompt, model and source policy versions per run. | Proposed | F |
 | AI-020 | Approval activity and retry | Inspect failed and pending work, with safe cancellation and retry where supported. | Proposed | F |
