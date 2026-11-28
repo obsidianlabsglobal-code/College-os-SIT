@@ -372,3 +372,20 @@ Observed, fresh local PostgreSQL in CI order at 103ab35:
 - 127/127 PostgreSQL and unit tests, 50/50 Chromium, 1/1 tutor (188 files).
 
 Traceability: 113 functionally tested (local), 30 partial, 8 unverified, 13 blocked, 316 missing.
+
+## 2026-11-28 — Batch 11 (Claude track): letters on the case engine, preferences, support services; Codex parallel plan
+
+Implemented (commit 014188c; `db/030`):
+- **Letters (AD-020):** a seventh case kind. A leave or permission letter from Letter drafts is submitted to the office; only the sender and the office read it, and it follows the shared assign → start → close rules with audit events. Admins cannot submit letters to themselves; the principal cannot submit. Fee review keeps its own workflow.
+- **Preferences (SL-010, SL-011):** per member and institution: larger text, reduced motion, study-group discovery (hidden names appear as "A classmate") and per-kind in-app notification muting. Muting hides inbox items only; records are unchanged. No locale setting: the interface is English only.
+- **Support services (SL-015):** the office publishes and withdraws services by category; every current member browses them. Other tenants and roles without membership see nothing.
+- **Styling:** checkbox labels now sit beside their box in every form (meetings and question bank also benefit).
+- **Codex plan:** `docs/handoff/NEXUS_CODEX_PARALLEL_PLAN.pdf` assigns outcomes, sports, careers, transport and campus operations to Codex (migrations 040–064) and keeps authority and workflow code with Claude (030–039).
+
+Observed, fresh local PostgreSQL in CI order at 014188c:
+- migrate ×2 + seed, lint, typecheck, build: all passed.
+- 131/131 PostgreSQL and unit tests, 51/51 Chromium, 1/1 tutor (193 recorded).
+- Evidence: `docs/evidence/letters-preferences-2026-11-28/`.
+
+Traceability: 114 functionally tested (local), 31 partial, 8 unverified, 13 blocked, 314 missing.
+Note: commit 014188c said the registry rows would be confirmed after the full run; they were already set in that commit, and this run confirms them.
