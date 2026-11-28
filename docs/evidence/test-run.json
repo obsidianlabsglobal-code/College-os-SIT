@@ -1,7 +1,7 @@
 {
- "commit": "a765308d0b138d27da0409914109e5682c2bc3e2",
+ "commit": "26e2eb3e21fdf995defd27e15023f5a687886f33",
  "uncommitted_source_changes": false,
- "recorded_at": "2026-11-28T08:22:16+00:00",
+ "recorded_at": "2026-11-28T08:29:10+00:00",
  "environment": "local fresh PostgreSQL, fictional data, headless Chromium",
  "files": {
   "tests/academic-assistant.test.ts": {
@@ -281,6 +281,14 @@
    "failed": 0
   },
   "tests/resource-booking.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/search.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/search.test.ts": {
    "passed": 1,
    "failed": 0
   },

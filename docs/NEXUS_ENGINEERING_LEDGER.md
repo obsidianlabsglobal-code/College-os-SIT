@@ -582,3 +582,14 @@ Fixes during the full run:
 Observed, fresh local PostgreSQL in CI order on cc/pilot-access (8f8990c plus the test fixes):
 - migrate ×2 + seed, lint, typecheck, build: all passed.
 - 158/158 PostgreSQL and unit tests, 59/59 Chromium, 1/1 tutor.
+
+**cc/pilot-access step 5, one search box (26e2eb3):**
+- `lib/search.ts` reads notices and circulars, college dates, verified opportunities, approved policies and support services, each through its existing reader, so access matches that kind's own page.
+- Every typed word must match.
+- Tested: another section's notice, drafts, staff-only policies and other colleges stay hidden, and a role without membership sees nothing.
+- Club events are not included yet: their visibility rules are richer and searching them needs a club-aware reader.
+- The demo data gains an assessment circular; the demo script and rehearsal gain step 1c.
+
+Observed at 26e2eb3 on cc/pilot-access:
+- Demo rehearsal on a clean demo database: 1/1 passed.
+- Fresh local PostgreSQL in CI order: migrate ×2 + seed, lint, typecheck and build passed; 159/159 PostgreSQL and unit tests, 60/60 Chromium, 1/1 tutor.
