@@ -28,7 +28,7 @@ export const roleLabels = {
   driver: "Driver",
 } satisfies Record<Scope["role"], string>;
 
-type Destination = "/approvals/students" | "/transport" | "/outcomes" | "/facilities" | "/careers" | "/sports" | "/settings" | "/support" | "/meetings" | "/decisions" | "/certificates" | "/groups" | "/profile" | "/work" | "/growth" | "/policies" | "/questions" | "/exams" | "/improvement" | "/cases" | "/mentoring" | "/calendar" | "/catalog" | "/history" | "/audit" | "/automation" | "/fees" | "/letters" | "/opportunities" | "/" | "/grading" | "/notices" | "/requests" | "/admin" | "/clubverse" | "/aura" | "/timetable";
+type Destination = "/search" | "/approvals/students" | "/transport" | "/outcomes" | "/facilities" | "/careers" | "/sports" | "/settings" | "/support" | "/meetings" | "/decisions" | "/certificates" | "/groups" | "/profile" | "/work" | "/growth" | "/policies" | "/questions" | "/exams" | "/improvement" | "/cases" | "/mentoring" | "/calendar" | "/catalog" | "/history" | "/audit" | "/automation" | "/fees" | "/letters" | "/opportunities" | "/" | "/grading" | "/notices" | "/requests" | "/admin" | "/clubverse" | "/aura" | "/timetable";
 const labels: Record<Destination, string> = {
   "/fees": "Fees & dues",
   "/opportunities": "Opportunities",
@@ -59,6 +59,7 @@ const labels: Record<Destination, string> = {
   "/outcomes": "Outcomes",
   "/transport": "Transport",
   "/approvals/students": "Student approvals",
+  "/search": "Search",
   "/support": "Support services",
   "/decisions": "Decision simulation",
   "/groups": "Study groups",
@@ -73,7 +74,7 @@ const icons: Record<Destination, ComponentProps<typeof Icon>["name"]> = {
   "/fees": "service",
   "/opportunities": "service",
   "/": "home", "/timetable": "calendar", "/grading": "check", "/notices": "notice", "/clubverse": "people",
-  "/aura": "spark", "/automation": "spark", "/audit": "book", "/history": "check", "/calendar": "calendar", "/mentoring": "people", "/cases": "service", "/exams": "calendar", "/policies": "book", "/growth": "spark", "/work": "check", "/certificates": "book", "/meetings": "people", "/settings": "check", "/sports": "people", "/careers": "service", "/facilities": "book", "/outcomes": "check", "/transport": "calendar", "/approvals/students": "check", "/support": "service", "/decisions": "spark", "/groups": "people", "/profile": "people", "/questions": "book", "/improvement": "check", "/catalog": "book", "/requests": "service", "/admin": "book", "/letters": "notice",
+  "/aura": "spark", "/automation": "spark", "/audit": "book", "/history": "check", "/calendar": "calendar", "/mentoring": "people", "/cases": "service", "/exams": "calendar", "/policies": "book", "/growth": "spark", "/work": "check", "/certificates": "book", "/meetings": "people", "/settings": "check", "/sports": "people", "/careers": "service", "/facilities": "book", "/outcomes": "check", "/transport": "calendar", "/approvals/students": "check", "/search": "book", "/support": "service", "/decisions": "spark", "/groups": "people", "/profile": "people", "/questions": "book", "/improvement": "check", "/catalog": "book", "/requests": "service", "/admin": "book", "/letters": "notice",
 };
 
 // The transport module (codex/transport) owns app/transport; show its link once that page exists, so no build links to a 404.
@@ -126,7 +127,7 @@ export async function Chrome({ user, current, section = "/", children, skipConse
   if (current && ["student", "admin", "principal"].includes(current.role)) destinations.push("/careers");
   if (current && current.role !== "principal") destinations.push("/facilities");
   if (current) destinations.push("/outcomes");
-  if (current) destinations.push("/letters", "/support", "/settings");
+  if (current) destinations.push("/search", "/letters", "/support", "/settings");
   if (current && transportBuilt) destinations.splice(1, 0, "/transport");
   // Transport office and drivers see only what their work needs.
   if (current?.role === "transport" || current?.role === "driver") destinations.splice(0, destinations.length,

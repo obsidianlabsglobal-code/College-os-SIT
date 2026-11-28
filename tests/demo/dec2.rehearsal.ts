@@ -38,6 +38,12 @@ test("the 2 December demo script runs end to end", async ({ page, browser }, tes
   await expect(page.getByRole("link", { name: "Request a letter" })).toBeVisible();
   await page.goto(at("student", "/"));
 
+  // 1c. Search
+  await page.goto(at("student", "/search") + "&q=assessment");
+  await expect(page.getByRole("article", { name: "Internal assessment circular" })).toContainText("Notice");
+  await expect(page.getByRole("article", { name: "Internal assessment week" })).toContainText("College date");
+  await page.goto(at("student", "/"));
+
   // 2. Submit work
   await page.getByRole("region", { name: "My assignments", exact: true }).getByRole("link", { name: "Lab 3 · Signals and sampling", exact: true }).click();
   await page.getByLabel("Response").fill("Sampling below the Nyquist rate folds high frequencies onto low ones.");

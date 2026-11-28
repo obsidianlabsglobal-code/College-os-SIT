@@ -1,6 +1,6 @@
 // covers: ID-012, AD-002, ID-009
 import "../scripts/environment";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { Client } from "pg";
 import { demoEmail, demoPassword, fixtures as f } from "../scripts/fixtures";
