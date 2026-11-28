@@ -318,9 +318,9 @@ Founders, eligible members, officers, faculty advisors and independent instituti
 | CL-041 | Leadership handover | Approve lead transfer atomically and retain handover notes. | Tested | C |
 | CL-042 | Community archives | Retain approved decisions, documents, custody and institutional memory. | Proposed | F |
 | CL-043 | AURA club agents | Prepare and confirm one private event draft deterministically. | Tested | A |
-| CL-044 | Event waitlist | Promote eligible participants in order as capacity opens. | Proposed | F |
+| CL-044 | Event waitlist | Promote eligible participants in order as capacity opens. | Tested | db/076, lib/club-events.ts, app/clubverse/[id]; tests/club-events.test.ts, tests/club-events.e2e.ts |
 | CL-045 | Event volunteers | Assign shifts and duties without publishing unnecessary personal data. | Proposed | F |
-| CL-046 | Event feedback and outcomes | Collect feedback and publish an evidence-backed outcome report. | Proposed | F |
+| CL-046 | Event feedback and outcomes | Collect feedback and publish an evidence-backed outcome report. | Tested (one rating and comment per registered student; anonymous summary for officers; no published outcome report) | db/076, lib/club-events.ts, app/clubverse/[id]; tests/club-events.test.ts |
 | CL-047 | Club meetings and tasks | Coordinate meeting decisions, owners and due dates. | Proposed | F |
 | CL-048 | Configurable recognition rules | Authorized staff version local recognition requirements. | Proposed | F |
 | CL-049 | Founding members | Record multiple founders and policy-compliant initial officer grants. | Proposed | F |

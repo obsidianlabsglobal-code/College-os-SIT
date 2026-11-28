@@ -1,0 +1,62 @@
+// covers: CL-044, CL-046
+import "../scripts/environment";
+import { expect, test, type Page } from "@playwright/test";
+import { randomUUID } from "node:crypto";
+import { Client } from "pg";
+import { changeClub } from "../lib/clubverse";
+import { db as appDb } from "../lib/db";
+import { demoEmail, demoPassword, fixtures as f } from "../scripts/fixtures";
+
+async function signIn(page: Page, person: string) {
+  if (await page.getByRole("button", { name: "Sign out", exact: true }).isVisible()) {
+    await page.getByRole("button", { name: "Sign out", exact: true }).click();
+    await expect(page).toHaveURL(/\/login$/);
+  }
+  await page.goto("/login");
+  await page.getByLabel("Email").fill(demoEmail(person));
+  await page.getByLabel("Password").fill(demoPassword);
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Sign out", exact: true })).toBeVisible();
+}
+const stamp = (offset: number) => new Intl.DateTimeFormat("sv-SE", { dateStyle: "short", timeStyle: "short", timeZone: "Asia/Kolkata" })
+  .format(new Date(Date.now() + offset)).replace(" ", "T");
+
+test("a full event offers the waitlist, and a seat given up goes to the first person waiting", async ({ page }) => {
+  const db = new Client({ connectionString: process.env.MIGRATION_DATABASE_URL });
+  await db.connect();
+  try {
+    const user = async (alias: string) => (await db.query('SELECT id FROM "user" WHERE email=$1', [demoEmail(alias)])).rows[0].id as string;
+    const founder = { institution: f.institution, account: await user("faculty"), role: "faculty" as const };
+    const admin = { institution: f.institution, account: await user("admin"), role: "admin" as const };
+    const asha = { institution: f.institution, account: await user("student"), role: "student" as const };
+    const name = `Drone club ${randomUUID().slice(0, 6)}`;
+    const club = await changeClub(founder, { operation: "draft", name, purpose: "Fly.", rules: "Weekly.", category: "technical", joining: "open", audience: "campus" });
+    for (const [revision, next, who] of [[0, "submitted", founder], [1, "under_review", admin], [2, "approved", admin]] as const)
+      await changeClub(who, { operation: "proposal", id: club, revision, next });
+    const event = await changeClub(founder, { operation: "event-draft", club, title: "First flight", location: "Ground", requirements: "None",
+      audience: "eligible", capacity: 1, starts: stamp(86400000), ends: stamp(90000000) });
+    for (const [revision, next, who] of [[0, "pending_approval", founder], [1, "approved", admin], [2, "published", founder], [3, "registration_open", founder]] as const)
+      await changeClub(who, { operation: "event-state", club, id: event, revision, next });
+    await changeClub(asha, { operation: "register", club, id: event });
+
+    await page.setExtraHTTPHeaders({ "x-forwarded-for": `198.18.${Math.floor(Math.random() * 250) + 1}.${Math.floor(Math.random() * 250) + 1}` });
+    const url = (role: string) => `/clubverse/${club}?institution=${f.institution}&role=${role}`;
+    await signIn(page, "outsider");
+    await page.goto(url("student"));
+    await expect(page.getByText("This event is full.")).toBeVisible();
+    await page.getByRole("button", { name: "Join the waitlist" }).click();
+    await expect(page.getByText("On the waitlist · place 1 of 1")).toBeVisible();
+
+    await signIn(page, "student");
+    await page.goto(url("student"));
+    await page.getByRole("button", { name: "Give up my seat" }).click();
+    await expect(page.getByRole("button", { name: "Join the waitlist" })).toBeVisible();
+
+    await signIn(page, "outsider");
+    await page.goto(url("student"));
+    await expect(page.getByText("Registered · participation unverified")).toBeVisible();
+  } finally {
+    await db.end();
+    await appDb.end();
+  }
+});
