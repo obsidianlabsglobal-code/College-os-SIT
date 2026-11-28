@@ -549,3 +549,13 @@ Steps 1–4 of the integration brief were already done (036 in 3794d44, app shel
 Observed:
 - Demo rehearsal on a clean demo database: 1/1 passed.
 - Fresh local PostgreSQL in CI order at 88acb02: migrate ×2 + seed, lint, typecheck and build passed; 154/154 PostgreSQL and unit tests, 58/58 Chromium, 1/1 tutor.
+
+### Request to integration: Transport handoff (dot/transport)
+
+Request to integration: For 5b bus delay, expose an integration-owned, transactional attendance service accepting tenant, transport incident, exact trip ID, Asia/Kolkata service date, and a deduplicated list of confirmed affected rider account IDs. Resolve each rider's first scheduled academic period for that day using the current institution/section/enrollment and timetable, then record a reversible `bus_delay` excuse for a late mark only. Keep the original attendance observation and audit reason, never convert absent or unrecorded to present, never override a teacher's manual decision, and make repeated submissions idempotent by incident/trip/day/student/period. Notify the assigned class teacher and that rider's current mentor with the minimum necessary fields, no accident or location details. Re-check tenant, scope, role and verified impact at execution. Provide a test seam so transport can supply fixture evidence without touching attendance or staff notification code.
+
+Request to integration: With the existing migration 036 navigation condition, the addition of app/transport/page.tsx inserts Transport in the visible faculty mobile dock and displaces Evaluation queue (observed in tests/faculty.e2e.ts:29 suite during the initial transport catalog run). Please restrict the existing link to student/transport/driver and keep the standard student dock order. dot/transport is not editing app/chrome.tsx.
+
+Request to integration: After teacher approval, cc/pilot-access should open the approved student's `/transport?institution=<tenant-id>&role=student` workspace. The no-choice Transport view handles the bus and pickup stop itself; sign-up should not duplicate these fields.
+
+Request to integration: Run the idempotent transport promise-warning scan on an approved durable schedule even when the office page is closed. The module currently queues a warning once per missed notice revision while the office workspace is visible. Also schedule the transport seven-day raw-position purge against approved institutions; the current office action and local test prove deletion but are not proof of automated hosting.
