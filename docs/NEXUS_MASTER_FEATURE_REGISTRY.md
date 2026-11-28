@@ -333,29 +333,29 @@ Players, coaches, officials, sports coordinators and venue custodians need relia
 
 | ID | Capability | Functional workflow or acceptance outcome | Status | Evidence |
 | --- | --- | --- | --- | --- |
-| SP-001 | Sports discovery | Find sports and currently eligible teams. | Proposed | F |
+| SP-001 | Sports discovery | Find sports and currently eligible teams. | Tested (teams with trial status and the student's eligibility) | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
 | SP-002 | Player profiles | Share approved sporting information under player controls. | Proposed | F |
-| SP-003 | Teams | Form season rosters from verified members. | Proposed | F |
-| SP-004 | Selection and trials | Request a tryout, record an authorized selection and notify the player. | Proposed | F |
-| SP-005 | Coaches | Assign a coach for a team and term. | Proposed | F |
-| SP-006 | Training schedules | Publish confirmed training sessions to eligible members. | Proposed | F |
-| SP-007 | Fixtures | Assign opponents, time and venue per match. | Proposed | F |
-| SP-008 | Tournaments | Define competition format, entrants and progression. | Proposed | F |
-| SP-009 | Match scheduling | Check academic, venue and team conflicts. | Proposed | F |
-| SP-010 | Match results | Assigned official records and revises verified scores. | Proposed | F |
-| SP-011 | Standings | Derive standings from verified results and applicable rules. | Proposed | F |
+| SP-003 | Teams | Form season rosters from verified members. | Tested | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-004 | Selection and trials | Request a tryout, record an authorized selection and notify the player. | Tested (the decision shows on the Sports page; no inbox notification) | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-005 | Coaches | Assign a coach for a team and term. | Tested | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-006 | Training schedules | Publish confirmed training sessions to eligible members. | Tested | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-007 | Fixtures | Assign opponents, time and venue per match. | Tested | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-008 | Tournaments | Define competition format, entrants and progression. | Tested (league format only; no knockout progression) | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-009 | Match scheduling | Check academic, venue and team conflicts. | Tested (venue, team and selected players' class clashes) | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-010 | Match results | Assigned official records and revises verified scores. | Tested | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-011 | Standings | Derive standings from verified results and applicable rules. | Tested | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
 | SP-012 | Venue availability | Query bookable slots without disclosing private reservations. | Proposed | F |
 | SP-013 | Equipment | Reserve and return team equipment. | Proposed | F |
 | SP-014 | Travel coordination | Request authorized transport for competitions. | Proposed | F |
-| SP-015 | Competition eligibility | Evaluate approved rules and show correctable evidence. | Proposed | F |
-| SP-016 | Participation verification | Verify who competed separately from roster membership. | Proposed | F |
-| SP-017 | Sporting achievements | Attach verified results to consented portfolios. | Proposed | F |
-| SP-018 | Sports calendars | Publish authorized season dates. | Proposed | F |
-| SP-019 | Team announcements | Deliver relevant updates to team members. | Proposed | F |
-| SP-020 | Interdepartmental competitions | Schedule department teams under approved rules. | Proposed | F |
-| SP-021 | Intercollege competitions | Validate external opponents and cross-institution sharing. | Proposed | F |
+| SP-015 | Competition eligibility | Evaluate approved rules and show correctable evidence. | Tested (department enrolment rule only) | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-016 | Participation verification | Verify who competed separately from roster membership. | Tested | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-017 | Sporting achievements | Attach verified results to consented portfolios. | Tested (portfolio entry from verified participation) | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-018 | Sports calendars | Publish authorized season dates. | Tested (fixtures and training listed; no season calendar entries) | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-019 | Team announcements | Deliver relevant updates to team members. | Tested (on the Sports page; no inbox notification) | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-020 | Interdepartmental competitions | Schedule department teams under approved rules. | Tested | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-021 | Intercollege competitions | Validate external opponents and cross-institution sharing. | Tested (office-validated external opponents; no cross-institution sharing) | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
 | SP-022 | Sports planning agents | Draft fixtures and plans for human review. | Proposed | F |
-| SP-023 | Match officials | Assign officials and restrict result changes to authorized roles. | Proposed | F |
+| SP-023 | Match officials | Assign officials and restrict result changes to authorized roles. | Tested | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
 | SP-024 | Tournament brackets | Advance teams according to event-specific verified outcomes. | Proposed | F |
 
 ## Smart Campus · student mobility

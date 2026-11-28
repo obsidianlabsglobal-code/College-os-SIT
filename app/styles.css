@@ -208,3 +208,8 @@ input::placeholder, textarea::placeholder { color: var(--muted); }
 label:has(> input[type=checkbox]), label:has(> input[type=radio]) { display: flex; flex-direction: row; align-items: center; gap: var(--space-2); }
 fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: var(--space-2); }
 legend { font-weight: 650; margin-bottom: var(--space-2); }
+/* SP-011: compact standings that fit a phone without breaking words. */
+.standings { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.standings th, .standings td { padding: .4rem .3rem; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
+.standings th[scope=row], .standings thead th:first-child { text-align: left; white-space: normal; overflow-wrap: normal; word-break: normal; }
+.standings abbr { text-decoration: none; }

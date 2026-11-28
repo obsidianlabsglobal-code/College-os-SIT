@@ -98,7 +98,7 @@ export function saveProfile(scope: Scope, raw: unknown) {
 
 // SL-013: portfolio entries are references to verified records the student owns — issued certificates, accepted team
 // milestone evidence and published results. Readers follow the profile visibility (readProfile).
-export type PortfolioEntry = { source: "certificate" | "milestone" | "result"; source_id: string; title: string; detail: string; included: boolean };
+export type PortfolioEntry = { source: "certificate" | "milestone" | "result" | "participation"; source_id: string; title: string; detail: string; included: boolean };
 export async function portfolioCandidates(scope: Scope, student = scope.account) {
   const { rows } = await db.query<PortfolioEntry>(`WITH items AS (
       SELECT 'certificate'::text AS source,k.id AS source_id,'Certificate: '||k.kind AS title,'Issued '||to_char(k.issued_at,'DD Mon YYYY') AS detail
@@ -111,7 +111,12 @@ export async function portfolioCandidates(scope: Scope, student = scope.account)
       UNION ALL SELECT DISTINCT ON (s.id) 'result',s.id,'Result: '||a.title,g.marks||'/'||a.max_marks
         FROM submission s JOIN assignment a ON (a.institution_id,a.id)=(s.institution_id,s.assignment_id)
         JOIN grade g ON (g.institution_id,g.submission_id)=(s.institution_id,s.id) AND g.published_at IS NOT NULL
-        WHERE s.institution_id=$1 AND s.student_id=$2)
+        WHERE s.institution_id=$1 AND s.student_id=$2
+      UNION ALL SELECT 'participation',f.id,'Played: '||h.name||' v '||a.name,f.home_score||'–'||f.away_score||' · '||st.name
+        FROM fixture_participant p JOIN sport_fixture f ON (f.institution_id,f.id)=(p.institution_id,p.fixture_id) AND f.state='completed'
+        JOIN sport_team h ON (h.institution_id,h.id)=(f.institution_id,f.home_team_id) JOIN sport_team a ON (a.institution_id,a.id)=(f.institution_id,f.away_team_id)
+        JOIN sport_tournament st ON (st.institution_id,st.id)=(f.institution_id,f.tournament_id)
+        WHERE p.institution_id=$1 AND p.student_id=$2)
     SELECT i.*,EXISTS (SELECT 1 FROM portfolio_item p WHERE p.institution_id=$1 AND p.student_id=$2 AND p.source=i.source AND p.source_id=i.source_id) AS included
     FROM items i ORDER BY i.source,i.title`, [scope.institution, student]);
   return rows;
@@ -125,7 +130,7 @@ export async function portfolio(scope: Scope, student: string) {
 }
 
 export function setPortfolioItem(scope: Scope, raw: unknown) {
-  const input = z.object({ source: z.enum(["certificate", "milestone", "result"]), id: z.uuid(), include: z.boolean() }).parse(raw);
+  const input = z.object({ source: z.enum(["certificate", "milestone", "result", "participation"]), id: z.uuid(), include: z.boolean() }).parse(raw);
   if (scope.role !== "student") throw unavailable();
   return transaction(async client => {
     const eligible = (await portfolioCandidates(scope)).some(e => e.source === input.source && e.source_id === input.id);
