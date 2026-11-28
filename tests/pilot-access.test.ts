@@ -8,7 +8,7 @@ import { db } from "../lib/db";
 import { auth } from "../lib/auth";
 import { WorkflowError } from "../lib/assignments";
 import { applyTeacherImport, previewTeacherImport, teacherImport } from "../lib/roster-import";
-import { decideJoinRequests, joinOptions, myJoinRequests, requestToJoin, revokePreviewStudent, sectionRequests } from "../lib/student-admission";
+import { decideJoinRequests, joinOptions, myJoinRequests, recentlyApproved, requestToJoin, revokePreviewStudent, sectionRequests } from "../lib/student-admission";
 import { acceptNotice, consentNeeded, consentStatus, NOTICE, setConsentRequired } from "../lib/consent";
 import { fixtures, demoEmail, personas } from "../scripts/fixtures";
 import type { Scope } from "../lib/scope";
@@ -142,7 +142,7 @@ test("students ask to join a switched-on section; only that section's teachers d
   const ravi = await signInByCode(mail("ravi"));
   const kiran = await signInByCode(mail("kiran"));
   assert.equal(priya.emailVerified, true, "signing in by code confirms the email");
-  const form = (usn: string, section = fixtures.otherSection) => ({ institution: i, name: "Fictional Student", usn, semester: 3, section, bus_stop: "Hebbal" });
+  const form = (usn: string, section = fixtures.otherSection) => ({ institution: i, name: "Fictional Student", usn, semester: 3, section });
   await rejects(() => requestToJoin({ ...priya, emailVerified: false }, form(`4SI${tag}01`)), /Confirm your email/);
   await rejects(() => requestToJoin(priya, form(`4SI${tag}01`, ids.mechSection)), /open for sign-up/);
   await rejects(() => requestToJoin(priya, { ...form(`4SI${tag}01`), usn: "bad usn" }));
@@ -175,6 +175,10 @@ test("students ask to join a switched-on section; only that section's teachers d
     [i, first, second, third]);
   assert.equal(audited.n, 6, "three requests and three decisions are audited");
 
+  assert.equal(await recentlyApproved({ institution: i, account: ravi.id, role: "student" }), true, "a newly approved student is pointed to pick a bus stop");
+  assert.equal(await recentlyApproved(as.get("student")!), false);
+  assert.equal((await owner.query("SELECT count(*)::int AS n FROM information_schema.columns WHERE table_name IN ('signup_request','person_detail') AND column_name='bus_stop'")).rows[0].n, 0,
+    "sign-up stores no bus stop; transport owns it");
   await rejects(() => revokePreviewStudent(teacher, access.admission));
   await revokePreviewStudent(as.get("admin")!, access.admission);
   const { rows: [revoked] } = await owner.query(`SELECT

@@ -21,7 +21,7 @@ export default async function StudentApprovals({ searchParams }: { searchParams:
       {pending.length ? <ActionForm action={decideJoinAction} context={current} label="Approve selected">
         <input type="hidden" name="decision" value="approved" />
         <fieldset><legend>Select students</legend>{pending.map(r => <label key={r.id}><input type="checkbox" name="request" value={r.id} />
-          {r.name} · {r.usn} · {r.section} · semester {r.semester} · {r.email}{r.bus_stop ? ` · stop ${r.bus_stop}` : ""}</label>)}</fieldset>
+          {r.name} · {r.usn} · {r.section} · semester {r.semester} · {r.email}</label>)}</fieldset>
       </ActionForm> : <p>No requests are waiting.</p>}
       {pending.length > 0 && <details><summary>Reject selected with a reason</summary>
         <ActionForm action={decideJoinAction} context={current} label="Reject selected">

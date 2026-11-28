@@ -41,7 +41,7 @@ export async function requestJoinAction(_state: ActionState, form: FormData): Pr
   const value = (name: string) => { const v = form.get(name); return typeof v === "string" && v.trim() ? v : undefined; };
   try {
     await requestToJoin({ id: user.id, email: user.email, emailVerified: !!(user as { emailVerified?: boolean }).emailVerified, name: user.name },
-      { institution: value("institution"), name: value("name"), usn: value("usn"), semester: value("semester"), section: value("section"), phone: value("phone"), bus_stop: value("bus_stop") });
+      { institution: value("institution"), name: value("name"), usn: value("usn"), semester: value("semester"), section: value("section"), phone: value("phone") });
   } catch (error) { return fail(error, "Check your USN (letters and digits), semester, section and phone."); }
   revalidatePath("/join/student");
   return { message: "Request sent. Your class mentor or a teacher of your section will check it." };

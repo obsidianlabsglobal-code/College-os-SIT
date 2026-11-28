@@ -5,8 +5,9 @@ import { Suspense } from "react";
 import { ExperienceHeading } from "./experience/heading";
 import { StudentHome, StudentHomeLoading } from "./student/home";
 import { cookies } from "next/headers";
-import { Chrome, roleLabels } from "./chrome";
-import { myJoinRequests } from "../lib/student-admission";
+import { Chrome, roleLabels, transportBuilt } from "./chrome";
+import Link from "next/link";
+import { myJoinRequests, recentlyApproved } from "../lib/student-admission";
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ institution?: string; role?: string }> }) {
   const user = await account();
@@ -17,7 +18,13 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ i
   const current = first ? await scope(params.institution ?? first.id, params.role ?? first.role) : null;
   const workspace = options.find(option => option.id === current?.institution && option.role === current?.role);
   if (current?.role === "student") {
+    const newlyJoined = await recentlyApproved(current);
     return <Chrome user={user} current={current}>
+      {newlyJoined && <section className="panel stack" aria-labelledby="next-step">
+        <h2 id="next-step">{transportBuilt ? "Next: pick your bus stop" : "Pick your bus stop (coming soon)"}</h2>
+        <p className="meta">{transportBuilt ? "Choose the route and stop you use, so you see your bus and get its 5-minute alert." : "Choosing your route and stop opens here soon. You will then see your bus and get its 5-minute alert."}</p>
+        {transportBuilt && <div><Link className="button" href={`/transport?institution=${current.institution}&role=student`}>Pick my route and stop</Link></div>}
+      </section>}
       <Suspense fallback={<StudentHomeLoading />}>
         <StudentHome current={current} name={user.name} timezone={workspace?.timezone ?? "UTC"} />
       </Suspense>

@@ -78,7 +78,7 @@ const icons: Record<Destination, ComponentProps<typeof Icon>["name"]> = {
 };
 
 // The transport module (codex/transport) owns app/transport; show its link once that page exists, so no build links to a 404.
-const transportBuilt = existsSync(join(process.cwd(), "app", "transport", "page.tsx"));
+export const transportBuilt = existsSync(join(process.cwd(), "app", "transport", "page.tsx"));
 const dock: Destination[] = ["/", "/timetable", "/aura", "/clubverse", "/notices", "/requests", "/opportunities"];
 
 export async function Chrome({ user, current, section = "/", children, skipConsent = false }: {

@@ -36,7 +36,6 @@ export default async function JoinStudent({ searchParams }: { searchParams: Prom
           <label>Section<select name="section" required defaultValue=""><option value="" disabled>Choose your section</option>
             {options.map(o => <option key={o.section_id} value={o.section_id}>{o.label}</option>)}</select></label>
           <label>Phone (optional)<input type="tel" name="phone" pattern="\+?[0-9 ]{7,16}" maxLength={16} /></label>
-          <label>Bus stop (optional)<input name="bus_stop" maxLength={80} /></label>
         </ActionForm>
       </section> : <p className="panel">No sections are open for sign-up at this college yet.</p>)}
     </main>

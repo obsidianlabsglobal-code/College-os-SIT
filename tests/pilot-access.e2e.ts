@@ -58,7 +58,6 @@ test("the office imports a teacher, a new student joins by email code, the teach
     await page.getByLabel("USN").fill(`4SI${tag}`.toUpperCase());
     await page.getByLabel("Semester").fill("3");
     await page.getByLabel("Section").selectOption({ label: "Section B · Electronics and Communication Engineering · Term 1" });
-    await page.getByLabel("Bus stop (optional)").fill("Hebbal");
     await page.getByRole("button", { name: "Send request" }).click();
     await expect(page.getByText("Waiting for your class mentor or a teacher of your section")).toBeVisible();
     await page.goto("/");
@@ -81,6 +80,7 @@ test("the office imports a teacher, a new student joins by email code, the teach
     await page.screenshot({ path: testInfo.outputPath("privacy-notice-390.png"), fullPage: true });
     await page.getByRole("button", { name: "I have read this and agree" }).click();
     await expect(page.getByRole("heading", { name: /Good to see you|Welcome back/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Pick your bus stop (coming soon)" })).toBeVisible();
   } finally {
     await db.query("UPDATE institution SET consent_required=false WHERE id=$1", [f.institution]);
     await db.end();

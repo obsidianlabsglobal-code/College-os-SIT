@@ -107,8 +107,7 @@ export async function institutionName(institution: string) {
 }
 
 const joinInput = z.object({ institution: z.uuid(), name: z.string().trim().min(2).max(120), usn: z.string().trim().toUpperCase().regex(/^[A-Z0-9]{6,16}$/),
-  semester: z.coerce.number().int().min(1).max(10), section: z.uuid(), phone: z.string().trim().regex(/^\+?[0-9 ]{7,16}$/).optional(),
-  bus_stop: z.string().trim().min(1).max(80).optional() });
+  semester: z.coerce.number().int().min(1).max(10), section: z.uuid(), phone: z.string().trim().regex(/^\+?[0-9 ]{7,16}$/).optional() });
 
 export type JoinRequest = { id: string; institution: string; section: string; state: string; reason: string | null; created_at: Date };
 export async function myJoinRequests(user: { id: string }) {
@@ -130,9 +129,9 @@ export function requestToJoin(user: Applicant, raw: unknown) {
     const { rowCount: usnTaken } = await client.query("SELECT 1 FROM person_detail WHERE institution_id=$1 AND usn=$2 AND account_id<>$3", [input.institution, input.usn, user.id]);
     if (usnTaken) throw new WorkflowError("This USN is already registered. Ask your class mentor if this is wrong.");
     try {
-      const { rows: [row] } = await client.query<{ id: string }>(`INSERT INTO signup_request (institution_id,account_id,name,usn,semester,section_id,term_id,phone,bus_stop)
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`, [input.institution, user.id, input.name, input.usn, input.semester, input.section, option.term_id,
-        input.phone ?? null, input.bus_stop ?? null]);
+      const { rows: [row] } = await client.query<{ id: string }>(`INSERT INTO signup_request (institution_id,account_id,name,usn,semester,section_id,term_id,phone)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`, [input.institution, user.id, input.name, input.usn, input.semester, input.section, option.term_id,
+        input.phone ?? null]);
       await audit(client, { institution: input.institution, account: user.id, role: "student" }, row.id, "signup.requested");
       return row.id;
     } catch (error) {
@@ -149,12 +148,12 @@ const approves = (section: string) => `EXISTS (SELECT 1 FROM membership am WHERE
       WHERE ar.institution_id=$1 AND ar.account_id=$2 AND ar.role='faculty' AND ar.ended_at IS NULL AND ao.section_id=${section})
     OR EXISTS (SELECT 1 FROM section_mentor sm WHERE sm.institution_id=$1 AND sm.section_id=${section} AND sm.account_id=$2 AND sm.ended_at IS NULL))`;
 
-export type PendingStudent = { id: string; name: string; email: string; usn: string; semester: number; section: string; phone: string | null; bus_stop: string | null;
+export type PendingStudent = { id: string; name: string; email: string; usn: string; semester: number; section: string; phone: string | null;
   state: string; reason: string | null; created_at: Date };
 /** Requests in the approver's own sections: pending first, then the last 30 days of decisions. */
 export async function sectionRequests(scope: Scope) {
   if (scope.role !== "faculty") return [];
-  return (await db.query<PendingStudent>(`SELECT r.id,r.name,u.email,r.usn,r.semester,s.name AS section,r.phone,r.bus_stop,r.state,r.reason,r.created_at
+  return (await db.query<PendingStudent>(`SELECT r.id,r.name,u.email,r.usn,r.semester,s.name AS section,r.phone,r.state,r.reason,r.created_at
     FROM signup_request r JOIN "user" u ON u.id=r.account_id JOIN section s ON (s.institution_id,s.id)=(r.institution_id,r.section_id)
     WHERE r.institution_id=$1 AND ${approves("r.section_id")} AND (r.state='pending' OR r.decided_at > clock_timestamp()-interval '30 days')
     ORDER BY (r.state='pending') DESC,s.name,r.name LIMIT 300`, [scope.institution, scope.account])).rows;
@@ -172,8 +171,8 @@ export function decideJoinRequests(scope: Scope, raw: unknown) {
     if (!active) throw unavailable();
     for (const requestId of [...new Set(input.requests)]) {
       const { rows: [r] } = await client.query<{ state: string; account_id: string; section_id: string; term_id: string; usn: string; semester: number;
-        phone: string | null; bus_stop: string | null; email: string; allowed: boolean; open: boolean }>(`SELECT r.state,r.account_id,r.section_id,r.term_id,r.usn,r.semester,r.phone,
-          r.bus_stop,lower(u.email) AS email,${approves("r.section_id")} AS allowed,
+        phone: string | null; email: string; allowed: boolean; open: boolean }>(`SELECT r.state,r.account_id,r.section_id,r.term_id,r.usn,r.semester,r.phone,
+          lower(u.email) AS email,${approves("r.section_id")} AS allowed,
           EXISTS (SELECT 1 FROM offering o JOIN course c ON (c.institution_id,c.id)=(o.institution_id,o.course_id)
             JOIN department d ON (d.institution_id,d.id)=(c.institution_id,c.department_id) AND d.active
             WHERE o.institution_id=$1 AND o.section_id=r.section_id AND o.term_id=r.term_id) AS open
@@ -200,13 +199,20 @@ export function decideJoinRequests(scope: Scope, raw: unknown) {
           JOIN department d ON (d.institution_id,d.id)=(c.institution_id,c.department_id) AND d.active
         WHERE o.institution_id=$1 AND o.section_id=$2 AND o.term_id=$4
         ON CONFLICT (institution_id,offering_id,account_id,role) DO UPDATE SET ended_at=NULL`, [scope.institution, r.section_id, r.account_id, r.term_id]);
-      await client.query(`INSERT INTO person_detail (institution_id,account_id,phone,usn,semester,bus_stop) VALUES ($1,$2,$3,$4,$5,$6)
-        ON CONFLICT (institution_id,account_id) DO UPDATE SET phone=EXCLUDED.phone,usn=EXCLUDED.usn,semester=EXCLUDED.semester,bus_stop=EXCLUDED.bus_stop,updated_at=clock_timestamp()`,
-      [scope.institution, r.account_id, r.phone, r.usn, r.semester, r.bus_stop]);
+      await client.query(`INSERT INTO person_detail (institution_id,account_id,phone,usn,semester) VALUES ($1,$2,$3,$4,$5)
+        ON CONFLICT (institution_id,account_id) DO UPDATE SET phone=EXCLUDED.phone,usn=EXCLUDED.usn,semester=EXCLUDED.semester,updated_at=clock_timestamp()`,
+      [scope.institution, r.account_id, r.phone, r.usn, r.semester]);
       await client.query("UPDATE signup_request SET state='approved',decided_by=$3,decided_at=clock_timestamp(),admission_id=$4 WHERE institution_id=$1 AND id=$2",
         [scope.institution, requestId, scope.account, admission.id]);
       await audit(client, scope, requestId, "signup.approved", undefined, r.account_id);
     }
     return input.requests.length;
   });
+}
+
+/** True for two weeks after a teacher approved the member's sign-up here, so their first screens show the next step. */
+export async function recentlyApproved(scope: Scope) {
+  if (scope.role !== "student") return false;
+  return !!(await db.query(`SELECT 1 FROM signup_request WHERE institution_id=$1 AND account_id=$2 AND state='approved'
+    AND decided_at > clock_timestamp()-interval '14 days'`, [scope.institution, scope.account])).rowCount;
 }
