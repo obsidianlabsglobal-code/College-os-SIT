@@ -344,7 +344,7 @@ Players, coaches, officials, sports coordinators and venue custodians need relia
 | SP-009 | Match scheduling | Check academic, venue and team conflicts. | Tested (venue, team and selected players' class clashes) | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
 | SP-010 | Match results | Assigned official records and revises verified scores. | Tested | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
 | SP-011 | Standings | Derive standings from verified results and applicable rules. | Tested | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
-| SP-012 | Venue availability | Query bookable slots without disclosing private reservations. | Proposed | F |
+| SP-012 | Venue availability | Query bookable slots without disclosing private reservations. | Tested (taken times per room and date from classes and approved bookings; sports grounds only if listed as rooms) | lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
 | SP-013 | Equipment | Reserve and return team equipment. | Proposed | F |
 | SP-014 | Travel coordination | Request authorized transport for competitions. | Proposed | F |
 | SP-015 | Competition eligibility | Evaluate approved rules and show correctable evidence. | Tested (department enrolment rule only) | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |

@@ -205,3 +205,20 @@ export async function equipmentStatus(scope: Scope) {
       AND EXISTS (SELECT 1 FROM membership m WHERE m.institution_id=$1 AND m.account_id=$2 AND m.role=$3 AND m.role IN ('admin','hod') AND m.ended_at IS NULL)
     ORDER BY r.name`, [scope.institution, scope.account, scope.role])).rows;
 }
+
+export type BusyTime = { starts_at: Date; ends_at: Date; kind: "class" | "booked" };
+/** SP-012 / OP-002: when a room is taken on a college-local date (published classes and approved bookings), for any current
+ * member planning a request. Times only: never who booked it, why, or which class. */
+export async function busyTimes(scope: Scope, raw: unknown) {
+  const input = z.object({ room: z.uuid(), date: z.iso.date() }).parse(raw);
+  return (await db.query<BusyTime>(`WITH day AS (
+      SELECT tstzrange(($5::date)::timestamp AT TIME ZONE i.timezone,($5::date+1)::timestamp AT TIME ZONE i.timezone) AS span
+      FROM institution i JOIN campus_resource r ON r.institution_id=i.id AND r.id=$4 AND r.kind='room'
+      WHERE i.id=$1 AND EXISTS (SELECT 1 FROM membership m WHERE m.institution_id=$1 AND m.account_id=$2 AND m.role=$3 AND m.ended_at IS NULL))
+    SELECT lower(s.slot) AS starts_at,upper(s.slot) AS ends_at,'class' AS kind FROM class_session s,day
+      WHERE s.institution_id=$1 AND s.room_id=$4 AND s.state IN ('published','conducted') AND s.slot && day.span
+    UNION ALL
+    SELECT lower(b.slot),upper(b.slot),'booked' FROM facility_booking b,day
+      WHERE b.institution_id=$1 AND b.resource_id=$4 AND b.state='approved' AND b.slot && day.span
+    ORDER BY 1 LIMIT 100`, [scope.institution, scope.account, scope.role, input.room, input.date])).rows;
+}

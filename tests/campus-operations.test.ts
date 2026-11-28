@@ -1,4 +1,4 @@
-// covers: DH-018, DH-019, AD-025, AD-026, OP-002, OP-003, OP-004, OP-005, OP-009, OP-014, ID-004, ID-006
+// covers: SP-012, DH-018, DH-019, AD-025, AD-026, OP-002, OP-003, OP-004, OP-005, OP-009, OP-014, ID-004, ID-006
 import "../scripts/environment";
 import assert from "node:assert/strict";
 import { test, before, after } from "node:test";
@@ -6,7 +6,7 @@ import { randomUUID } from "node:crypto";
 import { Pool } from "pg";
 import { db } from "../lib/db";
 import { WorkflowError } from "../lib/assignments";
-import { addHolding, bookings, cancelBooking, decideBooking, equipmentStatus, holdings, issueLoan, loans, requestBooking, returnLoan, roomUse } from "../lib/operations";
+import { addHolding, bookings, cancelBooking, decideBooking, busyTimes, equipmentStatus, holdings, issueLoan, loans, requestBooking, returnLoan, roomUse } from "../lib/operations";
 import { fixtures, demoEmail, personas } from "../scripts/fixtures";
 import type { Scope } from "../lib/scope";
 
@@ -60,8 +60,16 @@ test("lab bookings need a supervising teacher for students and an office decisio
   await rejects(() => decideBooking(admin, { booking: theirs, decision: "approved", reason: "x" }), /already holds/);
   await decideBooking(admin, { booking: theirs, decision: "declined", reason: "Slot already approved for a student project" });
   await rejects(() => decideBooking(admin, { booking: mine, decision: "declined", reason: "x" }), /already decided/);
+  // Anyone at the college can see when the lab is taken, but not by whom or why.
+  const busy = await busyTimes(as.get("outsider")!, { room: ids.lab, date: local(30).slice(0, 10) });
+  const booked = busy.find(b => b.kind === "booked")!;
+  assert.equal((booked.ends_at.getTime() - booked.starts_at.getTime()) / 60000, 120);
+  assert.deepEqual(Object.keys(booked).sort(), ["ends_at", "kind", "starts_at"]);
+  assert.ok((await busyTimes(faculty, { room: ids.lab, date: local(70.5).slice(0, 10) })).some(b => b.kind === "class"), "classes count as taken");
+  assert.deepEqual(await busyTimes({ ...as.get("tenant")!, role: "student" }, { room: ids.lab, date: local(30).slice(0, 10) }), []);
   await rejects(() => cancelBooking(faculty, mine));
   await cancelBooking(student, mine);
+  assert.ok(!(await busyTimes(student, { room: ids.lab, date: local(30).slice(0, 10) })).some(b => b.kind === "booked"), "a cancelled booking frees the slot");
   assert.equal((await bookings(student)).find(b => b.id === mine)?.state, "cancelled");
   assert.ok(!(await bookings({ ...as.get("tenant")!, role: "admin" })).some(b => b.id === mine));
 });
