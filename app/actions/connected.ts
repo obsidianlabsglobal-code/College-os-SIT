@@ -14,7 +14,8 @@ export async function connected(_state: ActionState, form: FormData): Promise<Ac
       case "draft-notice":
         await draftNotice(current,z.string().trim().min(1).max(160).parse(form.get("title")),
           z.string().trim().min(1).max(8000).parse(form.get("body")),
-          z.uuid().optional().parse(form.get("target") ?? undefined));
+          z.uuid().optional().parse(form.get("target") ?? undefined),
+          { kind: z.enum(["general","operational"]).parse(form.get("kind") ?? "general"), expires: z.iso.date().optional().parse(form.get("expires") || undefined) });
         break;
       case "publish-notice":
         await publishNotice(current,z.uuid().parse(form.get("id")));

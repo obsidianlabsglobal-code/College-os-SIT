@@ -40,8 +40,8 @@ export async function noticeTargets(current: Scope) {
 }
 
 export async function notices(current: Scope, filter: "all" | "published" | "draft", limit?: number) {
-  return (await db.query<{ id: string; title: string; body: string; author: string; audience: string; published_at: Date | null }>(
-    `SELECT n.id,n.title,n.body,u.name AS author,n.published_at,
+  return (await db.query<{ id: string; title: string; body: string; author: string; audience: string; published_at: Date | null; kind: string; expires_on: string | null }>(
+    `SELECT n.id,n.title,n.body,u.name AS author,n.published_at,n.kind,to_char(n.expires_on,'YYYY-MM-DD') AS expires_on,
       COALESCE(d.name,c.name || ' · ' || s.name,'Institution') AS audience
       FROM notice n JOIN "user" u ON u.id=n.author_id
       LEFT JOIN department d ON (d.institution_id,d.id)=(n.institution_id,n.department_id)
@@ -51,6 +51,7 @@ export async function notices(current: Scope, filter: "all" | "published" | "dra
       WHERE n.institution_id=$1
       AND EXISTS (SELECT 1 FROM membership m WHERE m.institution_id=$1 AND m.account_id=$2 AND m.role=$3 AND m.ended_at IS NULL)
       AND ($4='all' OR ($4='draft' AND n.published_at IS NULL) OR ($4='published' AND n.published_at IS NOT NULL))
+      AND (n.expires_on IS NULL OR n.author_id=$2 OR n.expires_on >= (clock_timestamp() AT TIME ZONE (SELECT timezone FROM institution WHERE id=$1))::date)
       AND (
         (n.published_at IS NOT NULL AND n.department_id IS NULL AND n.offering_id IS NULL)
         OR ((n.published_at IS NOT NULL OR (n.author_id=$2 AND n.author_role=$3)) AND (
@@ -68,12 +69,14 @@ export async function notices(current: Scope, filter: "all" | "published" | "dra
   )).rows;
 }
 
-export function draftNotice(current: Scope, title: string, body: string, target?: string) {
+export function draftNotice(current: Scope, title: string, body: string, target?: string, extra: { kind?: "general" | "operational"; expires?: string } = {}) {
   return transaction(async client => {
     await lockNoticeScope(client,current,target);
+    if (extra.expires && !(await client.query("SELECT 1 FROM institution WHERE id=$1 AND $2::date >= (clock_timestamp() AT TIME ZONE timezone)::date",
+      [current.institution,extra.expires])).rowCount) throw new WorkflowError("Choose an end date from today onwards.");
     const { rows: [notice] } = await client.query<{ id: string }>(
-      "INSERT INTO notice (institution_id,author_id,author_role,department_id,offering_id,title,body) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id",
-      [current.institution,current.account,current.role,current.role === "hod" ? target : null,current.role === "faculty" ? target : null,title,body],
+      "INSERT INTO notice (institution_id,author_id,author_role,department_id,offering_id,title,body,kind,expires_on) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::date) RETURNING id",
+      [current.institution,current.account,current.role,current.role === "hod" ? target : null,current.role === "faculty" ? target : null,title,body,extra.kind ?? "general",extra.expires ?? null],
     );
     await audit(client,current,notice.id,"notice.drafted");
   });

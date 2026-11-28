@@ -477,7 +477,7 @@ Resource custodians, library/lab staff, facilities teams, requesters and approve
 | OP-007 | Facility issue reporting | Report a fault, attach evidence and track status. | Tested (any member reports a repair and tracks its state; no file evidence) | db/025, lib/cases.ts, app/cases (facility kind); tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |
 | OP-008 | Event venues | Confirm a conflict-free event reservation with a traceable responsible party and decision. | Tested | B |
 | OP-009 | Resource allocation | Compare demand and assign available resources under policy. | Tested (seven-day room use from classes and approved bookings; no automatic allocation) | db/033, lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
-| OP-010 | Operational notices | Publish scoped maintenance and closure notices. | Proposed | F |
+| OP-010 | Operational notices | Publish scoped maintenance and closure notices. | Tested (maintenance-or-closure kind and end date on the existing college, department and class notices; no building-level audience) | db/078, lib/connected.ts, app/notices; tests/notices.test.ts |
 | OP-011 | Incident management | Escalate incidents through approved response policies. | Proposed | F |
 | OP-012 | Administrative workflows | Route campus requests to the responsible office. | Tested (service requests routed to the office queue) | db/019, lib/connected.ts; tests/operations.test.ts, tests/operations.e2e.ts |
 | OP-013 | Staff assignment | Assign tasks to currently authorized staff. | Tested (office assigns repairs to current office staff) | db/025, lib/cases.ts, app/cases (facility kind); tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |

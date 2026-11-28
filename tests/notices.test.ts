@@ -1,4 +1,4 @@
-// covers: DH-015, LE-007, AD-035, ID-004
+// covers: DH-015, LE-007, AD-035, ID-004, OP-010
 import "../scripts/environment";
 import assert from "node:assert/strict";
 import { test, before, after } from "node:test";
@@ -51,4 +51,17 @@ test("institution announcements are drafted by admins and readable by every memb
   for (const alias of ["principal", "hod", "faculty", "student", "outsider"]) assert.ok((await titles(alias)).includes(title), alias);
   assert.ok(!(await titles("tenant")).includes(title));
   await assert.rejects(publishNotice({ ...as.get("admin")!, institution: fixtures.otherInstitution }, await idOf(title)), /unavailable/);
+});
+
+test("an operational notice shows its kind and end date, and disappears for readers once the date has passed", async () => {
+  const admin = as.get("admin")!, title = `Water shutdown ${randomUUID()}`;
+  const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Kolkata" });
+  await assert.rejects(draftNotice(admin, title, "Block C", undefined, { kind: "operational", expires: "2020-01-01" }), /end date/);
+  await draftNotice(admin, title, "Block C has no water from 10 to 2.", undefined, { kind: "operational", expires: today });
+  await publishNotice(admin, await idOf(title));
+  const seen = (await notices(as.get("student")!, "all")).find(n => n.title === title);
+  assert.deepEqual([seen?.kind, seen?.expires_on], ["operational", today]);
+  await owner.query("UPDATE notice SET expires_on=current_date-2 WHERE title=$1", [title]);
+  for (const alias of ["student", "faculty", "principal"]) assert.ok(!(await titles(alias, "all")).includes(title), alias);
+  assert.ok((await titles("admin", "all")).includes(title), "the author still sees it");
 });
