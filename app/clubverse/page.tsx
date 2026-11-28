@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Chrome } from "../chrome";
 import { PageHeader } from "../page-header";
 import { account, scope, workspaceQuery } from "../../lib/scope";
-import { catalogOptions, clubs } from "../../lib/club-views";
+import { catalogOptions, clubs, upcomingEvents } from "../../lib/club-views";
 import { ClubForm, ProposalFields, stateText } from "./controls";
 
 export default async function Clubverse({ searchParams }: { searchParams: Promise<Record<string,string | undefined>> }) {
@@ -12,12 +12,20 @@ export default async function Clubverse({ searchParams }: { searchParams: Promis
   if (!["student","faculty","admin"].includes(current.role)) notFound();
   const search = typeof params.q === "string" ? params.q.slice(0,120) : "";
   const category = typeof params.category === "string" ? params.category.slice(0,40) : "";
-  const [options,{ recognized,proposals }] = await Promise.all([catalogOptions(),clubs(current,search,category)]);
+  const [options,{ recognized,proposals },upcoming] = await Promise.all([catalogOptions(),clubs(current,search,category),upcomingEvents(current,10)]);
   const query = workspaceQuery(current);
   const admin = current.role === "admin";
   return <Chrome user={user} current={current} section="/clubverse">
     <PageHeader title="CLUBVERSE" context="Recognized campus communities, membership and club proposals." />
-    <nav className="section-jumps" aria-label="Community operations"><a href="#community-directory">Discover clubs</a><a href="#community-proposals">Proposals</a><Link href={`/clubverse/booking?${query}`}>Resource bookings</Link></nav>
+    <nav className="section-jumps" aria-label="Community operations"><a href="#upcoming-events">Upcoming events</a><a href="#community-directory">Discover clubs</a><a href="#community-proposals">Proposals</a><Link href={`/clubverse/booking?${query}`}>Resource bookings</Link></nav>
+    <section className="panel stack" aria-labelledby="upcoming-events">
+      <h2 id="upcoming-events" tabIndex={-1}>Upcoming events</h2>
+      {!upcoming.length ? <p>No upcoming club events you can join right now.</p> :
+        <ul className="items">{upcoming.map(event => <li key={event.id}>
+          <Link href={`/clubverse/${event.club_id}?${query}#event-${event.id}`}>{event.title}</Link>
+          <span className="meta"> · {event.club} · {event.starts} · {event.location}</span>
+        </li>)}</ul>}
+    </section>
     <div className="grid">
       <section className="panel stack">
         <h2 id="community-directory" tabIndex={-1}>Explore communities</h2>

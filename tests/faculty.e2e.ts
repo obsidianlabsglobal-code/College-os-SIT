@@ -1,3 +1,4 @@
+// covers: ID-004, FC-001, FC-007, FC-011, FC-012, FC-013
 import { expect, test, type Page } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { demoEmail, demoPassword, fixtures } from "../scripts/fixtures";
@@ -28,7 +29,12 @@ const workspace = (role: string) => `institution=${fixtures.institution}&role=${
 test("faculty mission control leads from pending work through the evaluation queue to publication", async ({ page }) => {
   const title = `Queue journey ${randomUUID().slice(0, 8)}`;
   await signIn(page, "faculty");
+  await page.setViewportSize({width:390,height:844});
   await expect(page.getByRole("heading", { name: "What needs your attention" })).toBeVisible();
+  const create = page.getByRole("link", { name: "Create assignment", exact:true });
+  await expect(create).toBeInViewport();
+  await create.press("Enter");
+  await expect(page.getByRole("heading", {name:"Create assignment",exact:true})).toBeFocused();
   await page.getByRole("textbox", { name: "Title", exact: true }).fill(title);
   await page.getByLabel("Instructions").fill("Trace the loop invariant.");
   const deadline = new Intl.DateTimeFormat("sv-SE", { dateStyle: "short", timeStyle: "short", timeZone: "Asia/Kolkata" })
@@ -51,13 +57,24 @@ test("faculty mission control leads from pending work through the evaluation que
   const forged = await page.goto(`/grading?${workspace("faculty")}`);
   expect(forged?.status()).toBe(404);
   await page.goto(`/?${workspace("student")}`);
-  await page.getByRole("link", { name: title }).click();
+  await page.getByRole("region", {name:"My assignments",exact:true}).getByRole("link", { name: title,exact:true }).click();
   await page.getByLabel("Response").fill("The invariant holds before and after each iteration.");
   await page.getByRole("button", { name: "Submit assignment" }).click();
   await expect(page.getByRole("heading", { name: "Submitted" })).toBeVisible();
   await signOut(page);
 
   await signIn(page, "faculty");
+  const cards = page.getByRole("navigation", { name: "Teaching overview" });
+  await expect(cards.getByRole("link")).toHaveCount(4);
+  await expect(cards.getByRole("link",{name:/Pending evaluations/})).toHaveAttribute("href",/\/grading\?.*role=faculty.*status=pending/);
+  await expect(cards.getByRole("link",{name:/Private feedback drafts/})).toHaveAttribute("href",/\/grading\?.*role=faculty.*status=awaiting/);
+  if (process.env.NEXUS_ACADEMIC_SCREENSHOTS) {
+    for (const width of [390,1440]) {
+      await page.setViewportSize({width,height:900});
+      expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(width);
+      await page.screenshot({path:`${process.env.NEXUS_ACADEMIC_SCREENSHOTS}/faculty-${width}.png`,fullPage:true});
+    }
+  }
   const progress = page.getByRole("region", { name: "Assignment progress" }).getByRole("listitem").filter({ hasText: title });
   await expect(progress.getByText(/1 of \d+ enrolled students? submitted/)).toBeVisible();
   await progress.getByRole("link", { name: "1 awaiting evaluation" }).click();

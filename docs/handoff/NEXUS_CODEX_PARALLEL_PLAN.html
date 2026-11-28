@@ -1,0 +1,87 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>NEXUS College OS — Parallel plan for Codex</title>
+<style>
+@page { size: A4; margin: 16mm 14mm; }
+body { font: 10.5pt/1.45 -apple-system, "Segoe UI", Inter, Arial, sans-serif; color: #1d2433; }
+h1 { font-size: 22pt; margin: 0 0 4pt; color: #3d2a8c; } h2 { font-size: 14pt; margin: 18pt 0 6pt; color: #3d2a8c; border-bottom: 1.5px solid #d9d2f2; padding-bottom: 3pt; page-break-after: avoid; }
+h3 { font-size: 11.5pt; margin: 12pt 0 4pt; page-break-after: avoid; } p, li { margin: 3pt 0; } ul { padding-left: 16pt; }
+table { border-collapse: collapse; width: 100%; margin: 6pt 0; font-size: 9pt; page-break-inside: auto; } tr { page-break-inside: avoid; }
+th, td { border: 1px solid #d8dbe4; padding: 3.5pt 5pt; text-align: left; vertical-align: top; } th { background: #f1eefb; }
+code { font: 8.8pt/1.3 "SFMono-Regular", Menlo, Consolas, monospace; background: #f4f5f8; padding: 0 2pt; border-radius: 2pt; }
+pre { font: 8.6pt/1.35 Menlo, Consolas, monospace; background: #f4f5f8; padding: 6pt 8pt; border-radius: 4pt; white-space: pre-wrap; page-break-inside: avoid; }
+.meta { color: #5b6275; font-size: 9pt; } .box { border: 1px solid #d9d2f2; background: #faf9ff; padding: 7pt 9pt; border-radius: 5pt; margin: 8pt 0; }
+.warn { border-color: #f0c9a4; background: #fff8f1; } .kpi { display: inline-block; margin: 0 14pt 4pt 0; } .kpi b { font-size: 15pt; color: #3d2a8c; display: block; }
+.break { page-break-before: always; }
+</style></head><body>
+
+<h1>NEXUS College OS — Parallel plan for Codex</h1>
+<p class="meta">Prepared 28 Nov 2026 by Claude for the founder to share with Codex. Read together with <code>docs/handoff/NEXUS_CODEX_HANDOFF.pdf</code> (architecture, patterns, definition of done, founder gates). Branch base: <code>audit/nexus-engineering-audit</code> (draft PR obsidianlabsglobal-code/College-os-SIT#17). Fictional data only. Nothing is merged or deployed.</p>
+
+<div class="box"><b>Why this split.</b> Codex takes the large, self-contained modules: many tables, clear rules and little overlap with existing authority code. Claude keeps the work that changes shared authority and workflows: the case engine, membership and roles, delegation, office and department rules. Both move at full speed without editing the same files.</div>
+
+<h2>1. State at handoff</h2>
+<ul>
+<li>Last fully verified commit: <code>e58e858</code>. On a fresh database: 127/127 integration tests, 50/50 browser tests and 1/1 tutor test passed, plus lint, typecheck and build.</li>
+<li>Claude's batch 11 is <b>in progress and not yet committed</b>: migration <code>db/030</code> (letters on the case engine, preferences, support services), <code>lib/preferences.ts</code>, <code>lib/support-services.ts</code>, <code>app/settings</code>, <code>app/support</code>. Its own tests pass; the full fresh-database run is still pending. Codex should start from the commit that lands this batch, not from <code>e58e858</code>.</li>
+<li>Registry status (480 rows): 113 tested, 30 partial, 316 not started. The largest gaps that are not blocked are careers (34), sports (24) and operations (16). Transport (25 rows) is designed in <code>docs/TRANSPORT_*.md</code> but not built.</li>
+</ul>
+
+<h2>2. Codex tracks, in priority order</h2>
+<table>
+<tr><th>#</th><th>Track</th><th>Registry IDs</th><th>Reuse, do not rebuild</th><th>Migrations</th></tr>
+<tr><td>1</td><td><b>Outcome-based education.</b> Rubrics with criteria and levels, course outcome and programme outcome mapping, attainment per course and section, concept analysis</td><td>FC-010, FC-014, DH-012, DH-013, SA-019, FC-008</td><td><code>assignment</code>, <code>grade</code>, <code>app/grading</code> evaluation queue; HOD board in <code>app/leadership/boards.tsx</code> (add one panel only)</td><td>040–044</td></tr>
+<tr><td>2</td><td><b>Sports.</b> Discovery, teams, trials and selection, coaches, training, fixtures, tournaments and brackets, results, standings, eligibility, participation verification, achievements</td><td>SP-001–SP-021, SP-023, SP-024 (SP-022 is an AI agent and stays blocked)</td><td><code>campus_resource</code> plus resource booking for venues and equipment; <code>calendar_entry</code> for the sports calendar; <code>certificate</code> sources for achievements; portfolio (<code>portfolio_item</code> source) via a note to Claude</td><td>045–049</td></tr>
+<tr><td>3</td><td><b>Careers and opportunities.</b> Placement drives and jobs, hackathons, fellowships, research openings, eligibility matching, application drafts and tracking, résumé from verified records, certifications</td><td>CR-002, CR-007–CR-010, CR-013–CR-016, CR-028, CR-031–CR-033 first; the rest after</td><td><code>lib/opportunities.ts</code> and <code>app/opportunities</code> (extend, keep the verified-source rule); <code>research_project</code>; portfolio and certificates for the résumé</td><td>050–054</td></tr>
+<tr><td>4</td><td><b>Transport.</b> Bus pass request and validity, QR boarding verification by a conductor, pass administration, incidents, lost and found, emergency information, maintenance log</td><td>TR-001–TR-006, TR-023–TR-026, TO-001–TO-009, TO-012, TO-013 (routes, stops and vehicles first)</td><td>Nothing is built yet. Follow the existing designs in <code>docs/TRANSPORT_DATA_MODEL.md</code>, <code>TRANSPORT_SECURITY.md</code> and <code>TRANSPORT_TEST_PLAN.md</code>. Use the case engine for incidents and lost and found (ask Claude for the case kinds, see rule 4). A branch <code>experience/transport-foundation</code> already exists. It has no transport code and is behind the audit branch. Before starting, ask the founder whether to bring it up to date and build there, or to use <code>codex/transport</code>.</td><td>055–059</td></tr>
+<tr><td>5</td><td><b>Campus operations.</b> Classroom scheduling, lab booking, equipment reservations, library loans, asset tracking, staff assignment, operational history, sustainability report</td><td>OP-001–OP-006, OP-009, OP-013, OP-016, OP-017</td><td><code>lib/resource-booking.ts</code>, timetable and <code>class_session</code> clash rules; facility repairs already run on the case engine (<code>facility</code> kind)</td><td>060–064</td></tr>
+<tr><td>6</td><td><b>Quality pass</b>, run after each track: an automated accessibility scan on every new page at 390 px and 1280 px (none runs in the suite today; adding a dev dependency such as axe needs the founder’s approval), pagination for lists that can pass 100 rows, a visual check of every screenshot</td><td>ID-005 hardening</td><td>Existing browser tests in <code>tests/*.e2e.ts</code></td><td>none</td></tr>
+</table>
+
+<h2>3. Claude tracks (Codex does not touch these files)</h2>
+<table>
+<tr><th>Track</th><th>Registry IDs</th><th>Files</th></tr>
+<tr><td>Finish batch 11, then onboarding: invite, verify, provision and recover accounts through the office</td><td>AD-020, SL-010, SL-011, SL-015, AD-002</td><td><code>lib/cases.ts</code>, <code>lib/preferences.ts</code>, <code>lib/support-services.ts</code>, <code>lib/auth.ts</code>, <code>lib/scope.ts</code>, <code>app/admin</code></td></tr>
+<tr><td>Remaining administration, department, identity and governance rows</td><td>AD-* (11), DH-* (10), ID-* (4), SA-*, LE-*, FC-* outside the outcome rows</td><td><code>lib/delegation.ts</code>, <code>lib/department.ts</code>, <code>lib/reporting.ts</code>, <code>lib/policies.ts</code>, <code>lib/automation.ts</code></td></tr>
+<tr><td>Remaining student-life rows</td><td>SL-* (remaining)</td><td><code>lib/student-life.ts</code>, <code>app/profile</code>, <code>app/groups</code></td></tr>
+<tr><td>Blocked, nobody builds on this branch</td><td>PL-*, AI-*, AG*-*, INV-*, SP-022 (AI) and CL-* (CLUBVERSE branch only)</td><td>Need an Anthropic key and spending cap, or the CLUBVERSE branch</td></tr>
+</table>
+
+<h2>4. Collision rules</h2>
+<ol>
+<li><b>Branches.</b> Codex works on <code>codex/&lt;track&gt;</code>, cut from the latest <code>audit/nexus-engineering-audit</code>. It rebases before each push, never force-pushes a shared branch and never pushes to <code>main</code>. The founder merges track branches into the audit branch by pull request.</li>
+<li><b>Migrations.</b> Claude uses 030–039; Codex uses 040–064 by track as above. A migration never depends on a number from the other range that has not landed yet. Applied migrations are never edited.</li>
+<li><b>Shared files.</b> Edit only by appending one marked block per track:
+<ul>
+<li><code>app/chrome.tsx</code>: one destination line, label and icon.</li>
+<li><code>app/styles.css</code>: prefer a CSS module.</li>
+<li><code>docs/NEXUS_MASTER_FEATURE_REGISTRY.md</code>: only your own rows.</li>
+<li><code>docs/NEXUS_ENGINEERING_LEDGER.md</code>: append only.</li>
+<li><code>docs/NEXUS_IMPLEMENTATION_DEPENDENCIES.md</code>: append a paragraph when authority changes.</li>
+</ul>
+Server actions go in a new file per track, such as <code>app/actions/sports.ts</code>. Do not edit <code>app/actions/planning.ts</code> or <code>app/actions/cases.ts</code>.</li>
+<li><b>Case engine.</b> Only Claude changes <code>case_record</code> kinds and <code>lib/cases.ts</code>. When Codex needs a new kind, such as transport incidents or lost and found, it adds a ledger line headed "Request to Claude: case kind &lt;name&gt;" with the readers and the coordinator. Claude adds the kind in its next migration. Codex can build the rest of the module meanwhile.</li>
+<li><b>Notifications.</b> New notification kinds need a visibility rule in <code>notifications()</code> in <code>lib/automation.ts</code>. Request it the same way. Do not edit that function directly.</li>
+<li><b>Test data.</b> Tests create their own fictional rows tagged with a random suffix and delete them in <code>after</code>. The other tenant reuses fixture IDs, so isolation checks compare content, not IDs.</li>
+</ol>
+
+<h2>5. Per-track definition of done (same bar as Claude)</h2>
+<ol>
+<li>Each write goes through a domain service with Zod input and a transaction. It locks the membership row, re-checks the role and roster in SQL, checks the current state, writes, then records an audit event (metadata only). The migration grants each column the service updates.</li>
+<li><code>tests/&lt;track&gt;.test.ts</code> starts with <code>// covers: IDs</code>. It proves the main path and every denial: wrong role, other section, other tenant, stale state and double decision.</li>
+<li><code>tests/&lt;track&gt;.e2e.ts</code> covers the main path, with screenshots copied to <code>docs/evidence/&lt;track&gt;-&lt;date&gt;/</code>. Every new page has no horizontal overflow at 390 px.</li>
+<li>Run the full CI order on a fresh database: migrate twice, seed, lint, typecheck, build, all integration tests, all browser tests, then the tutor test. Record the observed counts in the ledger. Regenerate <code>scripts/record-test-run.py</code> and <code>scripts/traceability.py</code> output.</li>
+<li>Set registry rows to Tested only with linked tests. Anything less gets a scope note in brackets, which counts as partial.</li>
+</ol>
+
+<h2>6. What this means for the score</h2>
+<p>Finishing the five Codex tracks would cover about 110 more registry rows. Claude's tracks add about 30. Together that roughly doubles the coverage part of the score. The overall number still cannot pass the mid-40s on code alone. The rest of the weight is the hosted, restored and monitored deployment and the measured 90% effort reduction with real participants. Both need the founder gates in section 9 of the handoff: Render spend, Supabase, an Anthropic key with a cap, real participants and merge authorization. Do not label anything operational, hosted or user-validated without that evidence.</p>
+
+<h2>7. Hard limits (repeat for Codex)</h2>
+<ul>
+<li>Use fictional data only. Do not touch real SIT records without authorization.</li>
+<li>Never commit credentials or local databases.</li>
+<li>Do not merge or deploy without authorization. Do not provision paid Render resources.</li>
+<li>Keep Anthropic inference fixture-only. Never spend API credits without an approved cap.</li>
+<li>Do not delete branches without authorization.</li>
+<li>Keep sensitive decisions under human authority: official grades, credentials, financial approvals, permissions and private records.</li>
+</ul>
+</body></html>

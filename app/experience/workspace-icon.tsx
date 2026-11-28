@@ -6,6 +6,7 @@ const paths = {
   service: "M3 7h6l2 2h10v11H3z",
   spark: "m12 2 2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5z",
   check: "M8 5H5v16h14V5h-3M9 3h6v4H9zm-1 11 3 3 5-6",
+  chevron: "m9 5 7 7-7 7",
   calendar: "M3 6h18v15H3zm4-3v6m10-6v6M3 11h18",
 } as const;
 

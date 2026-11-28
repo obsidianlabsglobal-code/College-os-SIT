@@ -1,0 +1,3622 @@
+[
+ {
+  "who": "anonymous",
+  "route": "/",
+  "final": "/login",
+  "status": 200
+ },
+ {
+  "who": "anonymous",
+  "route": "/admin",
+  "final": "/login",
+  "status": 200
+ },
+ {
+  "who": "anonymous",
+  "route": "/aura",
+  "final": "/login",
+  "status": 200
+ },
+ {
+  "who": "anonymous",
+  "route": "/clubverse",
+  "final": "/login",
+  "status": 200
+ },
+ {
+  "who": "anonymous",
+  "route": "/clubverse/booking",
+  "final": "/login",
+  "status": 200
+ },
+ {
+  "who": "anonymous",
+  "route": "/grading",
+  "final": "/login",
+  "status": 200
+ },
+ {
+  "who": "anonymous",
+  "route": "/notices",
+  "final": "/login",
+  "status": 200
+ },
+ {
+  "who": "anonymous",
+  "route": "/opportunities",
+  "final": "/login",
+  "status": 200
+ },
+ {
+  "who": "anonymous",
+  "route": "/requests",
+  "final": "/login",
+  "status": 200
+ },
+ {
+  "who": "anonymous",
+  "route": "/timetable",
+  "final": "/login",
+  "status": 200
+ },
+ {
+  "who": "student",
+  "route": "/",
+  "role": "student",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "student",
+  "route": "/",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/admin",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/admin",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/admin",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/admin",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/admin",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/admin",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/admin",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/admin",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/admin",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/admin",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/aura",
+  "role": "student",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "student",
+  "route": "/aura",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/aura",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/aura",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/aura",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/aura",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/aura",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/aura",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/aura",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/aura",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/clubverse",
+  "role": "student",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "student",
+  "route": "/clubverse",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/clubverse",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/clubverse",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/clubverse",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/clubverse",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/clubverse",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/clubverse",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/clubverse",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/clubverse",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/clubverse/booking",
+  "role": "student",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "student",
+  "route": "/clubverse/booking",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/clubverse/booking",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/clubverse/booking",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/clubverse/booking",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/clubverse/booking",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/clubverse/booking",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/clubverse/booking",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/clubverse/booking",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/clubverse/booking",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/grading",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/grading",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/grading",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/grading",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/grading",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/grading",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/grading",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/grading",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/grading",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/grading",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/notices",
+  "role": "student",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "student",
+  "route": "/notices",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/notices",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/notices",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/notices",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/notices",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/notices",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/notices",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/notices",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/notices",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/opportunities",
+  "role": "student",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "student",
+  "route": "/opportunities",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/opportunities",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/opportunities",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/opportunities",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/opportunities",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/opportunities",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/opportunities",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/opportunities",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/opportunities",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/requests",
+  "role": "student",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "student",
+  "route": "/requests",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/requests",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/requests",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/requests",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/requests",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/requests",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/requests",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/requests",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/requests",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/timetable",
+  "role": "student",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "student",
+  "route": "/timetable",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/timetable",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/timetable",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/timetable",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/timetable",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/timetable",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/timetable",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/timetable",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/timetable",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/notices",
+  "forged": "institution=not-a-uuid&role=student",
+  "status": 404
+ },
+ {
+  "who": "student",
+  "route": "/notices",
+  "forged": "institution=10000000-0000-4000-8000-000000000001&role=superuser",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/",
+  "role": "faculty",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "faculty",
+  "route": "/",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/admin",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/admin",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/admin",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/admin",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/admin",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/admin",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/admin",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/admin",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/admin",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/admin",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/aura",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/aura",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/aura",
+  "role": "faculty",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "faculty",
+  "route": "/aura",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/aura",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/aura",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/aura",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/aura",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/aura",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/aura",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/clubverse",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/clubverse",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/clubverse",
+  "role": "faculty",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "faculty",
+  "route": "/clubverse",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/clubverse",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/clubverse",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/clubverse",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/clubverse",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/clubverse",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/clubverse",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/clubverse/booking",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/clubverse/booking",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/clubverse/booking",
+  "role": "faculty",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "faculty",
+  "route": "/clubverse/booking",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/clubverse/booking",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/clubverse/booking",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/clubverse/booking",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/clubverse/booking",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/clubverse/booking",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/clubverse/booking",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/grading",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/grading",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/grading",
+  "role": "faculty",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "faculty",
+  "route": "/grading",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/grading",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/grading",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/grading",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/grading",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/grading",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/grading",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/notices",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/notices",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/notices",
+  "role": "faculty",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "faculty",
+  "route": "/notices",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/notices",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/notices",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/notices",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/notices",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/notices",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/notices",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/opportunities",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/opportunities",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/opportunities",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/opportunities",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/opportunities",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/opportunities",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/opportunities",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/opportunities",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/opportunities",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/opportunities",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/requests",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/requests",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/requests",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/requests",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/requests",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/requests",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/requests",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/requests",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/requests",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/requests",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/timetable",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/timetable",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/timetable",
+  "role": "faculty",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "faculty",
+  "route": "/timetable",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/timetable",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/timetable",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/timetable",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/timetable",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/timetable",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/timetable",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/notices",
+  "forged": "institution=not-a-uuid&role=student",
+  "status": 404
+ },
+ {
+  "who": "faculty",
+  "route": "/notices",
+  "forged": "institution=10000000-0000-4000-8000-000000000001&role=superuser",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/",
+  "role": "hod",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "hod",
+  "route": "/",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/admin",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/admin",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/admin",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/admin",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/admin",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/admin",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/admin",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/admin",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/admin",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/admin",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/aura",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/aura",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/aura",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/aura",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/aura",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/aura",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/aura",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/aura",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/aura",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/aura",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/clubverse",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/clubverse",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/clubverse",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/clubverse",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/clubverse",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/clubverse",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/clubverse",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/clubverse",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/clubverse",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/clubverse",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/clubverse/booking",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/clubverse/booking",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/clubverse/booking",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/clubverse/booking",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/clubverse/booking",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/clubverse/booking",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/clubverse/booking",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/clubverse/booking",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/clubverse/booking",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/clubverse/booking",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/grading",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/grading",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/grading",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/grading",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/grading",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/grading",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/grading",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/grading",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/grading",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/grading",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/notices",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/notices",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/notices",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/notices",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/notices",
+  "role": "hod",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "hod",
+  "route": "/notices",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/notices",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/notices",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/notices",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/notices",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/opportunities",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/opportunities",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/opportunities",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/opportunities",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/opportunities",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/opportunities",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/opportunities",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/opportunities",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/opportunities",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/opportunities",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/requests",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/requests",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/requests",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/requests",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/requests",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/requests",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/requests",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/requests",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/requests",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/requests",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/timetable",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/timetable",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/timetable",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/timetable",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/timetable",
+  "role": "hod",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "hod",
+  "route": "/timetable",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/timetable",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/timetable",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/timetable",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/timetable",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/notices",
+  "forged": "institution=not-a-uuid&role=student",
+  "status": 404
+ },
+ {
+  "who": "hod",
+  "route": "/notices",
+  "forged": "institution=10000000-0000-4000-8000-000000000001&role=superuser",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/",
+  "role": "admin",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "admin",
+  "route": "/",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/admin",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/admin",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/admin",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/admin",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/admin",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/admin",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/admin",
+  "role": "admin",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "admin",
+  "route": "/admin",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/admin",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/admin",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/aura",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/aura",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/aura",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/aura",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/aura",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/aura",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/aura",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/aura",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/aura",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/aura",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/clubverse",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/clubverse",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/clubverse",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/clubverse",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/clubverse",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/clubverse",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/clubverse",
+  "role": "admin",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "admin",
+  "route": "/clubverse",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/clubverse",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/clubverse",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/clubverse/booking",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/clubverse/booking",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/clubverse/booking",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/clubverse/booking",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/clubverse/booking",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/clubverse/booking",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/clubverse/booking",
+  "role": "admin",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "admin",
+  "route": "/clubverse/booking",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/clubverse/booking",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/clubverse/booking",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/grading",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/grading",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/grading",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/grading",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/grading",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/grading",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/grading",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/grading",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/grading",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/grading",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/notices",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/notices",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/notices",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/notices",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/notices",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/notices",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/notices",
+  "role": "admin",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "admin",
+  "route": "/notices",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/notices",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/notices",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/opportunities",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/opportunities",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/opportunities",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/opportunities",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/opportunities",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/opportunities",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/opportunities",
+  "role": "admin",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "admin",
+  "route": "/opportunities",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/opportunities",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/opportunities",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/requests",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/requests",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/requests",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/requests",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/requests",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/requests",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/requests",
+  "role": "admin",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "admin",
+  "route": "/requests",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/requests",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/requests",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/timetable",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/timetable",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/timetable",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/timetable",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/timetable",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/timetable",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/timetable",
+  "role": "admin",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "admin",
+  "route": "/timetable",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/timetable",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/timetable",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/notices",
+  "forged": "institution=not-a-uuid&role=student",
+  "status": 404
+ },
+ {
+  "who": "admin",
+  "route": "/notices",
+  "forged": "institution=10000000-0000-4000-8000-000000000001&role=superuser",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/",
+  "role": "principal",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "principal",
+  "route": "/",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/admin",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/admin",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/admin",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/admin",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/admin",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/admin",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/admin",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/admin",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/admin",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/admin",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/aura",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/aura",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/aura",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/aura",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/aura",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/aura",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/aura",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/aura",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/aura",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/aura",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/clubverse",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/clubverse",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/clubverse",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/clubverse",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/clubverse",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/clubverse",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/clubverse",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/clubverse",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/clubverse",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/clubverse",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/clubverse/booking",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/clubverse/booking",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/clubverse/booking",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/clubverse/booking",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/clubverse/booking",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/clubverse/booking",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/clubverse/booking",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/clubverse/booking",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/clubverse/booking",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/clubverse/booking",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/grading",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/grading",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/grading",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/grading",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/grading",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/grading",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/grading",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/grading",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/grading",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/grading",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/notices",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/notices",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/notices",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/notices",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/notices",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/notices",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/notices",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/notices",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/notices",
+  "role": "principal",
+  "inst": "1",
+  "status": 200
+ },
+ {
+  "who": "principal",
+  "route": "/notices",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/opportunities",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/opportunities",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/opportunities",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/opportunities",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/opportunities",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/opportunities",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/opportunities",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/opportunities",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/opportunities",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/opportunities",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/requests",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/requests",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/requests",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/requests",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/requests",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/requests",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/requests",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/requests",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/requests",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/requests",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/timetable",
+  "role": "student",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/timetable",
+  "role": "student",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/timetable",
+  "role": "faculty",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/timetable",
+  "role": "faculty",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/timetable",
+  "role": "hod",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/timetable",
+  "role": "hod",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/timetable",
+  "role": "admin",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/timetable",
+  "role": "admin",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/timetable",
+  "role": "principal",
+  "inst": "1",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/timetable",
+  "role": "principal",
+  "inst": "2",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/notices",
+  "forged": "institution=not-a-uuid&role=student",
+  "status": 404
+ },
+ {
+  "who": "principal",
+  "route": "/notices",
+  "forged": "institution=10000000-0000-4000-8000-000000000001&role=superuser",
+  "status": 404
+ }
+]

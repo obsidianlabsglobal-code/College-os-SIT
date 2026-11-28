@@ -25,7 +25,7 @@ export default async function Notices({ searchParams }: { searchParams: Promise<
       <section className="panel stack" aria-label="Notice list">
         {!records.length && <p>No notices match this view.</p>}
         {records.map(record => <article className="stack" id={`notice-${record.id}`} key={record.id}>
-          <div><h2>{record.title}</h2><p className="meta">{record.author} · {record.audience} · {record.published_at
+          <div><h2>{record.title}</h2>{record.kind === "operational" && <span className="tag">Maintenance or closure</span>}<p className="meta">{record.expires_on ? `Until ${record.expires_on} · ` : ""}{record.author} · {record.audience} · {record.published_at
             ? new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: timezone }).format(record.published_at) : "Draft"}</p></div>
           <p className="prose-text">{record.body}</p>
           {!record.published_at && <ActionForm action={connected} context={current} label="Publish notice" operation="publish-notice" secondary>
@@ -41,6 +41,8 @@ export default async function Notices({ searchParams }: { searchParams: Promise<
           </select></label>}
           <label>Title<input name="title" required maxLength={160} /></label>
           <label>Notice<textarea name="body" required maxLength={8000} /></label>
+          <label>Kind<select name="kind"><option value="general">General</option><option value="operational">Maintenance or closure</option></select></label>
+          <label>Show until (optional)<input type="date" name="expires" /></label>
         </ActionForm>
       </section>}
     </div>

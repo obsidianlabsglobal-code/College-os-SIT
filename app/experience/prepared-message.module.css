@@ -1,0 +1,7 @@
+.card { display:grid; gap:var(--space-2); background:var(--surface-elevated); border:1px solid var(--border); border-radius:var(--radius-panel);
+  padding:var(--space-3); margin-block:var(--space-3); color:var(--ink); min-width:0; overflow-wrap:anywhere; }
+.card h3 { font-weight:700; margin-block-end:.28rem; }
+.card summary { color:var(--accent); cursor:pointer; min-height:44px; align-content:center; }
+.card textarea { font:inherit; font-size:var(--text-meta); }
+.status { font-size:var(--text-meta); color:var(--accent); }
+.status:empty { margin-block:-.35rem; }

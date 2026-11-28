@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createAssignment, publishAssignment, submitAssignment, updateGrade, WorkflowError } from "../../lib/assignments";
 import { parseUpload } from "../../lib/files";
+import { parseCriteria, scoreByRubric, setRubric } from "../../lib/rubrics";
 import { scope, workspaceQuery } from "../../lib/scope";
 
 export type ActionState = { error?: string; message?: string };
@@ -45,6 +46,20 @@ export async function workflow(_state: ActionState, form: FormData): Promise<Act
         await publishAssignment(current, assignment);
       } else if (operation === "submit") {
         await submitAssignment(current, assignment, id.parse(form.get("request")), z.string().trim().max(20000).parse(form.get("body")), await upload(form.get("file")));
+      } else if (operation === "rubric") {
+        await setRubric(current, { assignment, criteria: parseCriteria(String(form.get("criteria") ?? "")) });
+      } else if (operation === "grade" && [...form.keys()].some(key => key.startsWith("score:"))) {
+        // FC-010: score by criterion; the total becomes the draft's marks.
+        await scoreByRubric(current, {
+          assignment,
+          submission: id.parse(form.get("submission")),
+          expected: integer("revision", 0, 2147483646).parse(form.get("revision")),
+          expectedDraft: z.enum(["true","false"]).parse(form.get("is-draft")) === "true",
+          scores: [...form.keys()].filter(key => key.startsWith("score:")).map(key => ({ criterion: key.slice(6),
+            points: integer("criterion points", 0, 1000).parse(form.get(key)), comment: String(form.get(`comment:${key.slice(6)}`) ?? "") })),
+          feedback: required("feedback", 8000).parse(form.get("feedback")),
+          reason: z.string().trim().max(1000).parse(form.get("reason") ?? "") || undefined,
+        });
       } else if (operation === "grade" || operation === "publish-grade") {
         await updateGrade(current, {
           assignment,

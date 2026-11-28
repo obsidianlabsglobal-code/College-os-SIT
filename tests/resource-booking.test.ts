@@ -1,3 +1,4 @@
+// covers: ID-004, ID-006, CL-035, OP-008
 import "../scripts/environment";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -15,9 +16,12 @@ const owner = new Pool({connectionString:process.env.MIGRATION_DATABASE_URL});
 const accounts = new Map<string,string>();
 const actor = (alias:string,role:Scope["role"],institution=fixtures.institution):Scope =>
   ({account:accounts.get(alias)!,role,institution});
-const stamp = (hours:number) => new Intl.DateTimeFormat("sv-SE",{
-  dateStyle:"short",timeStyle:"short",timeZone:"Asia/Kolkata",
-}).format(new Date(Date.now()+hours*3_600_000)).replace(" ","T");
+// A class slot cannot wrap past midnight. Use the following campus day at fixed local hours.
+const stamp = (hour:number) => {
+  const nextDay=new Intl.DateTimeFormat("sv-SE",{dateStyle:"short",timeZone:"Asia/Kolkata"})
+    .format(new Date(Date.now()+86_400_000));
+  return `${nextDay}T${String(hour).padStart(2,"0")}:00`;
+};
 
 before(async () => {
   for (const url of [process.env.DATABASE_URL,process.env.MIGRATION_DATABASE_URL]) {
@@ -44,14 +48,14 @@ test("venue approval serializes collisions, respects grants and atomically relea
   await changeClub(organizer,{operation:"proposal",id:club,revision:0,next:"submitted"});
   await changeClub(reviewer,{operation:"proposal",id:club,revision:1,next:"under_review"});
   await changeClub(reviewer,{operation:"proposal",id:club,revision:2,next:"approved"});
-  const starts = stamp(5), ends = stamp(6);
+  const starts = stamp(10), ends = stamp(11);
   const make = (start:string,end:string) => changeClub(organizer,{operation:"event-draft",club,
     title:`Private event ${randomUUID()}`,location:"To be confirmed",requirements:"Test materials",
     audience:"club",starts:start,ends:end,capacity:10,
   });
   const first = await make(starts,ends);
   const second = await make(starts,ends);
-  const adjoining = await make(ends,stamp(7));
+  const adjoining = await make(ends,stamp(12));
   const room = (name:string) => changeResource(reviewer,{operation:"create",name:`${name} ${randomUUID()}`,kind:"room",location:"Campus"});
   const resource = await room("Room");
   const alternate = await room("Alternate");

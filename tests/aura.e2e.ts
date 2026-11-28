@@ -1,3 +1,4 @@
+// covers: AI-001, AI-003
 import { expect, test, type Page } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { demoEmail, demoPassword, fixtures } from "../scripts/fixtures";
@@ -53,6 +54,7 @@ test("a student asks AURA from a phone keyboard and gets a direct database answe
   const card = page.getByRole("listitem", { name: "Request: my assignments" }).first();
   await expect(card).toBeVisible();
   await expect(card.getByText("Direct system action")).toBeVisible();
+  await expect(card.getByRole("list", { name: "Task progress" }).getByRole("listitem")).toHaveText(["Understood", "Checked records", "Answered"]);
   await expect(card.getByText("I checked the database")).toBeVisible();
   await expect(card.getByText("Model calls 0 · Tool operations 1")).toBeVisible();
   await expect(card.getByText(/^Source: Assignments in your active course rosters/)).toBeVisible();

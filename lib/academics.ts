@@ -76,3 +76,28 @@ export async function changeCatalog(scope: Scope, change: Change) {
     await audit(client,scope,record.id,`academic.${change.operation}`);
   });
 }
+
+/** AD-008 slice: correct a course or section name, keeping the old name, reason and who changed it. */
+export async function renameCatalog(scope: Scope, input: { entity: "course" | "section"; id: string; name: string; reason: string }) {
+  if (scope.role !== "admin" || !["course", "section"].includes(input.entity) || !/^[0-9a-f-]{36}$/i.test(input.id)) throw new WorkflowError("This action is unavailable.");
+  const name = input.name.trim(), reason = input.reason.trim();
+  if (!name || name.length > 160 || !reason || reason.length > 500) throw new WorkflowError("Enter the corrected name and a reason.");
+  return transaction(async client => {
+    const admin = await client.query("SELECT 1 FROM membership WHERE institution_id=$1 AND account_id=$2 AND role='admin' AND ended_at IS NULL FOR SHARE", [scope.institution, scope.account]);
+    if (!admin.rowCount) throw new WorkflowError("This action is unavailable.");
+    const { rows: [old] } = await client.query<{ name: string }>(`SELECT name FROM ${input.entity} WHERE institution_id=$1 AND id=$2 FOR UPDATE`, [scope.institution, input.id]);
+    if (!old || old.name === name) throw new WorkflowError("No change was made. Check the current name.");
+    await client.query(`UPDATE ${input.entity} SET name=$3 WHERE institution_id=$1 AND id=$2`, [scope.institution, input.id, name]);
+    await client.query(`INSERT INTO catalog_name_change (institution_id,entity,entity_id,old_name,new_name,reason,changed_by) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+      [scope.institution, input.entity, input.id, old.name, name, reason, scope.account]);
+    await audit(client, scope, input.id, `academic.${input.entity}_renamed`);
+  });
+}
+
+export async function catalogHistory(scope: Scope) {
+  if (scope.role !== "admin") return [];
+  return (await db.query<{ entity: string; old_name: string; new_name: string; reason: string; changed_by: string; changed_at: Date }>(
+    `SELECT h.entity,h.old_name,h.new_name,h.reason,u.name AS changed_by,h.changed_at FROM catalog_name_change h JOIN "user" u ON u.id=h.changed_by
+     WHERE h.institution_id=$1 AND EXISTS (SELECT 1 FROM membership WHERE institution_id=$1 AND account_id=$2 AND role='admin' AND ended_at IS NULL)
+     ORDER BY h.changed_at DESC LIMIT 50`, [scope.institution, scope.account])).rows;
+}

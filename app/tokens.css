@@ -1,31 +1,40 @@
 :root {
   color-scheme: light dark;
-  --canvas: light-dark(#f8f7f4, #14201b);
-  --surface: light-dark(#fff, #1d2923);
-  --surface-elevated: light-dark(#fffefd, #233229);
-  --ink: light-dark(#1d2b23, #f0f4ef);
+  --canvas: light-dark(#f9f7f3, #171720);
+  --surface: light-dark(#fff, #22232d);
+  --surface-elevated: light-dark(#fffefc, #2c2d38);
+  --ink: light-dark(#25232e, #f4f1f6);
   --text: var(--ink);
-  --muted: light-dark(#546359, #bcc9bf);
-  --border: light-dark(#d9e0d7, #435448);
-  --control-border: light-dark(#748478, #84998a);
-  --accent: light-dark(#315c4b, #a6dfbd);
-  --accent-hover: light-dark(#254839, #c4eed2);
-  --on-accent: light-dark(#fff, #14271c);
-  --forest: #204537;
-  --rail-text: #edf5ec;
-  --rail-muted: #c5d8cb;
-  --rail-hover: #325745;
-  --sage: light-dark(#e4efdf, #294132);
-  --lilac: light-dark(#eee8f5, #393247);
-  --peach: light-dark(#f9e9d9, #48392e);
-  --tint: var(--sage);
-  --danger: light-dark(#922e31, #ffb9be);
-  --warning: light-dark(#743c10, #ffd39f);
-  --info: light-dark(#544372, #d8c8ff);
-  --focus: light-dark(#245a43, #adf0c9);
+  --muted: light-dark(#5e5a69, #b7b4c0);
+  --border: light-dark(#e7e2ec, #3a3b48);
+  --control-border: light-dark(#857f92, #8d8a9b);
+  --accent: light-dark(#6e54b7, #b7a4f4);
+  --accent-hover: light-dark(#5a429e, #cdbff8);
+  --on-accent: light-dark(#fff, #1c1631);
+  --forest: light-dark(#f2eef8, #1c1c26);
+  --rail-text: light-dark(#25232e, #f4f1f6);
+  --rail-muted: light-dark(#5e5a69, #b7b4c0);
+  --rail-hover: light-dark(#e8e1f4, #2c2d38);
+  --sage: light-dark(#ddefe6, #1f3a30);
+  --lilac: light-dark(#eae2f6, #2f2847);
+  --peach: light-dark(#f8e5d2, #43342a);
+  --tint: var(--lilac);
+  --chart-1: light-dark(#5a429e, #cdbff8);
+  --chart-2: light-dark(#8f78d8, #9a86e0);
+  --chart-3: light-dark(#c4b4ee, #6650a8);
+  --danger: light-dark(#a03f48, #ffb3ba);
+  --warning: light-dark(#7a4e00, #ffd39f);
+  --info: light-dark(#2d5c8c, #a9cbf0);
+  --focus: light-dark(#6e54b7, #cdbff8);
   --focus-width: 3px;
   --font-body: Inter, system-ui, "Noto Sans Kannada", sans-serif;
-  --font-display: "Instrument Serif", Georgia, "Noto Serif Kannada", serif;
+  --font-display: var(--font-body);
+  --font-editorial: "Instrument Serif", Georgia, "Noto Serif Kannada", serif;
+  --sky: light-dark(#dceaf5, #22324a);
+  --rose: light-dark(#f1dce4, #432a35);
+  --success: light-dark(#316b51, #9fd9bc);
+  --violet-deep: #4b3590;
+  --brand-blue: var(--accent); /* Sites-direction alias: the identity is violet (Design Bible decision, 27 Nov) */
   --text-meta: .875rem;
   --text-heading: clamp(2rem, 3.8vw, 3.3rem);
   --space-1: .25rem;
@@ -37,20 +46,25 @@
   --space-7: 2.5rem;
   --space-8: 3rem;
   --space-9: 4rem;
+  --control-height: 44px;
+  --control-rest: light-dark(#fff, #181f2b);
+  --control-hover: light-dark(#eff6ff, #22364d);
+  --control-shadow: 0 1px 2px light-dark(#102f4e20,#0005), 0 2px 6px light-dark(#102f4e12,#0002);
   --radius-control: .68rem;
   --radius-panel: 1.12rem;
   --radius-sheet: 1.5rem;
   --radius-pill: 999px;
-  --elevation-panel: 0 2px 6px #172b1c08, 0 8px 24px #172b1c04;
-  --elevation-overlay: 0 18px 56px #14231c30;
+  --elevation-panel: 0 1px 2px #25232e0a, 0 10px 30px -12px #6e54b71f;
+  --elevation-overlay: 0 24px 64px -16px #25232e40;
   --motion-press: 95ms;
   --motion-fast: 140ms;
   --motion-menu: 160ms;
   --motion-reveal: 200ms;
   --motion-drawer: 240ms;
   --motion-easing: cubic-bezier(.2,.75,.25,1);
-  --atmosphere: radial-gradient(ellipse at 95% 0%, var(--lilac), transparent 60%),
-    linear-gradient(115deg, var(--sage), var(--surface-elevated) 75%, var(--peach));
+  --atmosphere: radial-gradient(120% 90% at 100% 0%, var(--lilac), transparent 55%),
+    radial-gradient(90% 80% at 0% 100%, var(--sky), transparent 60%),
+    linear-gradient(135deg, var(--surface-elevated), var(--rose) 140%);
 }
 :root[data-theme="light"] { color-scheme: light; }
 :root[data-theme="dark"] { color-scheme: dark; }

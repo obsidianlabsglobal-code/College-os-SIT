@@ -8,6 +8,11 @@ import { PageHeader } from "../../page-header";
 import { assignmentProgress } from "../../../lib/faculty";
 import { assignmentStatus, href } from "../../faculty/format";
 import { ProgressLine } from "../../faculty/progress-line";
+import { ActionForm } from "../../forms";
+import { courseAction } from "../../actions/courses";
+import { coursePlan, courseResources, deliverySessions } from "../../../lib/course-delivery";
+import { projectTeams, unteamedStudents } from "../../../lib/teams";
+import { planningAction } from "../../actions/planning";
 
 export default async function CourseWorkspace({params, searchParams}: {
   params: Promise<{id: string}>;
@@ -18,10 +23,17 @@ export default async function CourseWorkspace({params, searchParams}: {
   const actor = await scope(selection.institution, selection.role);
   const [course] = await offerings(actor, id);
   if (!course) notFound();
-  const [work, progress] = await Promise.all([
+  const [work, progress, materials, plan, sessions] = await Promise.all([
     assignments(actor, undefined, id),
     actor.role === "faculty" ? assignmentProgress(actor, { offering: id, limit: 200 }) : null,
+    courseResources(actor, id), coursePlan(actor, id), deliverySessions(actor, id),
   ]);
+  const projects = await projectTeams(actor, id);
+  const available = await unteamedStudents(actor, id);
+  const reviewLabel = { pending: "Awaiting review", accepted: "Accepted", changes_requested: "Changes requested" } as Record<string, string>;
+  const teacher = actor.role === "faculty";
+  const planState = { none: "No plan yet", draft: "Draft", submitted: "Awaiting department approval", approved: "Approved", returned: "Returned for changes" };
+  const topicOf = new Map(plan?.items.map(item => [item.id, `${item.sequence}. ${item.topic}`]));
   const stats = new Map(progress?.rows.map(row => [row.id, row]));
   const query = workspaceQuery(actor);
   const date = new Intl.DateTimeFormat("en-IN", {timeZone:course.timezone, dateStyle:"medium", timeStyle:"short"});
@@ -44,5 +56,101 @@ export default async function CourseWorkspace({params, searchParams}: {
       </li>)}</ul> : <p>No assignments are available for this course.</p>}
       {progress?.truncated && <p className="meta">Evaluation progress is shown for the first {progress.rows.length} assignments. Use the evaluation queue for the rest.</p>}
     </section>
+
+    <section className="panel stack" aria-labelledby="materials-title">
+      <h2 id="materials-title">Course materials</h2>
+      <p className="meta">{teacher ? "Students on this course download the latest version. Earlier versions stay available to teachers." : "The latest version published by your teacher."}</p>
+      {materials.length ? <ul className="items">{materials.map(item => <li key={item.id}>
+        <div className="row spread"><a href={`/resources/${item.id}?${query}`} download>{item.title}</a><span className="tag">Version {item.version}</span></div>
+        <p className="meta">{item.filename} · updated {date.format(item.uploaded_at)}{item.note && ` · ${item.note}`}</p>
+        {teacher && <details><summary>Upload a new version or withdraw</summary>
+          {item.version > 1 && <p className="meta">Earlier: {Array.from({ length: item.version - 1 }, (_, n) => n + 1).map(v =>
+            <a key={v} href={`/resources/${item.id}?${query}&version=${v}`} download>v{v} </a>)}</p>}
+          <ActionForm action={courseAction} context={actor} operation="resource-revise" label="Publish new version">
+            <input type="hidden" name="resource" value={item.id} />
+            <label>What changed<input name="note" required maxLength={500} /></label>
+            <label>File (PDF or TXT, 4 MiB)<input name="file" type="file" accept=".pdf,.txt" required /></label>
+          </ActionForm>
+          <ActionForm action={courseAction} context={actor} operation="resource-withdraw" label="Withdraw material" secondary>
+            <input type="hidden" name="resource" value={item.id} />
+          </ActionForm>
+        </details>}
+      </li>)}</ul> : <p>No course materials yet.</p>}
+      {teacher && <details><summary>Add course material</summary>
+        <ActionForm action={courseAction} context={actor} operation="resource-add" label="Publish material">
+          <input type="hidden" name="offering" value={id} />
+          <label>Title<input name="title" required maxLength={160} /></label>
+          <label>Note (optional)<input name="note" maxLength={500} /></label>
+          <label>File (PDF or TXT, 4 MiB)<input name="file" type="file" accept=".pdf,.txt" required /></label>
+        </ActionForm>
+      </details>}
+    </section>
+
+    {plan && (teacher || plan.state === "approved") && <section className="panel stack" aria-labelledby="plan-title">
+      <div className="row spread"><h2 id="plan-title">Course plan</h2><span className={plan.state === "returned" ? "tag tag-attention" : "tag"}>{planState[plan.state]}</span></div>
+      {plan.decision_reason && teacher && <p className="meta">Department note: {plan.decision_reason}</p>}
+      {plan.items.length ? <ol className="items">{plan.items.map(item => <li key={item.id}>
+        {item.topic}{plan.state === "approved" && <span className="meta"> · {item.delivered ? `delivered in ${item.delivered} ${item.delivered === 1 ? "class" : "classes"}` : "not yet delivered"}</span>}
+      </li>)}</ol> : <p>No topics yet.</p>}
+      {teacher && (plan.state === "none" || plan.state === "draft" || plan.state === "returned") && <>
+        <ActionForm action={courseAction} context={actor} operation="plan-save" label="Save plan draft">
+          <input type="hidden" name="offering" value={id} />
+          <label>Topics, one per line, in teaching order<textarea name="topics" required rows={6} defaultValue={plan.items.map(item => item.topic).join("\n")} /></label>
+        </ActionForm>
+        {plan.state === "draft" && plan.items.length > 0 && <ActionForm action={courseAction} context={actor} operation="plan-submit" label="Send for department approval" secondary>
+          <input type="hidden" name="offering" value={id} />
+        </ActionForm>}
+      </>}
+    </section>}
+
+    {(teacher || projects.teams.length > 0) && <section className="panel stack" aria-labelledby="teams-title">
+      <h2 id="teams-title">{teacher ? "Project teams" : "My project team"}</h2>
+      {projects.milestones.length > 0 && <p className="meta">Milestones: {projects.milestones.map(m => `${m.title} (due ${date.format(m.due_at)})`).join(" · ")}</p>}
+      {projects.teams.map(team => <article key={team.id} aria-label={team.name} className="stack">
+        <h3>{team.name}</h3><p className="meta">{team.members.map(m => m.name).join(", ")}</p>
+        {projects.milestones.map(m => { const latest = team.evidence.find(e => e.milestone_id === m.id); return <div key={m.id} className="stack">
+          <p><strong>{m.title}</strong> · {latest ? `${reviewLabel[latest.review]} · submitted by ${latest.submitted_by}` : "No evidence yet"}</p>
+          {latest && <p className="meta">{latest.body}{latest.review_note && ` — Review: ${latest.review_note}`}</p>}
+          {teacher && latest?.review === "pending" && <ActionForm action={planningAction} context={actor} operation="evidence-review" label="Record review">
+            <input type="hidden" name="evidence" value={latest.id} />
+            <label>Decision<select name="decision" required defaultValue=""><option value="" disabled>Choose</option>
+              <option value="accepted">Accept</option><option value="changes_requested">Request changes</option></select></label>
+            <label>Note<input name="note" required maxLength={1000} /></label></ActionForm>}
+          {actor.role === "student" && latest?.review !== "accepted" && latest?.review !== "pending" && <ActionForm action={planningAction} context={actor} operation="evidence-submit" label={`Submit evidence for ${m.title}`}>
+            <input type="hidden" name="milestone" value={m.id} /><label>Evidence<textarea name="body" required maxLength={4000} /></label></ActionForm>}
+        </div>; })}
+      </article>)}
+      {teacher && <>
+        {available.length > 0 && <details><summary>Form a team</summary>
+          <ActionForm action={planningAction} context={actor} operation="team-create" label="Form team">
+            <input type="hidden" name="offering" value={id} />
+            <label>Team name<input name="name" required maxLength={80} /></label>
+            <fieldset><legend>Students without a team</legend>{available.map(s => <label key={s.id}><input type="checkbox" name="students" value={s.id} /> {s.name}</label>)}</fieldset>
+          </ActionForm></details>}
+        <details><summary>Set a milestone</summary>
+          <ActionForm action={planningAction} context={actor} operation="milestone-add" label="Set milestone">
+            <input type="hidden" name="offering" value={id} />
+            <label>Milestone<input name="title" required maxLength={160} /></label>
+            <label>Due ({course.timezone})<input name="due" type="datetime-local" required /></label>
+          </ActionForm></details>
+      </>}
+    </section>}
+
+    {teacher && <section className="panel stack" aria-labelledby="delivery-title">
+      <h2 id="delivery-title">Class delivery log</h2>
+      <p className="meta">Record what each of your ended classes covered. Linking a topic counts it toward the approved plan.</p>
+      {sessions.length ? <ul className="items">{sessions.map(session => <li key={session.id}>
+        <p><strong>{date.format(session.start)}</strong>{session.summary ? ` · ${session.plan_item_id ? topicOf.get(session.plan_item_id) : "No plan topic"}` : " · Not recorded"}</p>
+        {session.summary && <p className="meta">{session.summary}</p>}
+        <details><summary>{session.summary ? "Correct this record" : "Record delivery"}</summary>
+          <ActionForm action={courseAction} context={actor} operation="delivery" label="Save delivery record">
+            <input type="hidden" name="session" value={session.id} />
+            {plan?.state === "approved" && <label>Plan topic<select name="item" defaultValue={session.plan_item_id ?? ""}>
+              <option value="">No plan topic</option>{plan.items.map(item => <option key={item.id} value={item.id}>{item.sequence}. {item.topic}</option>)}</select></label>}
+            <label>What was covered<textarea name="summary" required maxLength={1000} defaultValue={session.summary ?? ""} /></label>
+          </ActionForm>
+        </details>
+      </li>)}</ul> : <p>No ended classes yet.</p>}
+    </section>}
   </Chrome>;
 }

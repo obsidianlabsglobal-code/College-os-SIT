@@ -18,6 +18,7 @@ import { topics,tutorActivity,tutorEnabled } from "../../lib/aura/tutor";
 import { AcademicPanel } from "./academic-panel";
 import { Composer } from "./composer";
 import styles from "./aura.module.css";
+import { ActionCapsule } from "./capsule";
 
 const suggestions = { student: ["My assignments", "My results", "Latest notices", "My requests"], faculty: ["Pending grading", "My assignments", "Latest notices", "Clubs"] };
 const time = (value: Date | string) => new Intl.DateTimeFormat("en-IN", { timeStyle: "short", dateStyle: "medium", timeZone: "Asia/Kolkata" }).format(new Date(value));
@@ -99,6 +100,7 @@ function RequestCard({ request, current, query }: { request: AuraRequest; curren
       <span className={styles.badge} data-tone={state.tone}>{state.text}</span>
       <span className="meta">{time(request.created_at)}</span>
     </div>
+    <ActionCapsule request={request} />
     {kind === "read" && <><p>{String(result.summary)}</p><Items items={result.items as CapabilityItem[]} /></>}
     {reply && <figure className="stack" style={{ margin: 0 }}>
       <figcaption className="meta">AI-generated {kind === "explanation" ? "explanation. Educational help, not an official statement" : "note"}</figcaption>
@@ -137,6 +139,7 @@ export default async function Aura({ searchParams }: { searchParams: Promise<Rec
   const linked = new Set(requests.map(request => request.task_id).filter(Boolean));
   return <Chrome user={user} current={current} section="/aura">
     <ExperienceHeading title="AURA" context="Ask about your coursework, notices and clubs. AURA reads NEXUS records directly and uses a language model only when a request needs interpretation." />
+    <p><Link className="button secondary" href={`/aura/ask?${workspaceQuery(current)}`}>Ask AURA a question in plain words</Link></p>
     <div className={styles.layout}>
       <div className="stack">
         <Composer institution={current.institution} role={current.role} nonce={randomUUID()} suggestions={[...suggestions[current.role],"My timetable",...(current.role==="student"?["My attendance"]:[])]} modelEnabled={!spend.gate} />

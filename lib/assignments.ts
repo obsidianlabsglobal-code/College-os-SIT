@@ -196,8 +196,14 @@ export async function submissions(scope: Scope, assignment: string, only?: strin
   )).rows;
 }
 
-export function updateGrade(scope: Scope, input: { assignment: string; submission: string; expected: number; expectedDraft: boolean; marks?: number; feedback?: string; reason?: string; publish: boolean }) {
-  return transaction(async client => {
+export type GradeInput = { assignment: string; submission: string; expected: number; expectedDraft: boolean; marks?: number; feedback?: string; reason?: string; publish: boolean };
+export function updateGrade(scope: Scope, input: GradeInput) {
+  return transaction(client => gradeIn(client, scope, input));
+}
+
+/** The grade write inside an open transaction, so rubric scores can join the same revision (lib/rubrics.ts). */
+export async function gradeIn(client: PoolClient, scope: Scope, input: GradeInput) {
+  {
     const assignment = await lockAssignment(client, scope, input.assignment, "faculty", "SHARE");
     await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [`grade:${scope.institution}:${input.submission}`]);
     const submission = await client.query(
@@ -239,7 +245,8 @@ export function updateGrade(scope: Scope, input: { assignment: string; submissio
       [...key, revision, input.marks, input.feedback, latest?.published_at || latest?.reason ? input.reason?.trim() : null],
     );
     await audit(client, scope, input.submission, latest?.published_at || latest?.reason ? "grade.correction_drafted" : "grade.drafted", revision);
-  });
+    return revision;
+  }
 }
 
 export async function files(scope: Scope, assignment: string, id?: string, submissionIds?: readonly string[]) {
@@ -254,4 +261,24 @@ export async function files(scope: Scope, assignment: string, id?: string, submi
      AND ($6::uuid[] IS NULL OR f.assignment_id=a.id OR f.submission_id=ANY($6))`,
     [scope.institution, scope.account, scope.role, assignment, id ?? null, submissionIds ?? null],
   )).rows;
+}
+
+export type AssessmentRecord = { id: string; title: string; course: string; term: string; scheme: string; deadline: Date; max_marks: number; submitted_at: Date | null;
+  marks: number | null; published_at: Date | null; corrected: boolean };
+
+/** SA-017: the student's chronological cross-course record. Only published results appear; drafts stay private to faculty. */
+export async function assessmentHistory(scope: Scope) {
+  if (scope.role !== "student") return [];
+  return (await db.query<AssessmentRecord>(
+    `SELECT a.id,a.title,c.name AS course,t.name AS term,sc.name AS scheme,a.deadline,a.max_marks,s.submitted_at,p.marks,p.published_at,coalesce(p.revision>1,false) AS corrected
+     FROM assignment a
+     JOIN offering o ON (o.institution_id,o.id)=(a.institution_id,a.offering_id)
+     JOIN course c ON (c.institution_id,c.id)=(o.institution_id,o.course_id)
+     JOIN academic_term t ON (t.institution_id,t.id)=(o.institution_id,o.term_id)
+     JOIN academic_scheme sc ON (sc.institution_id,sc.id)=(t.institution_id,t.scheme_id)
+     LEFT JOIN submission s ON (s.institution_id,s.assignment_id,s.student_id)=(a.institution_id,a.id,$2)
+     LEFT JOIN LATERAL (SELECT g.marks,g.published_at,g.revision FROM grade g WHERE (g.institution_id,g.submission_id)=(s.institution_id,s.id)
+       AND g.published_at IS NOT NULL ORDER BY g.revision DESC LIMIT 1) p ON true
+     WHERE a.institution_id=$1 AND ${activeRoster} AND a.published_at IS NOT NULL AND (s.id IS NOT NULL OR a.deadline < clock_timestamp())
+     ORDER BY coalesce(s.submitted_at,a.deadline) DESC,a.id`, [scope.institution, scope.account, scope.role])).rows;
 }

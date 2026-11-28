@@ -1,3 +1,4 @@
+// covers: ID-004, SA-001, SA-005, SA-006, SA-008, SA-009, FC-004, FC-005, AI-003
 import "../scripts/environment";
 import { expect,test,type Page } from "@playwright/test";
 import { randomUUID } from "node:crypto";
@@ -15,14 +16,16 @@ async function signIn(page:Page,person:string) {
   await expect(page.getByRole("button",{name:"Sign out"})).toBeVisible();
 }
 
-test("admin publishes a timetable and faculty posts a corrected attendance record",async ({page})=>{
+test("admin publishes a timetable and faculty posts a corrected attendance record",async ({page},testInfo)=>{
   const url = process.env.MIGRATION_DATABASE_URL;
   if (!url || !["127.0.0.1","localhost"].includes(new URL(url).hostname)) throw Error("Local test database required.");
-  const room = randomUUID();
-  const roomName = "Teaching lab " + room.slice(0,8);
+  const room = randomUUID(), assignment = randomUUID();
+  const roomName = "Electronics Lab 2";
   const db = new Client({connectionString:url});
   await db.connect();
   await db.query("INSERT INTO campus_resource (institution_id,id,name,kind,location) VALUES ($1,$2,$3,'room','Fictional campus')",[f.institution,room,roomName]);
+  await db.query(`INSERT INTO assignment (institution_id,id,offering_id,title,description,deadline,max_marks,published_at)
+    VALUES ($1,$2,$3,'Signals lab worksheet','Fictional test record',now()+interval '4 days',10,now()-interval '1 hour')`, [f.institution,assignment,f.offering]);
   await db.end();
   try {
     const octet = parseInt(room.slice(0,2),16);
@@ -58,18 +61,36 @@ test("admin publishes a timetable and faculty posts a corrected attendance recor
     const oldSession = await draft(historical);
     await draft(future);
     await signIn(page,"student");
-    const next = page.getByRole("region",{name:"Next class"});
+    await page.setViewportSize({width:390,height:844});
+    const next = page.getByRole("region",{name:"Next class",exact:true});
+    await expect(next).toBeInViewport();
+    await expect(next.getByRole("link",{name:course})).toBeInViewport();
+    const coursework = page.getByRole("region",{name:"Due next",exact:true});
+    await expect(coursework.getByRole("link",{name:"Signals lab worksheet"})).toBeInViewport();
+    const quickCheck = await page.evaluate(()=>{
+      const control = document.querySelector('[aria-labelledby="next-coursework"] a')?.getBoundingClientRect();
+      const bar = document.querySelector('.app-sidebar')?.getBoundingClientRect();
+      return Boolean(control && bar && control.bottom <= bar.top && control.height >= 44);
+    });
+    expect(quickCheck).toBe(true);
+    await page.screenshot({path:testInfo.outputPath("student-next-class-and-due-work.png")});
+    await page.getByRole("button",{name:"Focus mode"}).press("Enter");
+    await expect(next).toBeVisible();
+    await expect(coursework).toBeVisible();
     await expect(next.getByText(roomName,{exact:false})).toBeVisible();
     await next.getByRole("link",{name:course}).focus();
     await page.keyboard.press("Enter");
     await expect(page.getByRole("heading",{name:`${course} class`})).toBeVisible();
+    await expect(page.getByRole("region",{name:`${course} class`})).toBeFocused();
     await expect(page.getByRole("button",{name:"Record attendance"})).toHaveCount(0);
 
     await signIn(page,"faculty");
     await page.goto(path("faculty",historical,oldSession));
+    await page.getByText("Bulk actions",{exact:true}).click();
     await page.getByRole("button",{name:"Mark all absent"}).click();
     await page.getByRole("button",{name:"Record attendance"}).click();
     await expect(page.getByRole("button",{name:"Save correction"})).toBeVisible();
+    await page.getByText("Bulk actions",{exact:true}).click();
     await page.getByRole("button",{name:"Mark all present"}).click();
     await page.getByLabel("Correction reason").fill("Verified the laboratory register");
     await page.getByRole("button",{name:"Save correction"}).click();
@@ -81,6 +102,7 @@ test("admin publishes a timetable and faculty posts a corrected attendance recor
     await expect(page.getByText("Your attendance: present")).toBeVisible();
     const summary = page.getByRole("region",{name:"My attendance"});
     await expect(summary.getByText(/recorded classes attended/)).toBeVisible();
+    await expect(summary.getByRole("img",{name:new RegExp(`^${course} attendance: 1 of 1, 100\\.0%`)})).toBeVisible();
     const recorded = await summary.locator("li").first().getByText(/recorded classes attended/).textContent();
     await summary.getByText("Try an attendance scenario").first().click();
     await summary.getByLabel("Classes you would attend").first().fill("0");
@@ -107,19 +129,22 @@ test("admin publishes a timetable and faculty posts a corrected attendance recor
     await source.click();
     await expect(page.getByRole("heading",{name:"Timetable",exact:true})).toBeVisible();
     await page.goto(path("student",historical,oldSession));
-
-    await page.getByText("Week calendar",{exact:true}).click();
+    await page.getByRole("link",{name:"Week view",exact:true}).click();
     const week = page.getByRole("list",{name:"Week calendar by day"});
     await expect(week.locator(":scope > li")).toHaveCount(7);
-    await expect(week.getByRole("link",{name:course}).first()).toBeVisible();
+    await expect(page.getByRole("region",{name:"Class schedule"}).getByRole("link",{name:course}).first()).toBeVisible();
     await week.locator(":scope > li").first().getByRole("link").first().press("Enter");
     await expect(page).toHaveURL(new RegExp("day="+historical+"&view=day"));
+    expect(new URL(page.url()).searchParams.get("session")).toBe(oldSession.split("=")[1]);
     await page.getByRole("link",{name:"Week view",exact:true}).press("Enter");
     await expect(page).toHaveURL(new RegExp("day="+historical+"&view=week"));
+    expect(new URL(page.url()).searchParams.get("session")).toBe(oldSession.split("=")[1]);
+    await page.getByRole("link",{name:"My attendance",exact:true}).press("Enter");
+    await expect(summary).toBeFocused();
     await page.goto(path("student",historical,oldSession));
 
     await page.emulateMedia({reducedMotion:"reduce"});
-    for (const width of [360,390,768,1024,1440]) {
+    for (const width of [320,360,390,768,1024,1440]) {
       await page.setViewportSize({width,height:900});
       expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(width);
       if (process.env.NEXUS_ACADEMIC_SCREENSHOTS) {
@@ -135,6 +160,7 @@ test("admin publishes a timetable and faculty posts a corrected attendance recor
     const cleanup = new Client({connectionString:url});
     await cleanup.connect();
     try {
+      await cleanup.query("DELETE FROM assignment WHERE institution_id=$1 AND id=$2",[f.institution,assignment]);
       const args = [f.institution,room];
       await cleanup.query(`DELETE FROM class_attendance_mark WHERE institution_id=$1 AND session_id IN
         (SELECT id FROM class_session WHERE institution_id=$1 AND room_id=$2)`,args);

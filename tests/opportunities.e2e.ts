@@ -1,3 +1,4 @@
+// covers: CR-005
 import { openWorkflow } from "./workspace-navigation";
 import "../scripts/environment";
 import { test,expect,type Page } from "@playwright/test";

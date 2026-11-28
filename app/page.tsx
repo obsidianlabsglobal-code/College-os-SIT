@@ -1,12 +1,13 @@
 import { MissionControl } from "./faculty/mission-control";
-import Link from "next/link";
-import { account, scope, workspaces, workspaceQuery } from "../lib/scope";
-import { adminRequestSummary, departmentSummary, institutionSummary } from "../lib/reporting";
+import { account, scope, workspaces } from "../lib/scope";
+import { AdminBoard, HodBoard, PrincipalBoard } from "./leadership/boards";
 import { Suspense } from "react";
 import { ExperienceHeading } from "./experience/heading";
 import { StudentHome, StudentHomeLoading } from "./student/home";
 import { cookies } from "next/headers";
-import { Chrome, roleLabels } from "./chrome";
+import { Chrome, roleLabels, transportBuilt } from "./chrome";
+import Link from "next/link";
+import { myJoinRequests, recentlyApproved } from "../lib/student-admission";
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ institution?: string; role?: string }> }) {
   const user = await account();
@@ -17,55 +18,41 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ i
   const current = first ? await scope(params.institution ?? first.id, params.role ?? first.role) : null;
   const workspace = options.find(option => option.id === current?.institution && option.role === current?.role);
   if (current?.role === "student") {
+    const newlyJoined = await recentlyApproved(current);
     return <Chrome user={user} current={current}>
+      {newlyJoined && <section className="panel stack" aria-labelledby="next-step">
+        <h2 id="next-step">{transportBuilt ? "Next: pick your bus stop" : "Pick your bus stop (coming soon)"}</h2>
+        <p className="meta">{transportBuilt ? "Choose the route and stop you use, so you see your bus and get its 5-minute alert." : "Choosing your route and stop opens here soon. You will then see your bus and get its 5-minute alert."}</p>
+        {transportBuilt && <div><Link className="button" href={`/transport?institution=${current.institution}&role=student`}>Pick my route and stop</Link></div>}
+      </section>}
       <Suspense fallback={<StudentHomeLoading />}>
         <StudentHome current={current} name={user.name} timezone={workspace?.timezone ?? "UTC"} />
       </Suspense>
     </Chrome>;
   }
 
-  const [summary, overview, requestCounts] = current
-    ? await Promise.all([departmentSummary(current), institutionSummary(current), adminRequestSummary(current)])
-    : [[], [], null];
-  const query = current ? workspaceQuery(current) : "";
+  if (!current) {
+    const requests = await myJoinRequests(user);
+    return <Chrome user={user} current={null}>
+      <section className="panel stack" aria-labelledby="no-workspace">
+        <h1 id="no-workspace">No workspace yet</h1>
+        {requests.length ? <ul className="items">{requests.map(r => <li key={r.id}>{r.institution} · {r.section} · {r.state === "pending" ? "Waiting for your teacher's approval" : r.state === "approved" ? "Approved" : `Not approved: ${r.reason}`}</li>)}</ul>
+          : <p>Your account is not part of a college workspace yet. Students: open the join link your college shared. Teachers: ask the office to add you.</p>}
+      </section>
+    </Chrome>;
+  }
   return <Chrome user={user} current={current}>
     <ExperienceHeading title={current ? roleLabels[current.role] : "Your workspace"}
       context={current?.role === "faculty" ? "Manage assignments for the courses you teach." :
         current?.role === "hod" ? "Review academic activity for your departments." :
         current?.role === "principal" ? "Institution reporting from published academic records and service requests." :
-        current?.role === "admin" ? "Review service requests, configure courses and manage access." : undefined} />
+        current?.role === "admin" ? "Review service requests, configure courses and manage access." :
+        current?.role === "transport" ? "Run routes, buses and transport reports for the departments that are switched on." :
+        current?.role === "driver" ? "Your trips and transport reports." : undefined} />
     {!current && <p className="panel">Your account has no active institutional workspace.</p>}
-    {current?.role === "principal" && <section className="panel">
-      <h2>Institution activity</h2>
-      <p className="meta">All recorded activity for this institution. Published results count each submission once.</p>
-      {overview.map(row => <dl className="metrics" key={row.name}>
-        <div><dt>Published assignments</dt><dd>{row.assignments}</dd></div>
-        <div><dt>Submissions</dt><dd>{row.submissions}</dd></div>
-        <div><dt>Published results</dt><dd>{row.results}</dd></div>
-        <div><dt>Open service requests</dt><dd>{row.open_requests}</dd></div>
-      </dl>)}
-    </section>}
-    {current?.role === "admin" && <section className="panel">
-      <h2>Institution operations</h2>
-      {requestCounts && <dl className="metrics" aria-label="Enrollment-letter queue">
-        <div><dt>Awaiting review</dt><dd>{requestCounts.submitted}</dd></div>
-        <div><dt>In review</dt><dd>{requestCounts.in_review}</dd></div>
-      </dl>}
-      <p className="meta">Current enrollment-letter requests in this institution.</p>
-      <ul className="items">
-        <li><Link href={`/admin?${query}`}>Manage catalog and access</Link><p className="meta">Set up academic offerings, rosters and delegated roles.</p></li>
-        <li><Link href={`/requests?${query}`}>Review the request queue</Link><p className="meta">Process student enrollment-letter requests.</p></li>
-        <li><Link href={`/notices?${query}`}>Manage institution notices</Link><p className="meta">Publish notices for this institution.</p></li>
-      </ul>
-    </section>}
-    {current?.role === "hod" && <section className="panel">
-      <h2>Department activity</h2>
-      <p className="meta">All recorded activity in your assigned departments. Turnaround measures the average time from submission to first publication.</p>
-      {summary.length ? <div className="table-scroll department-report" role="region" aria-label="Department reports" tabIndex={0}><table>
-        <thead><tr><th scope="col">Department</th><th scope="col">Published assignments</th><th scope="col">Submissions</th><th scope="col">Published results</th><th scope="col">Average turnaround</th></tr></thead>
-        <tbody>{summary.map(row => <tr key={row.name}><th scope="row">{row.name}</th><td>{row.assignments}</td><td>{row.submissions}</td><td>{row.results}</td><td>{row.hours === null ? "—" : `${row.hours.toFixed(1)} h`}</td></tr>)}</tbody>
-      </table></div> : <p>No departments are assigned to this workspace.</p>}
-    </section>}
+    {current?.role === "principal" && <PrincipalBoard current={current} timezone={workspace?.timezone ?? "Asia/Kolkata"} />}
+    {current?.role === "admin" && <AdminBoard current={current} timezone={workspace?.timezone ?? "Asia/Kolkata"} />}
+    {current?.role === "hod" && <HodBoard current={current} />}
     {current?.role === "faculty" && <MissionControl current={current} timezone={workspace?.timezone ?? "Asia/Kolkata"} />}
   </Chrome>;
 }

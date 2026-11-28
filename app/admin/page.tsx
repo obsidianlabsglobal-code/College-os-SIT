@@ -10,6 +10,14 @@ import { studentAdmission } from "../actions/student-admission";
 import { studentAdmissions } from "../../lib/student-admission";
 import { onboardingPreviewEnabled } from "../../lib/onboarding-preview";
 import { delegatedRoles, institutionCatalog } from "../../lib/institution";
+import { planningAction } from "../actions/planning";
+import { catalogHistory } from "../../lib/academics";
+import { calendarEntries } from "../../lib/calendar";
+import { delegateOptions, delegations, dutyLabel } from "../../lib/delegation";
+import { departmentSwitches } from "../../lib/active-departments";
+import { consentStatus } from "../../lib/consent";
+import { consentRequiredAction } from "../actions/onboarding";
+import Link from "next/link";
 
 type Option = { id: string; name: string };
 
@@ -23,8 +31,9 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   const current = await scope(selection.institution,selection.role);
   if (current.role !== "admin") notFound();
   const preview = onboardingPreviewEnabled();
-  const [data, setup, admissions] = await Promise.all([
-    adminCatalog(current), institutionCatalog(current), preview ? studentAdmissions(current) : [],
+  const [data, setup, admissions, history, dates, lent, delegates, switches, consent] = await Promise.all([
+    adminCatalog(current), institutionCatalog(current), preview ? studentAdmissions(current) : [], catalogHistory(current), calendarEntries(current),
+    delegations(current), delegateOptions(current), departmentSwitches(current), consentStatus(current),
   ]);
   return <Chrome user={user} current={current} section="/admin">
     <PageHeader title="Academic setup" parent={{ href: `/?${workspaceQuery(current)}`, label: "Workspace" }} />
@@ -88,6 +97,76 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
             <input type="hidden" name="membership" value={grant.id} />
           </ActionForm>}
         </li>)}</ul>
+      </section>
+      <section className="panel stack" aria-labelledby="pilot-onboarding">
+        <h2 id="pilot-onboarding">People</h2>
+        <p className="meta">Add teachers from the college’s sheet; they then sign in with an email code. Students ask to join through the college’s join link and their section’s teachers approve them.</p>
+        <p className="row"><Link className="button secondary" href={`/admin/roster-import?${workspaceQuery(current)}`}>Import teachers and students</Link>
+          <Link className="button secondary" href={`/admin/pilot-health?${workspaceQuery(current)}`}>Pilot health</Link>
+          <Link className="button secondary" href={`/admin/students?${workspaceQuery(current)}`}>Student records</Link>
+          <span className="meta">Student join link: <code>/join/student?institution={current.institution}</code></span></p>
+      </section>
+      {consent && <section className="panel stack" aria-labelledby="privacy-notice">
+        <h2 id="privacy-notice">Privacy notice</h2>
+        <p className="meta">{consent.required ? `Required: members must accept version ${consent.version} before using NEXUS.` : "Not required yet. Switch it on once the college has approved the wording."}</p>
+        <ActionForm action={consentRequiredAction} context={current} label={consent.required ? "Stop requiring" : "Require the notice"} secondary>
+          <input type="hidden" name="required" value={String(!consent.required)} /></ActionForm>
+        {consent.required && <><p><strong>{consent.missing.length}</strong> current {consent.missing.length === 1 ? "member has" : "members have"} not accepted yet.</p>
+          {consent.missing.length > 0 && <details><summary>Show who</summary><ul className="items">{consent.missing.map(m => <li key={m.email}>{m.name} · {m.email} · {m.roles}</li>)}</ul></details>}</>}
+      </section>}
+      <section className="panel stack" aria-labelledby="pilot-departments">
+        <h2 id="pilot-departments">Departments switched on</h2>
+        <p className="meta">Sign-up, roster imports and live buses are open only to members of departments that are switched on. Every change is recorded with your reason.</p>
+        <ul className="items">{switches.map(d => <li key={d.id}><div className="row spread"><span><strong>{d.name}</strong> · {d.active ? "On" : "Off"}</span>
+          <ActionForm action={planningAction} context={current} operation="department-switch" label={d.active ? "Switch off" : "Switch on"} secondary>
+            <input type="hidden" name="department" value={d.id} /><input type="hidden" name="active" value={String(!d.active)} />
+            <label>Reason<input name="reason" required maxLength={300} /></label></ActionForm></div></li>)}</ul>
+      </section>
+      <section className="panel stack" aria-labelledby="delegation-title">
+        <h2 id="delegation-title">Delegated duties</h2>
+        <p className="meta">Lend one office duty to a faculty member or department head until an expiry. They can do only that duty, in their own role, and you can revoke it at any time.</p>
+        <ActionForm action={planningAction} context={current} operation="delegation-grant" label="Delegate duty">
+          <label>Duty<select name="duty" defaultValue="exam_cell">{Object.entries(dutyLabel).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>
+          <Choices label="Staff member" field="delegate" options={delegates} />
+          <label>Days until expiry<input name="days" type="number" min={1} max={365} defaultValue={30} required /></label>
+          <label>Reason<input name="reason" required maxLength={500} /></label>
+        </ActionForm>
+        {lent.length > 0 && <ul className="items">{lent.map(d => <li key={d.id}><div className="row spread">
+          <span>{dutyLabel[d.duty]} · {d.delegate} · until {d.expires_at.toISOString().slice(0, 10)} · {d.active ? "active" : d.revoked_at ? "revoked" : "expired"}</span>
+          {d.active && <ActionForm action={planningAction} context={current} operation="delegation-revoke" label="Revoke" secondary><input type="hidden" name="delegation" value={d.id} /></ActionForm>}
+        </div></li>)}</ul>}
+      </section>
+      <section className="panel stack" aria-labelledby="calendar-title">
+        <h2 id="calendar-title">Institution calendar</h2>
+        <p className="meta">Term dates, holidays and institution events appear in every student’s and teacher’s calendar.</p>
+        <ActionForm action={planningAction} context={current} operation="calendar-add" label="Publish date">
+          <label>Title<input name="title" required maxLength={160} /></label>
+          <label>Type<select name="kind" defaultValue="holiday"><option value="term">Term dates</option><option value="holiday">Holiday</option><option value="event">Event</option><option value="deadline">Deadline</option></select></label>
+          <label>From<input name="from" type="date" required /></label><label>To<input name="to" type="date" required /></label>
+        </ActionForm>
+        {dates.length > 0 && <ul className="items">{dates.map(d => <li key={d.id}><div className="row spread"><span>{d.title} · {d.starts_on}{d.ends_on !== d.starts_on && ` to ${d.ends_on}`}</span>
+          <ActionForm action={planningAction} context={current} operation="calendar-withdraw" label="Withdraw" secondary><input type="hidden" name="entry" value={d.id} /></ActionForm></div></li>)}</ul>}
+      </section>
+      <section className="panel stack" aria-labelledby="rename-title">
+        <h2 id="rename-title">Catalog name corrections</h2>
+        <p className="meta">Corrections keep the previous name, the reason and who made the change.</p>
+        <ActionForm action={planningAction} context={current} operation="rename" label="Save correction">
+          <label>Record<select name="target" required defaultValue=""><option value="" disabled>Choose</option>
+            {data.courses.map(c => <option key={c.id} value={`course|${c.id}`}>Course · {c.name}</option>)}
+            {data.sections.map(c => <option key={c.id} value={`section|${c.id}`}>Section · {c.name}</option>)}</select></label>
+          <label>Corrected name<input name="name" required maxLength={160} /></label>
+          <label>Reason<input name="reason" required maxLength={500} /></label>
+        </ActionForm>
+        {history.length > 0 && <ul className="items">{history.map((h, n) => <li key={n} className="meta">{h.entity}: {h.old_name} → {h.new_name} · {h.reason} · {h.changed_by}</li>)}</ul>}
+      </section>
+      <section className="panel stack" aria-labelledby="offboard-title">
+        <h2 id="offboard-title">Offboard a person</h2>
+        <p className="meta">Ends every post, course roster and mentoring pairing the person holds in this institution, in one step. Their records and history are kept. Open cases and requests they own are reported for reassignment. Administrator posts are not offboarded here.</p>
+        <ActionForm action={planningAction} context={current} operation="offboard" label="Review offboarding"
+          confirmationTitle="Confirm offboarding" confirmationLabel="End all access"
+          confirmation="All current posts, course rosters and mentoring pairings for the selected person in this institution will end now. This cannot be undone from this screen; access can be granted again later.">
+          <Choices label="Person to offboard" field="account" options={Array.from(new Map(setup.grants.filter(grant => !grant.ended_at && grant.role !== "admin").map(grant => [grant.account_id,{ id: grant.account_id, name: grant.account_name }])).values())} />
+        </ActionForm>
       </section>
       {preview && <section className="panel stack">
         <h2 id="student-admission" tabIndex={-1}>Student admissions preview</h2>

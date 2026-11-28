@@ -52,6 +52,18 @@ async function main() {
         await client.query("INSERT INTO roster (institution_id,offering_id,account_id,role) VALUES ($1,$2,$3,$4) ON CONFLICT DO NOTHING", [institution, alias === "outsider" ? f.otherOffering : f.offering, ids.get(alias), role]);
       }
     }
+    // Labelled synthetic rehearsal evidence for the five instrumented workflows (blueprint p. 17 example volumes).
+    // These are engineering estimates, never pilot measurements; real baselines need authorized, consented timing.
+    if (!(await client.query("SELECT 1 FROM automation_effort_sample WHERE institution_id=$1 AND quality='synthetic'", [f.institution])).rowCount) {
+      const rehearsal: [string, number, number, number][] = [
+        ["attendance", 30, 180, 18], ["assignments", 25, 150, 15], ["results", 25, 120, 13], ["requests", 20, 200, 22], ["timetable", 15, 150, 16]];
+      for (const [workflow, cases, baseline, post] of rehearsal) for (const [phase, minutes] of [["baseline", baseline], ["post", post]] as const) {
+        await client.query(
+          `INSERT INTO automation_effort_sample (institution_id,workflow,phase,quality,cases,human_minutes,method,recorded_by)
+           VALUES ($1,$2,$3,'synthetic',$4,$5,'Synthetic engineering rehearsal with fictional cases; includes review and exception time. Not a pilot measurement.',$6)`,
+          [f.institution, workflow, phase, cases, minutes, ids.get("admin")]);
+      }
+    }
     await client.query("COMMIT");
     console.log("Fictional demo accounts and course rosters are ready.");
   } catch (error) {

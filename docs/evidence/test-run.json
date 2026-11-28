@@ -1,0 +1,452 @@
+{
+ "commit": "5014253406e9d94727b54167fa2e8545393b6160",
+ "uncommitted_source_changes": false,
+ "recorded_at": "2026-11-28T11:15:55+00:00",
+ "environment": "local fresh PostgreSQL, fictional data, headless Chromium",
+ "files": {
+  "tests/academic-assistant.test.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/academic-day.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/academic-day.test.ts": {
+   "passed": 5,
+   "failed": 0
+  },
+  "tests/allocation-teams.e2e.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/allocation-teams.test.ts": {
+   "passed": 4,
+   "failed": 0
+  },
+  "tests/app-shell.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/ask-aura.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/ask-aura.test.ts": {
+   "passed": 3,
+   "failed": 0
+  },
+  "tests/atmosphere.e2e.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/attendance-group-draft.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/attendance-math.test.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/attendance-workbench.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/aura-runtime.test.ts": {
+   "passed": 12,
+   "failed": 0
+  },
+  "tests/aura.e2e.ts": {
+   "passed": 3,
+   "failed": 0
+  },
+  "tests/aura.test.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/automation.e2e.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/automation.test.ts": {
+   "passed": 10,
+   "failed": 0
+  },
+  "tests/bus-delay.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/bus-delay.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/campus-change-brief.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/campus-operations.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/campus-operations.test.ts": {
+   "passed": 4,
+   "failed": 0
+  },
+  "tests/careers.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/careers.test.ts": {
+   "passed": 5,
+   "failed": 0
+  },
+  "tests/cases.e2e.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/cases.test.ts": {
+   "passed": 5,
+   "failed": 0
+  },
+  "tests/club-departments.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/club-events.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/club-events.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/club-notices.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/club-tasks.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/clubverse.test.ts": {
+   "passed": 3,
+   "failed": 0
+  },
+  "tests/course-delivery.e2e.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/course-delivery.test.ts": {
+   "passed": 4,
+   "failed": 0
+  },
+  "tests/database-target.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/delegation-certificates.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/delegation-certificates.test.ts": {
+   "passed": 5,
+   "failed": 0
+  },
+  "tests/department.test.ts": {
+   "passed": 4,
+   "failed": 0
+  },
+  "tests/exams-improvement.e2e.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/exams-improvement.test.ts": {
+   "passed": 5,
+   "failed": 0
+  },
+  "tests/faculty.e2e.ts": {
+   "passed": 3,
+   "failed": 0
+  },
+  "tests/faculty.test.ts": {
+   "passed": 7,
+   "failed": 0
+  },
+  "tests/fee-batch-review.test.ts": {
+   "passed": 3,
+   "failed": 0
+  },
+  "tests/fee-reconciliation.test.ts": {
+   "passed": 3,
+   "failed": 0
+  },
+  "tests/fee-review-privileges.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/fee-review-record.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/fees-preview.e2e.ts": {
+   "passed": 10,
+   "failed": 0
+  },
+  "tests/growth-operations.e2e.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/growth-operations.test.ts": {
+   "passed": 4,
+   "failed": 0
+  },
+  "tests/history.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/install.e2e.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/install.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/layout-sweep.e2e.ts": {
+   "passed": 4,
+   "failed": 0
+  },
+  "tests/leadership.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/learning-records.e2e.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/learning-records.test.ts": {
+   "passed": 5,
+   "failed": 0
+  },
+  "tests/letters-preferences.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/letters-preferences.test.ts": {
+   "passed": 4,
+   "failed": 0
+  },
+  "tests/meetings-portfolio.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/meetings-portfolio.test.ts": {
+   "passed": 4,
+   "failed": 0
+  },
+  "tests/notices.test.ts": {
+   "passed": 3,
+   "failed": 0
+  },
+  "tests/operations.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/operations.test.ts": {
+   "passed": 4,
+   "failed": 0
+  },
+  "tests/opportunities.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/opportunities.test.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/outcomes.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/outcomes.test.ts": {
+   "passed": 3,
+   "failed": 0
+  },
+  "tests/pilot-access.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/pilot-access.test.ts": {
+   "passed": 5,
+   "failed": 0
+  },
+  "tests/pilot-foundation.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/pilot-foundation.test.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/pilot-health.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/pilot-mobile.e2e.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/policies-cases.e2e.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/policies-cases.test.ts": {
+   "passed": 6,
+   "failed": 0
+  },
+  "tests/prepared-messages.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/push.test.ts": {
+   "passed": 3,
+   "failed": 0
+  },
+  "tests/release-revision.test.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/release.e2e.ts": {
+   "passed": 12,
+   "failed": 0
+  },
+  "tests/render-pilot.test.ts": {
+   "passed": 3,
+   "failed": 0
+  },
+  "tests/resource-booking.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/resource-booking.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/rubrics.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/rubrics.test.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/search.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/search.test.ts": {
+   "passed": 3,
+   "failed": 0
+  },
+  "tests/segments.test.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/shared-controls.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/sports.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/sports.test.ts": {
+   "passed": 4,
+   "failed": 0
+  },
+  "tests/student-admission.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/student-admission.test.ts": {
+   "passed": 4,
+   "failed": 0
+  },
+  "tests/student-import.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/student-records.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/student-records.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/transport-boarding.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/transport-boarding.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/transport-catalog.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/transport-catalog.test.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/transport-disruption-copy.test.ts": {
+   "passed": 10,
+   "failed": 0
+  },
+  "tests/transport-disruptions.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/transport-driver-workspace.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/transport-driver.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/transport-eta.test.ts": {
+   "passed": 3,
+   "failed": 0
+  },
+  "tests/transport-iphone.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/transport-parked.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/transport-telemetry.test.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/tutor.spec.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/work-closing.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/work-closing.test.ts": {
+   "passed": 5,
+   "failed": 0
+  },
+  "tests/workflow.test.ts": {
+   "passed": 5,
+   "failed": 0
+  }
+ }
+}

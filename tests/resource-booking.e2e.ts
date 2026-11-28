@@ -1,3 +1,4 @@
+// covers: CL-035, OP-008
 import { openWorkflow } from "./workspace-navigation";
 import { expect, test } from "@playwright/test";
 import { randomUUID } from "node:crypto";

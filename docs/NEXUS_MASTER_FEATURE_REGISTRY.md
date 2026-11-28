@@ -27,12 +27,15 @@ Domain: shared foundation. Users: all institutional participants and authorized 
 | ID-005 | Accessible navigation | Navigate by role at desktop and mobile widths with keyboard and reduced motion. | Tested | X |
 | ID-006 | Transactional audit | Record consequential changes and roll back writes on audit failure. | Tested | R/C/A |
 | ID-007 | Hosted staging acceptance | Exercise five roles, redeploy, verify previous work and recover from backup on authorized hosts. | Blocked | DEPLOYMENT.md; provider access missing |
-| ID-008 | Scoped specialist posts | Delegate class coordinator, academic mentor, specialist office and resource custodian duties for a defined scope. | Proposed | F |
-| ID-009 | Account lifecycle | Provision, suspend and offboard accounts with traceable effects on grants. | Proposed | F |
-| ID-010 | Privacy and retention | Define access, deletion, backups and retention per record class and institution. | Proposed | F |
+| ID-008 | Scoped specialist posts | Delegate class coordinator, academic mentor, specialist office and resource custodian duties for a defined scope. | Tested (specialist office duties via delegation; mentors via FC-016; no class coordinator or custodian posts) | lib/delegation.ts; tests/delegation-certificates.test.ts, tests/delegation-certificates.e2e.ts |
+| ID-009 | Account lifecycle | Provision, suspend and offboard accounts with traceable effects on grants. | Tested (import, approval, office revoke that ends rosters and membership; no scheduled expiry) | db/070, lib/roster-import.ts, lib/student-admission.ts, lib/auth.ts, lib/email, lib/consent.ts, app/admin/roster-import, app/join/student, app/approvals/students, app/login/code, app/consent; tests/pilot-access.test.ts, tests/pilot-access.e2e.ts |
+| ID-010 | Privacy and retention | Define access, deletion, backups and retention per record class and institution. | Tested (versioned privacy notice an institution can require, with acceptance records; no retention jobs) | db/070, lib/roster-import.ts, lib/student-admission.ts, lib/auth.ts, lib/email, lib/consent.ts, app/admin/roster-import, app/join/student, app/approvals/students, app/login/code, app/consent; tests/pilot-access.test.ts, tests/pilot-access.e2e.ts |
 | ID-011 | Institution and campus configuration | Configure campuses, departments, branding, program, scheme, locale and academic year per tenant. | Proposed | F |
-| ID-012 | Approved imports and exports | Validate source authority, preview changes and reconcile batch outcomes across systems. | Proposed | F |
+| ID-012 | Approved imports and exports | Validate source authority, preview changes and reconcile batch outcomes across systems. | Tested (teacher and student CSV imports with a stored dry run and per-row errors; no exports) | db/070, lib/roster-import.ts, lib/student-admission.ts, lib/auth.ts, lib/email, lib/consent.ts, app/admin/roster-import, app/join/student, app/approvals/students, app/login/code, app/consent; tests/pilot-access.test.ts, tests/pilot-access.e2e.ts |
 | ID-013 | Institution adoption and onboarding | Assess replacement, integration and overlay options with institutional owners; train and support staff. | Proposed | F |
+| ID-014 | Universal search | One search bar on every page, with typo tolerance, an office-editable synonym list, intent shortcuts, grouped results, "Did you mean" and recent searches; every result re-checked by its access rule (founder ask via coordinator, 2026-11-28). | Tested (header bar and \"/\" shortcut; pg_trgm typos, built-in and office related words, intent shortcuts, grouped results, Did you mean, recent searches; courses, assignments, people, cases added; no transport routes until dot/transport exposes a read) | db/082, lib/search.ts, app/search, app/experience/global-search.tsx; tests/search.test.ts, tests/search.e2e.ts |
+| ID-015 | Phone and laptop layouts | Mobile-first and laptop first-class: 390 px and 1366×768 (1920 for office and HOD dashboards) without overflow, cards on phones, tables, side navigation and visible focus on laptops, 44 px touch targets (founder rule via coordinator, 2026-11-28). | Tested (no sideways scroll and every page answers for each role's main pages at 390 px and 1366×768, office and HOD also at 1920; side navigation and full-width header on laptop; two-column queue/detail views not built yet) | app/styles.css; tests/layout-sweep.e2e.ts, tests/search.e2e.ts, tests/install.e2e.ts |
+| ID-016 | App install | Android APK as a Trusted Web Activity (assetlinks from an env var), iPhone Add to Home Screen with web push, a Get-the-app page by device, and an install banner shown on each browser visit until installed; free tools only (founder ask via coordinator, 2026-11-28). | Tested (assetlinks from env, Get-the-app page by device, per-visit banner hidden in the installed app, APK steps documented; WebKit runs configured but not run in the sandbox; no APK built yet) | app/.well-known/assetlinks.json, app/get-app, app/experience/install-banner.tsx, docs/DEPLOYMENT.md; tests/install.test.ts, tests/install.e2e.ts |
 
 ## Student Life · academics
 
@@ -41,28 +44,28 @@ Students locate authoritative course work and deadlines for their enrollment. St
 | ID | Capability | Functional workflow or acceptance outcome | Status | Evidence |
 | --- | --- | --- | --- | --- |
 | SA-001 | Student dashboard | Open the earliest outstanding assignment, own published feedback, or active courses from the student workspace. Navigate directly to eligible notices, community and service workflows. | Tested | R/X and [Student Today evidence](evidence/student-today/README.md) |
-| SA-002 | Course directory | Browse institution-published catalog entries with visibility rules. | Proposed | F |
+| SA-002 | Course directory | Browse institution-published catalog entries with visibility rules. | Tested | lib/catalog.ts courseCatalog, app/catalog; tests/learning-records.test.ts, tests/learning-records.e2e.ts, tests/work-closing.test.ts, tests/work-closing.e2e.ts |
 | SA-003 | Enrolled course workspaces | Open a roster-scoped offering and its assigned coursework. | Tested | W2 |
 | SA-004 | Academic schemes and terms | Read the offering’s current scheme and term. Cohort-specific eligibility policy remains a separate requirement. | Tested | W2 |
-| SA-005 | Attendance records | Read own recorded marks. A student-initiated correction request remains planned. | Tested (record view) | [Academic day](ACADEMIC_DAY.md) |
+| SA-005 | Attendance records | Read own recorded marks and request a correction of an absent mark (SA-021). | Tested | [Academic day](ACADEMIC_DAY.md), tests/learning-records.test.ts, tests/learning-records.e2e.ts |
 | SA-006 | Attendance percentage | Calculate from own present and recorded marks. Institutional policy and leave exceptions remain planned. | Tested (record-based rate) | [Academic day](ACADEMIC_DAY.md) |
-| SA-007 | Attendance eligibility | Explain eligibility with verified scheme and policy version. | Proposed | F |
+| SA-007 | Attendance eligibility | Explain eligibility with verified scheme and policy version. | Tested (record-based rate against the approved attendance policy version; no scheme rules or exceptions) | lib/policies.ts attendanceEligibility, app/timetable; tests/policies-cases.test.ts |
 | SA-008 | Attendance what-if planning | Compare recorded marks and hypothetical future counts with the offering’s optional, sourced advisory target. | Tested | [Academic day](ACADEMIC_DAY.md) |
 | SA-009 | Timetable | View published whole-section sessions by day or week. Lab subgroup scheduling remains planned. | Tested (whole section) | [Academic day](ACADEMIC_DAY.md) |
-| SA-010 | Academic calendar | Filter institution and course dates and deadlines. | Proposed | F |
+| SA-010 | Academic calendar | Filter institution and course dates and deadlines. | Tested | lib/calendar.ts, app/calendar; tests/learning-records.test.ts, tests/learning-records.e2e.ts, lib/calendar.ts calendarEntries, tests/work-closing.test.ts, tests/work-closing.e2e.ts |
 | SA-011 | Assignments | Open a published assignment from an enrolled offering. | Tested | R |
 | SA-012 | Submissions | Submit on time once, with an allowed private attachment or text. | Tested | R |
 | SA-013 | Grades | Read own published score and authorized corrections. | Tested | R |
 | SA-014 | Feedback | Read own published feedback while draft grades remain private. | Tested | R |
-| SA-015 | Internal examinations | Find CIE dates, components, eligibility and approved information. | Proposed | F |
-| SA-016 | External examinations | Find authorized SEE schedule, registration and official sources. | Proposed | F |
-| SA-017 | Assessment history | Inspect a chronological cross-course assessment record. | Proposed | F |
-| SA-018 | Course resources | Retrieve current authorized course material and versions. | Proposed | F |
-| SA-019 | Learning progress | Inspect concept-level evidence and its limitations. | Proposed | F |
+| SA-015 | Internal examinations | Find CIE dates, components, eligibility and approved information. | Tested (published internal sittings with room and invigilator; no components or eligibility) | db/023, lib/exams.ts, app/exams; tests/exams-improvement.test.ts, tests/exams-improvement.e2e.ts |
+| SA-016 | External examinations | Find authorized SEE schedule, registration and official sources. | Tested (published external sittings citing the official source; no registration) | db/023, lib/exams.ts, app/exams; tests/exams-improvement.test.ts, tests/exams-improvement.e2e.ts |
+| SA-017 | Assessment history | Inspect a chronological cross-course assessment record. | Tested | lib/assignments.ts assessmentHistory, app/history; tests/history.test.ts, tests/operations.e2e.ts |
+| SA-018 | Course resources | Retrieve current authorized course material and versions. | Tested | db/021, lib/course-delivery.ts, app/resources; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
+| SA-019 | Learning progress | Inspect concept-level evidence and its limitations. | Tested (the student's own per-outcome evidence with its limits stated) | db/034, lib/outcomes.ts, app/outcomes; tests/outcomes.test.ts, tests/outcomes.e2e.ts |
 | SA-020 | Academic announcements | Read published notices in the eligible audience. | Tested | R |
-| SA-021 | Attendance correction workflow | Challenge a record and receive a traceable authorized decision. | Proposed | F |
-| SA-022 | Academic reports and exports | Download an authorized, scheme-aware record with source references. | Proposed | F |
-| SA-023 | Academic integrity appeals | Student opens a confidential case tied to a published policy and record. An authorized human reviews and records a reason. Measure review time and verify that outsiders cannot read the case. | Proposed | Master plan §10 |
+| SA-021 | Attendance correction workflow | Challenge a record and receive a traceable authorized decision. | Tested | db/020_attendance_correction.sql, lib/corrections.ts, app/timetable; tests/learning-records.test.ts, tests/learning-records.e2e.ts |
+| SA-022 | Academic reports and exports | Download an authorized, scheme-aware record with source references. | Tested | lib/exports.ts studentRecord, app/records/export; tests/learning-records.test.ts, tests/learning-records.e2e.ts, tests/work-closing.test.ts, tests/work-closing.e2e.ts |
+| SA-023 | Academic integrity appeals | Student opens a confidential case tied to a published policy and record. An authorized human reviews and records a reason. Measure review time and verify that outsiders cannot read the case. | Tested | db/025, lib/cases.ts, app/cases; tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |
 
 ## Student Life · personal learning
 
@@ -94,21 +97,21 @@ Students need a single route from discovery to action. From a student workspace 
 | ID | Capability | Functional workflow or acceptance outcome | Status | Evidence |
 | --- | --- | --- | --- | --- |
 | SL-001 | CLUBVERSE discovery | Discover recognized communities and review joining policy. | Tested | C |
-| SL-002 | Sports participation | Find eligible teams and trials; see sports specialization. | Proposed | F |
-| SL-003 | Cultural events | Find productions, rehearsals and participation opportunities. | Proposed | F |
+| SL-002 | Sports participation | Find eligible teams and trials; see sports specialization. | Tested (sports teams with the student's eligibility and trial requests) | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SL-003 | Cultural events | Find productions, rehearsals and participation opportunities. | Tested (upcoming club events on CLUBVERSE and in search; no separate cultural-production records) | lib/club-views.ts, app/clubverse; tests/club-events.test.ts, tests/club-events.e2e.ts |
 | SL-004 | Academic societies | Discover recognized subject communities and join. | Proposed | F |
 | SL-005 | Volunteering | Discover service activities and track verified contributions. | Proposed | F |
 | SL-006 | Campus transport | Find eligible bus, stop and service status. | Designed | T |
-| SL-007 | College services | Find available offices, requirements and service channels. | Proposed | F |
+| SL-007 | College services | Find available offices, requirements and service channels. | Tested (approved office service policies; no office directory or channels) | db/025, lib/policies.ts, app/policies; tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |
 | SL-008 | Administrative requests | Submit an enrollment-letter request and inspect recorded outcome. | Tested | R |
-| SL-009 | Student profile | Manage authorized profile fields and visibility. | Proposed | F |
-| SL-010 | Preferences | Control interests, accessibility, locale and discovery settings. | Proposed | F |
-| SL-011 | Notifications | Inspect relevant delivery history and manage subscriptions. | Proposed | F |
+| SL-009 | Student profile | Manage authorized profile fields and visibility. | Tested | lib/student-life.ts, app/profile; tests/delegation-certificates.test.ts, tests/delegation-certificates.e2e.ts |
+| SL-010 | Preferences | Control interests, accessibility, locale and discovery settings. | Tested (larger text, reduced motion, study-group discovery and notification muting; interests live on the profile; no locale, the interface is English only) | db/030, lib/preferences.ts, app/settings; tests/letters-preferences.test.ts, tests/letters-preferences.e2e.ts |
+| SL-011 | Notifications | Inspect relevant delivery history and manage subscriptions. | Tested (in-app only; subscriptions are per-kind mutes in Settings) | Student "For you" inbox from assignment and result events with read state; lib/preferences.ts muting; tests/letters-preferences.test.ts |
 | SL-012 | Personal AURA activity history | Review owned event-planning tasks, state and output references. | Tested | A |
-| SL-013 | Student development portfolio | Curate verified achievements, skills and projects with sharing controls. | Proposed | F |
-| SL-014 | Mentor and study groups | Request mentorship or join opt-in study groups. | Proposed | F |
-| SL-015 | Support service discovery | Find approved accessibility and support services. | Proposed | F |
-| SL-016 | Student representation | Raise and track representative issues under institution policy. | Proposed | F |
+| SL-013 | Student development portfolio | Curate verified achievements, skills and projects with sharing controls. | Tested (certificates, accepted milestones and published results; no skills or club achievements) | lib/student-life.ts portfolio, app/profile; tests/meetings-portfolio.test.ts, tests/meetings-portfolio.e2e.ts |
+| SL-014 | Mentor and study groups | Request mentorship or join opt-in study groups. | Tested (opt-in study groups; mentorship is assigned by the office, not requested) | lib/student-life.ts, app/groups; tests/delegation-certificates.test.ts, tests/delegation-certificates.e2e.ts |
+| SL-015 | Support service discovery | Find approved accessibility and support services. | Tested | db/030, lib/support-services.ts, app/support; tests/letters-preferences.test.ts, tests/letters-preferences.e2e.ts |
+| SL-016 | Student representation | Raise and track representative issues under institution policy. | Tested (raise, support and office outcome; no elected representatives) | db/029, lib/cases.ts, app/cases; tests/meetings-portfolio.test.ts, tests/meetings-portfolio.e2e.ts |
 | SL-017 | Community discussions | Participate in scoped and moderated discussions. | Proposed | F |
 
 ## Faculty Intelligence OS
@@ -122,30 +125,31 @@ Faculty need to organize teaching and evaluation by assigned offering. Select as
 | FC-003 | Class management | Organize classes, sections and session activity. | Proposed | F |
 | FC-004 | Faculty timetable | See assigned classes. Faculty change proposals remain planned. | Tested (assigned schedule) | [Academic day](ACADEMIC_DAY.md) |
 | FC-005 | Attendance recording | Record present or absent in bulk for an ended assigned session and save a reasoned revision. | Tested | [Academic day](ACADEMIC_DAY.md) |
-| FC-006 | Teaching records | Log class delivery and coverage against the curriculum. | Proposed | F |
+| FC-006 | Teaching records | Log class delivery and coverage against the curriculum. | Tested | lib/course-delivery.ts, app/courses/[id], app/leadership/boards.tsx; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
 | FC-007 | Assignment drafting and publication | Create private draft, attach instructions and publish to assigned offering. | Tested | R |
-| FC-008 | Assessment creation | Prepare assessment instruments against approved concepts. | Proposed | F |
-| FC-009 | Question bank | Version reusable questions with controlled visibility. | Proposed | F |
-| FC-010 | Rubrics | Define criteria, score dimensions and feedback; existing free-text rubric is narrower. | Proposed | F |
+| FC-008 | Assessment creation | Prepare assessment instruments against approved concepts. | Tested (draft assignment composed from banked question versions; no concept alignment) | db/025, lib/question-bank.ts, app/questions; tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |
+| FC-009 | Question bank | Version reusable questions with controlled visibility. | Tested | db/025, lib/question-bank.ts, app/questions; tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |
+| FC-010 | Rubrics | Define criteria, score dimensions and feedback; existing free-text rubric is narrower. | Tested | db/074, lib/rubrics.ts, lib/assignments.ts gradeIn, app/assignments/[id]; tests/rubrics.test.ts, tests/rubrics.e2e.ts |
 | FC-011 | Evaluation queues | Find ungraded work across assigned courses and prioritize review. | Tested | FQ; ordering by age or deadline only, no priority model |
 | FC-012 | Grade publication and corrections | Save draft, explicitly publish, then revise with reason and history. | Tested | R |
 | FC-013 | Feedback drafting | Prepare and save human-authored feedback before publication. | Tested | R |
-| FC-014 | Classroom concept analysis | Identify concepts needing support using appropriate assessment evidence. | Proposed | F |
-| FC-015 | Academic intervention | Coordinate support with authorized staff and measure resolution. | Proposed | F |
-| FC-016 | Student mentorship | Agree mentoring goals and record appropriate follow-ups. | Proposed | F |
-| FC-017 | Project supervision | Review assigned milestones and evidence. | Proposed | F |
-| FC-018 | Student team management | Form and oversee authorized project teams. | Proposed | F |
-| FC-019 | Faculty workload | Inspect teaching, assessment and mentoring commitments. | Proposed | F |
-| FC-020 | Teaching resources | Organize authorized learning materials and versions. | Proposed | F |
-| FC-021 | Research support | Track research activity and relevant opportunities. | Proposed | F |
+| FC-014 | Classroom concept analysis | Identify concepts needing support using appropriate assessment evidence. | Tested (outcome-level attainment from tagged assessments, with outcomes needing support listed; no item-level concepts) | db/034, lib/outcomes.ts, app/outcomes; tests/outcomes.test.ts, tests/outcomes.e2e.ts |
+| FC-015 | Academic intervention | Coordinate support with authorized staff and measure resolution. | Tested | db/022, lib/cases.ts, app/cases; tests/cases.test.ts, tests/cases.e2e.ts |
+| FC-016 | Student mentorship | Agree mentoring goals and record appropriate follow-ups. | Tested | lib/mentoring.ts, app/mentoring; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
+| FC-017 | Project supervision | Review assigned milestones and evidence. | Tested | db/024, lib/teams.ts, app/courses/[id]; tests/allocation-teams.test.ts, tests/allocation-teams.e2e.ts |
+| FC-018 | Student team management | Form and oversee authorized project teams. | Tested | db/024, lib/teams.ts, app/courses/[id]; tests/allocation-teams.test.ts, tests/allocation-teams.e2e.ts |
+| FC-019 | Faculty workload | Inspect teaching, assessment and mentoring commitments. | Tested | lib/department.ts facultyWorkload; tests/department.test.ts, tests/exams-improvement.test.ts, tests/leadership.e2e.ts |
+| FC-020 | Teaching resources | Organize authorized learning materials and versions. | Tested | db/021, lib/course-delivery.ts, app/courses/[id]; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
+| FC-021 | Research support | Track research activity and relevant opportunities. | Tested (departmental project tracking only; no opportunity discovery) | db/026, lib/faculty-records.ts, app/growth; tests/growth-operations.test.ts, tests/growth-operations.e2e.ts |
 | FC-022 | Literature search | Find and cite accessible publications with provenance. | Proposed | F |
 | FC-023 | Faculty collaboration | Share selected work with approved collaborators. | Proposed | F |
 | FC-024 | Faculty communities | Collaborate in restricted groups and review draft releases. | Designed | S |
-| FC-025 | Professional development | Plan and record authorized development activities. | Proposed | F |
+| FC-025 | Professional development | Plan and record authorized development activities. | Tested (record activities with evidence for HOD verification; no planning) | db/026, lib/faculty-records.ts, app/growth; tests/growth-operations.test.ts, tests/growth-operations.e2e.ts |
 | FC-026 | Faculty notices | Publish notices to assigned academic audiences. | Tested | R |
-| FC-027 | Meetings | Coordinate participants, schedules and follow-up actions. | Proposed | F |
-| FC-028 | Faculty reports | Produce scoped teaching and workload reports from records. | Proposed | F |
+| FC-027 | Meetings | Coordinate participants, schedules and follow-up actions. | Tested | db/029, lib/meetings.ts, app/meetings; tests/meetings-portfolio.test.ts, tests/meetings-portfolio.e2e.ts |
+| FC-028 | Faculty reports | Produce scoped teaching and workload reports from records. | Tested | lib/exports.ts facultyReport, app/records/export; tests/learning-records.test.ts, tests/learning-records.e2e.ts, tests/work-closing.test.ts, tests/work-closing.e2e.ts |
 | FC-029 | Faculty AURA assistants | Use approved preparation, communication and reporting tools; see agent catalog. | Proposed | F |
+| FC-030 | Bus-delay attendance context | Show a teacher which students' recorded boarding was on a delayed inbound college bus before their first class that day, as context only; marks and teacher decisions are unchanged (contract: dot/transport docs/TRANSPORT_DISRUPTIONS_5B.md, 2026-11-28). | Tested (computed note on the class's attendance view; no late status, no mentor view) | lib/bus-delay.ts, app/timetable; tests/bus-delay.test.ts, tests/bus-delay.e2e.ts |
 
 ## Department OS
 
@@ -154,30 +158,30 @@ HODs and explicitly delegated coordinators need department-scoped oversight. Sel
 | ID | Capability | Functional workflow or acceptance outcome | Status | Evidence |
 | --- | --- | --- | --- | --- |
 | DH-001 | Department dashboard | View department-scoped academic activity and average turnaround. | Tested | R |
-| DH-002 | Department faculty | Find current faculty and responsibilities. | Proposed | F |
-| DH-003 | Students and sections | Inspect authorized rosters by section. | Proposed | F |
-| DH-004 | Department academic schemes | Review applicable scheme and cohort mappings. | Proposed | F |
-| DH-005 | Course delivery | Compare delivered sessions against approved course plan. | Proposed | F |
-| DH-006 | Teaching workload | Review teaching and evaluation allocations. | Proposed | F |
-| DH-007 | Faculty allocation | Propose or approve department teaching assignments. | Proposed | F |
-| DH-008 | Timetable planning | Resolve scheduling constraints before publication. | Proposed | F |
-| DH-009 | Attendance reporting | Aggregate verified attendance with scheme definitions. | Proposed | F |
+| DH-002 | Department faculty | Find current faculty and responsibilities. | Tested | lib/department.ts departmentFaculty, app/leadership/boards.tsx; tests/department.test.ts, tests/leadership.e2e.ts |
+| DH-003 | Students and sections | Inspect authorized rosters by section. | Tested | lib/department.ts departmentSections; tests/department.test.ts, tests/leadership.e2e.ts |
+| DH-004 | Department academic schemes | Review applicable scheme and cohort mappings. | Tested | db/024, lib/allocation.ts, app/leadership/boards.tsx; tests/allocation-teams.test.ts, tests/allocation-teams.e2e.ts |
+| DH-005 | Course delivery | Compare delivered sessions against approved course plan. | Tested | lib/course-delivery.ts, app/courses/[id], app/leadership/boards.tsx; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
+| DH-006 | Teaching workload | Review teaching and evaluation allocations. | Tested | Shared workload definition with FC-019; tests/department.test.ts, tests/leadership.e2e.ts |
+| DH-007 | Faculty allocation | Propose or approve department teaching assignments. | Tested | db/024, lib/allocation.ts, app/leadership/boards.tsx; tests/allocation-teams.test.ts, tests/allocation-teams.e2e.ts |
+| DH-008 | Timetable planning | Resolve scheduling constraints before publication. | Tested (office drafts checked for section, teacher and room clashes before publication; no HOD planning view) | lib/academic-day.ts; tests/academic-day.test.ts |
+| DH-009 | Attendance reporting | Aggregate verified attendance with scheme definitions. | Tested (latest-record rates and counts below the approved attendance policy; no scheme-specific rules) | No scheme eligibility definitions; tests/department.test.ts, lib/department.ts sectionCompliance, tests/work-closing.test.ts, tests/work-closing.e2e.ts |
 | DH-010 | Assessment and results reporting | Count published assignments, submissions and published results from records. | Tested | R |
-| DH-011 | Curriculum progress | Review course coverage with source evidence. | Proposed | F |
-| DH-012 | CO/PO/PSO evidence | Map assessments to applicable approved outcome definitions. | Proposed | F |
-| DH-013 | Outcome-based education workflows | Review mappings, attainment measures and corrective actions. | Proposed | F |
-| DH-014 | Student support coordination | Assign and follow up appropriate academic support. | Proposed | F |
-| DH-015 | Department notices | Publish and retrieve notices within department scope. | Tested | R |
-| DH-016 | Faculty development | Coordinate training and evidence. | Proposed | F |
-| DH-017 | Research projects | Track approved departmental projects and milestones. | Proposed | F |
-| DH-018 | Laboratory resources | Review availability and request allocation. | Proposed | F |
-| DH-019 | Equipment status | See authorized inventory and maintenance state. | Proposed | F |
-| DH-020 | Department clubs | Coordinate recognized departmental associations. | Proposed | F |
-| DH-021 | Sports and activity oversight | Review assigned activities within delegated scope. | Proposed | F |
-| DH-022 | Department approvals | Review and record a department decision with reason. | Proposed | F |
-| DH-023 | Department service requests | Route requests to accountable staff and track resolution. | Proposed | F |
+| DH-011 | Curriculum progress | Review course coverage with source evidence. | Tested | lib/course-delivery.ts, app/courses/[id], app/leadership/boards.tsx; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
+| DH-012 | CO/PO/PSO evidence | Map assessments to applicable approved outcome definitions. | Tested | db/034, lib/outcomes.ts, app/outcomes; tests/outcomes.test.ts, tests/outcomes.e2e.ts |
+| DH-013 | Outcome-based education workflows | Review mappings, attainment measures and corrective actions. | Tested (mapping review, course and programme outcome attainment under a stated rule; corrective actions use Improvement actions separately) | db/034, lib/outcomes.ts, app/outcomes; tests/outcomes.test.ts, tests/outcomes.e2e.ts |
+| DH-014 | Student support coordination | Assign and follow up appropriate academic support. | Tested | db/022, lib/cases.ts, app/cases; tests/cases.test.ts, tests/cases.e2e.ts |
+| DH-015 | Department notices | Publish and retrieve notices within department scope. | Tested | R; tests/notices.test.ts |
+| DH-016 | Faculty development | Coordinate training and evidence. | Tested (HOD verification of development records; no training coordination) | db/026, lib/faculty-records.ts, app/growth; tests/growth-operations.test.ts, tests/growth-operations.e2e.ts |
+| DH-017 | Research projects | Track approved departmental projects and milestones. | Tested | db/026, lib/faculty-records.ts, app/growth; tests/growth-operations.test.ts, tests/growth-operations.e2e.ts |
+| DH-018 | Laboratory resources | Review availability and request allocation. | Tested (room-use totals on /facilities; requests use the facility booking flow) | lib/operations.ts, app/facilities; tests/campus-operations.test.ts |
+| DH-019 | Equipment status | See authorized inventory and maintenance state. | Tested (state, due date and last condition; no borrower names; no maintenance schedule) | lib/operations.ts, app/facilities; tests/campus-operations.test.ts |
+| DH-020 | Department clubs | Coordinate recognized departmental associations. | Tested (office links a club to a department; its HOD sees state, active members and upcoming events; no HOD actions) | db/081, lib/club-departments.ts, app/clubverse/[id], app/leadership/boards.tsx; tests/club-departments.test.ts, tests/club-events.e2e.ts |
+| DH-021 | Sports and activity oversight | Review assigned activities within delegated scope. | Tested (read-only overview of the department's teams) | lib/sports.ts, app/sports; tests/sports.test.ts |
+| DH-022 | Department approvals | Review and record a department decision with reason. | Tested | lib/course-delivery.ts, app/courses/[id], app/leadership/boards.tsx; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
+| DH-023 | Department service requests | Route requests to accountable staff and track resolution. | Tested | db/025, lib/cases.ts, app/cases; tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |
 | DH-024 | Accreditation evidence | Trace approved evidence back to records. | Proposed | F |
-| DH-025 | Improvement tracking | Assign, measure and close department improvement actions. | Proposed | F |
+| DH-025 | Improvement tracking | Assign, measure and close department improvement actions. | Tested | db/023, lib/improvement.ts, app/improvement; tests/exams-improvement.test.ts, tests/exams-improvement.e2e.ts |
 | DH-026 | Institutional Dependency Graph | Inspect verified dependencies affecting the department; see INV-009. | Proposed | F |
 | DH-027 | HOD AURA assistant | Request a source-linked department briefing. | Proposed | F |
 
@@ -188,24 +192,24 @@ Principal and authorized leaders need defensible institution-level decisions. Re
 | ID | Capability | Functional workflow or acceptance outcome | Status | Evidence |
 | --- | --- | --- | --- | --- |
 | LE-001 | Institution dashboard | See stored counts of published assignments, submissions, published results and open requests. | Tested | R |
-| LE-002 | Department information | Review department profiles and defined comparisons. | Proposed | F |
-| LE-003 | Academic progress | Track approved academic indicators by cohort. | Proposed | F |
-| LE-004 | Quality indicators | Inspect defined quality measures and limitations. | Proposed | F |
-| LE-005 | Resource planning | Compare available resources to documented demand. | Proposed | F |
+| LE-002 | Department information | Review department profiles and defined comparisons. | Tested | lib/department.ts departmentComparison; tests/department.test.ts, tests/leadership.e2e.ts |
+| LE-003 | Academic progress | Track approved academic indicators by cohort. | Tested (results, average score and attendance per term and section) | lib/department.ts cohortProgress, app/leadership/boards.tsx; tests/cases.test.ts, tests/cases.e2e.ts |
+| LE-004 | Quality indicators | Inspect defined quality measures and limitations. | Tested | lib/reporting.ts qualityIndicators, app/leadership/boards.tsx; tests/allocation-teams.test.ts, tests/allocation-teams.e2e.ts |
+| LE-005 | Resource planning | Compare available resources to documented demand. | Tested | lib/reporting.ts resourcePlanning, app/leadership/boards.tsx; tests/growth-operations.test.ts, tests/growth-operations.e2e.ts |
 | LE-006 | Financial oversight | Inspect explicitly authorized budget and expenditure reports. | Proposed | F |
-| LE-007 | Institutional notices | Read published authorized notices. | Tested | R |
-| LE-008 | Examination operations | Review approved schedules and unresolved operational issues. | Proposed | F |
-| LE-009 | Departmental requests | Review authorized escalations and decisions. | Proposed | F |
-| LE-010 | Strategic priorities | Assign owners and milestones to institutional priorities. | Proposed | F |
-| LE-011 | Institutional improvement planning | Measure progress and actions against approved plans. | Proposed | F |
-| LE-012 | Research and innovation overview | Review disclosure-approved activity and outcomes. | Proposed | F |
+| LE-007 | Institutional notices | Read published authorized notices. | Tested | R; tests/notices.test.ts |
+| LE-008 | Examination operations | Review approved schedules and unresolved operational issues. | Tested | db/023, lib/exams.ts, app/exams; tests/exams-improvement.test.ts, tests/exams-improvement.e2e.ts |
+| LE-009 | Departmental requests | Review authorized escalations and decisions. | Tested | lib/department.ts escalatedRequests; tests/department.test.ts, tests/leadership.e2e.ts, tests/work-closing.test.ts, tests/work-closing.e2e.ts |
+| LE-010 | Strategic priorities | Assign owners and milestones to institutional priorities. | Tested (owner, measure, due date and progress updates; no multi-milestone plans) | db/023, lib/improvement.ts, app/improvement; tests/exams-improvement.test.ts, tests/exams-improvement.e2e.ts |
+| LE-011 | Institutional improvement planning | Measure progress and actions against approved plans. | Tested (open, overdue and on-time measures over owned actions) | db/023, lib/improvement.ts, app/improvement; tests/exams-improvement.test.ts, tests/exams-improvement.e2e.ts |
+| LE-012 | Research and innovation overview | Review disclosure-approved activity and outcomes. | Tested | db/026, lib/faculty-records.ts, app/growth; tests/growth-operations.test.ts, tests/growth-operations.e2e.ts |
 | LE-013 | Industry partnerships | Track approved agreements and responsibilities. | Proposed | F |
-| LE-014 | Placement performance | Review verified and appropriately aggregated outcomes. | Proposed | F |
-| LE-015 | Campus operations | Inspect critical issues and verified resolutions. | Proposed | F |
+| LE-014 | Placement performance | Review verified and appropriately aggregated outcomes. | Tested | db/032, lib/careers.ts placementOutcomes, app/careers; tests/careers.test.ts, tests/careers.e2e.ts |
+| LE-015 | Campus operations | Inspect critical issues and verified resolutions. | Tested | lib/reporting.ts campusOperations, app/leadership/boards.tsx; tests/growth-operations.test.ts, tests/growth-operations.e2e.ts |
 | LE-016 | Transport oversight | Review authorized aggregate service health. | Proposed | F |
 | LE-017 | Accreditation evidence | Review approved evidence and provenance for applicable criteria. | Proposed | F |
-| LE-018 | Decision simulation | Compare proposed changes under explicit assumptions. | Proposed | F |
-| LE-019 | Executive reports | Trace summary claims to approved records and time windows. | Proposed | F |
+| LE-018 | Decision simulation | Compare proposed changes under explicit assumptions. | Tested (attendance-minimum scenarios on current records; other decisions not modelled) | lib/department.ts thresholdScenario, app/decisions; tests/meetings-portfolio.test.ts, tests/meetings-portfolio.e2e.ts |
+| LE-019 | Executive reports | Trace summary claims to approved records and time windows. | Tested | lib/exports.ts executiveReport, app/records/export; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts, tests/work-closing.test.ts, tests/work-closing.e2e.ts |
 | LE-020 | Leadership AURA | Prepare authorized briefings and decision-support drafts. | Proposed | F |
 
 ## Guardian experience
@@ -234,40 +238,40 @@ Institution administrators, academic office and designated specialists manage ac
 | ID | Capability | Functional workflow or acceptance outcome | Status | Evidence |
 | --- | --- | --- | --- | --- |
 | AD-001 | Institutional setup | Set up core departments, schemes and terms for an existing institution. | Tested | R |
-| AD-002 | Account onboarding | Invite, verify, provision and recover accounts through authorized office. | Proposed | F |
+| AD-002 | Account onboarding | Invite, verify, provision and recover accounts through authorized office. | Tested (office teacher import, email-code sign-in and recovery, student sign-up approved by section teachers; email goes to the console adapter until a provider is approved) | db/070, lib/roster-import.ts, lib/student-admission.ts, lib/auth.ts, lib/email, lib/consent.ts, app/admin/roster-import, app/join/student, app/approvals/students, app/login/code, app/consent; tests/pilot-access.test.ts, tests/pilot-access.e2e.ts |
 | AD-003 | Role grants | Grant and end permitted institutional roles to existing people. | Tested | R |
 | AD-004 | Membership lifecycle | Activate and end memberships; retain history and revoke live access. | Tested | R |
-| AD-005 | Student records | Govern student identity details, corrections and authorized record access. | Proposed | F |
+| AD-005 | Student records | Govern student identity details, corrections and authorized record access. | Tested (office search and USN, semester and phone corrections with reason and history; names stay with the sign-in account) | db/075, lib/student-records.ts, app/admin/students, app/profile; tests/student-records.test.ts, tests/student-records.e2e.ts |
 | AD-006 | Academic catalog | Create schemes, terms, courses, sections and offerings. | Tested | R |
 | AD-007 | Enrollments | Enroll or end student and faculty roster assignments. | Tested | R |
-| AD-008 | Course and section management | Maintain existing offerings, corrections, retirement and history beyond creation. | Proposed | F |
-| AD-009 | Examination management | Schedule examinations, invigilation and authorized publication. | Proposed | F |
+| AD-008 | Course and section management | Maintain existing offerings, corrections, retirement and history beyond creation. | Tested (course and section name corrections with history; no retirement) | db/026, lib/academics.ts renameCatalog, app/admin; tests/growth-operations.test.ts, tests/growth-operations.e2e.ts |
+| AD-009 | Examination management | Schedule examinations, invigilation and authorized publication. | Tested | db/023, lib/exams.ts, app/exams; tests/exams-improvement.test.ts, tests/exams-improvement.e2e.ts |
 | AD-010 | Document requests | Process enrollment-letter request from submission to recorded outcome. | Tested | R |
-| AD-011 | Certificate preparation | Draft official documents from validated records. | Proposed | F |
-| AD-012 | Credential issuance | Authorized human issues and verifies an official credential. | Proposed | F |
+| AD-011 | Certificate preparation | Draft official documents from validated records. | Tested | db/028, lib/certificates.ts, app/certificates; tests/delegation-certificates.test.ts, tests/delegation-certificates.e2e.ts |
+| AD-012 | Credential issuance | Authorized human issues and verifies an official credential. | Tested | lib/certificates.ts issue/verify, app/verify; tests/delegation-certificates.test.ts, tests/delegation-certificates.e2e.ts |
 | AD-013 | Fee workflows | Reconcile approved fee-system transactions and student visibility. | Proposed | F |
 | AD-014 | Scholarship administration | Check eligibility and route applications for authorized decisions. | Proposed | F |
 | AD-015 | Procurement | Request goods, compare proposals and record human authorization. | Proposed | F |
-| AD-016 | Administrative approvals | Route delegated decisions and record reasons. | Proposed | F |
-| AD-017 | Complaints and grievances | Confidential intake, assignment, escalation and resolution. | Proposed | F |
-| AD-018 | Staff work queues | Show actionable records only for the assigned office. | Proposed | F |
-| AD-019 | Delegated responsibilities | Assign bounded responsibilities with expiry and revocation. | Proposed | F |
-| AD-020 | Reusable workflow engine | Extract proven shared transitions, ownership and audit rules. | Proposed | F |
-| AD-021 | Institutional knowledge base | Publish approved, versioned, permission-scoped policies. | Proposed | F |
-| AD-022 | Audit viewer | Search authorized event metadata without exposing private payloads. | Proposed | F |
-| AD-023 | Staff notifications | Deliver scoped work updates with retry and acknowledgement. | Proposed | F |
-| AD-024 | Operational reporting | Measure queue age, service resolution, rework and reopenings. | Proposed | F |
-| AD-025 | Library desk | Authorize circulation, search and external library integration. | Proposed | F |
-| AD-026 | Laboratory staff | Manage inventory, access, maintenance and equipment issues. | Proposed | F |
+| AD-016 | Administrative approvals | Route delegated decisions and record reasons. | Tested (principal policy approval, HOD plan approval and office allocation approval, each with reasons; no general delegation rules) | db/025, lib/policies.ts, app/policies; tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |
+| AD-017 | Complaints and grievances | Confidential intake, assignment, escalation and resolution. | Tested | db/022, lib/cases.ts, app/cases; tests/cases.test.ts, tests/cases.e2e.ts |
+| AD-018 | Staff work queues | Show actionable records only for the assigned office. | Tested | db/019, lib/connected.ts assignRequest; tests/operations.test.ts, tests/operations.e2e.ts, lib/work.ts, app/work, tests/work-closing.test.ts, tests/work-closing.e2e.ts |
+| AD-019 | Delegated responsibilities | Assign bounded responsibilities with expiry and revocation. | Tested (exam-cell and institution-calendar duties with expiry and revocation) | db/028, lib/delegation.ts, app/admin; tests/delegation-certificates.test.ts, tests/delegation-certificates.e2e.ts |
+| AD-020 | Reusable workflow engine | Extract proven shared transitions, ownership and audit rules. | Tested (one case engine for seven kinds including submitted leave and permission letters; fee review keeps its own workflow) | db/022, db/025, db/030, lib/cases.ts, app/cases, app/letters; tests/cases.test.ts, tests/policies-cases.test.ts, tests/letters-preferences.test.ts, tests/letters-preferences.e2e.ts |
+| AD-021 | Institutional knowledge base | Publish approved, versioned, permission-scoped policies. | Tested | db/025, lib/policies.ts, app/policies; tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |
+| AD-022 | Audit viewer | Search authorized event metadata without exposing private payloads. | Tested | lib/reporting.ts auditEvents, app/audit; tests/operations.test.ts, tests/operations.e2e.ts |
+| AD-023 | Staff notifications | Deliver scoped work updates with retry and acknowledgement. | Tested (in-app only) | Request routing to active admins via outbox job; retry, dedupe, read acknowledgement. tests/automation.test.ts, tests/automation.e2e.ts. No email/WhatsApp channel. |
+| AD-024 | Operational reporting | Measure queue age, service resolution, rework and reopenings. | Tested | lib/reporting.ts operationsReport latestDigest, lib/automation.ts deliverDigests; tests/operations.test.ts, tests/operations.e2e.ts, tests/cases.test.ts, tests/cases.e2e.ts, tests/work-closing.test.ts, tests/work-closing.e2e.ts |
+| AD-025 | Library desk | Authorize circulation, search and external library integration. | Tested (holdings, circulation and returns with condition; no external library integration) | db/033, lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
+| AD-026 | Laboratory staff | Manage inventory, access, maintenance and equipment issues. | Tested (equipment custody, lab booking approval and repairs through cases; no separate lab-staff role) | db/033, lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
 | AD-027 | Research administration | Track grants, approved disclosures and project milestones. | Proposed | F |
-| AD-028 | Placement office | Manage drives, employers, eligibility and graduate outcomes. | Proposed | F |
-| AD-029 | Examination cell | Allocate rooms and authorized invigilators. | Proposed | F |
+| AD-028 | Placement office | Manage drives, employers, eligibility and graduate outcomes. | Tested (placement drives as verified listings with department eligibility, applicants and recorded outcomes; no employer records) | db/032, lib/careers.ts, app/careers; tests/careers.test.ts, tests/careers.e2e.ts |
+| AD-029 | Examination cell | Allocate rooms and authorized invigilators. | Tested | db/023, lib/exams.ts, app/exams; tests/exams-improvement.test.ts, tests/exams-improvement.e2e.ts |
 | AD-030 | Finance office | Review authorized invoices, approvals and reconciliation. | Proposed | F |
-| AD-031 | Facilities office | Assign and verify estate service requests. | Proposed | F |
-| AD-032 | Maintenance staff | Record repair evidence and reopen unresolved work. | Proposed | F |
-| AD-033 | Sports coordination | Coordinate trials, venues, teams and travel approvals. | Proposed | F |
+| AD-031 | Facilities office | Assign and verify estate service requests. | Tested | db/025, lib/cases.ts, app/cases; tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |
+| AD-032 | Maintenance staff | Record repair evidence and reopen unresolved work. | Tested | db/025, lib/cases.ts, app/cases; tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |
+| AD-033 | Sports coordination | Coordinate trials, venues, teams and travel approvals. | Tested (office-run teams, coaches, venues, fixtures and officials; no travel approvals) | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
 | AD-034 | Transport administration | Assign routes, operators and service responsibilities. | Designed | T |
-| AD-035 | Controlled announcements | Draft and publish notices scoped to the allowed institutional audience. | Tested | R |
+| AD-035 | Controlled announcements | Draft and publish notices scoped to the allowed institutional audience. | Tested | R; tests/notices.test.ts |
 
 ## CLUBVERSE · organizations and governance
 
@@ -302,7 +306,7 @@ Founders, eligible members, officers, faculty advisors and independent instituti
 | CL-025 | Officer terms | Schedule access start and expiry with a succession policy. | Designed | S |
 | CL-026 | Club elections | Conduct elections only under an approved governance policy. | Proposed | F |
 | CL-027 | Governance records | Retain recognition decisions, effective rules and accountable officers. | Proposed | F |
-| CL-028 | Club notices | Publish to defined club audiences and expire notices. | Proposed | F |
+| CL-028 | Club notices | Publish to defined club audiences and expire notices. | Tested | db/077, lib/club-notices.ts, app/clubverse/[id]; tests/club-notices.test.ts, tests/club-events.e2e.ts |
 | CL-029 | Club event lifecycle | Draft, submit, approve, publish, open/close, start and complete or cancel. | Tested | C |
 | CL-030 | Registrations | Enforce eligibility, duplicate prevention and final-seat capacity. | Tested | C |
 | CL-031 | Attendance verification | Authorized organizer independently verifies participation and evidence. | Tested | C |
@@ -318,10 +322,10 @@ Founders, eligible members, officers, faculty advisors and independent instituti
 | CL-041 | Leadership handover | Approve lead transfer atomically and retain handover notes. | Tested | C |
 | CL-042 | Community archives | Retain approved decisions, documents, custody and institutional memory. | Proposed | F |
 | CL-043 | AURA club agents | Prepare and confirm one private event draft deterministically. | Tested | A |
-| CL-044 | Event waitlist | Promote eligible participants in order as capacity opens. | Proposed | F |
+| CL-044 | Event waitlist | Promote eligible participants in order as capacity opens. | Tested | db/076, lib/club-events.ts, app/clubverse/[id]; tests/club-events.test.ts, tests/club-events.e2e.ts |
 | CL-045 | Event volunteers | Assign shifts and duties without publishing unnecessary personal data. | Proposed | F |
-| CL-046 | Event feedback and outcomes | Collect feedback and publish an evidence-backed outcome report. | Proposed | F |
-| CL-047 | Club meetings and tasks | Coordinate meeting decisions, owners and due dates. | Proposed | F |
+| CL-046 | Event feedback and outcomes | Collect feedback and publish an evidence-backed outcome report. | Tested (one rating and comment per registered student; anonymous summary for officers; no published outcome report) | db/076, lib/club-events.ts, app/clubverse/[id]; tests/club-events.test.ts |
+| CL-047 | Club meetings and tasks | Coordinate meeting decisions, owners and due dates. | Tested (decisions recorded as tasks with an owner and due date; no meeting scheduling or minutes for clubs) | db/079, lib/club-tasks.ts, app/clubverse/[id]; tests/club-tasks.test.ts, tests/club-events.e2e.ts |
 | CL-048 | Configurable recognition rules | Authorized staff version local recognition requirements. | Proposed | F |
 | CL-049 | Founding members | Record multiple founders and policy-compliant initial officer grants. | Proposed | F |
 | CL-050 | Approved expenditures | Link authorized spending evidence to budget decisions. | Proposed | F |
@@ -333,29 +337,29 @@ Players, coaches, officials, sports coordinators and venue custodians need relia
 
 | ID | Capability | Functional workflow or acceptance outcome | Status | Evidence |
 | --- | --- | --- | --- | --- |
-| SP-001 | Sports discovery | Find sports and currently eligible teams. | Proposed | F |
+| SP-001 | Sports discovery | Find sports and currently eligible teams. | Tested (teams with trial status and the student's eligibility) | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
 | SP-002 | Player profiles | Share approved sporting information under player controls. | Proposed | F |
-| SP-003 | Teams | Form season rosters from verified members. | Proposed | F |
-| SP-004 | Selection and trials | Request a tryout, record an authorized selection and notify the player. | Proposed | F |
-| SP-005 | Coaches | Assign a coach for a team and term. | Proposed | F |
-| SP-006 | Training schedules | Publish confirmed training sessions to eligible members. | Proposed | F |
-| SP-007 | Fixtures | Assign opponents, time and venue per match. | Proposed | F |
-| SP-008 | Tournaments | Define competition format, entrants and progression. | Proposed | F |
-| SP-009 | Match scheduling | Check academic, venue and team conflicts. | Proposed | F |
-| SP-010 | Match results | Assigned official records and revises verified scores. | Proposed | F |
-| SP-011 | Standings | Derive standings from verified results and applicable rules. | Proposed | F |
-| SP-012 | Venue availability | Query bookable slots without disclosing private reservations. | Proposed | F |
+| SP-003 | Teams | Form season rosters from verified members. | Tested | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-004 | Selection and trials | Request a tryout, record an authorized selection and notify the player. | Tested | db/031, db/035, lib/sports.ts, lib/automation.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-005 | Coaches | Assign a coach for a team and term. | Tested | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-006 | Training schedules | Publish confirmed training sessions to eligible members. | Tested | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-007 | Fixtures | Assign opponents, time and venue per match. | Tested | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-008 | Tournaments | Define competition format, entrants and progression. | Tested (league format only; no knockout progression) | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-009 | Match scheduling | Check academic, venue and team conflicts. | Tested (venue, team and selected players' class clashes) | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-010 | Match results | Assigned official records and revises verified scores. | Tested | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-011 | Standings | Derive standings from verified results and applicable rules. | Tested | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-012 | Venue availability | Query bookable slots without disclosing private reservations. | Tested (taken times per room and date from classes and approved bookings; sports grounds only if listed as rooms) | lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
 | SP-013 | Equipment | Reserve and return team equipment. | Proposed | F |
 | SP-014 | Travel coordination | Request authorized transport for competitions. | Proposed | F |
-| SP-015 | Competition eligibility | Evaluate approved rules and show correctable evidence. | Proposed | F |
-| SP-016 | Participation verification | Verify who competed separately from roster membership. | Proposed | F |
-| SP-017 | Sporting achievements | Attach verified results to consented portfolios. | Proposed | F |
-| SP-018 | Sports calendars | Publish authorized season dates. | Proposed | F |
-| SP-019 | Team announcements | Deliver relevant updates to team members. | Proposed | F |
-| SP-020 | Interdepartmental competitions | Schedule department teams under approved rules. | Proposed | F |
-| SP-021 | Intercollege competitions | Validate external opponents and cross-institution sharing. | Proposed | F |
+| SP-015 | Competition eligibility | Evaluate approved rules and show correctable evidence. | Tested (department enrolment rule only) | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-016 | Participation verification | Verify who competed separately from roster membership. | Tested | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-017 | Sporting achievements | Attach verified results to consented portfolios. | Tested (portfolio entry from verified participation) | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-018 | Sports calendars | Publish authorized season dates. | Tested (fixtures and training listed; no season calendar entries) | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-019 | Team announcements | Deliver relevant updates to team members. | Tested (on the Sports page; no inbox notification) | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-020 | Interdepartmental competitions | Schedule department teams under approved rules. | Tested | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-021 | Intercollege competitions | Validate external opponents and cross-institution sharing. | Tested (office-validated external opponents; no cross-institution sharing) | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
 | SP-022 | Sports planning agents | Draft fixtures and plans for human review. | Proposed | F |
-| SP-023 | Match officials | Assign officials and restrict result changes to authorized roles. | Proposed | F |
+| SP-023 | Match officials | Assign officials and restrict result changes to authorized roles. | Tested | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
 | SP-024 | Tournament brackets | Advance teams according to event-specific verified outcomes. | Proposed | F |
 
 ## Smart Campus · student mobility
@@ -387,8 +391,8 @@ Eligible riders need trustworthy journey information. Open assigned trip → sel
 | TR-021 | Replacement vehicle notices | Identify a verified replacement and its capacity. | Designed | T |
 | TR-022 | Arrival reminders | Opt in to timely, scoped notifications. | Designed | T |
 | TR-023 | Alternative services | Show alternatives only when eligibility and availability are confirmed. | Proposed | F |
-| TR-024 | Lost and found | Submit, privately match and resolve an item report. | Proposed | F |
-| TR-025 | Transport incidents | Report an issue to an authorized responder. | Proposed | F |
+| TR-024 | Lost and found | Submit, privately match and resolve an item report. | Tested (private report resolved by the transport office; no item matching) | db/036, lib/cases.ts, app/cases; tests/pilot-foundation.test.ts, tests/pilot-foundation.e2e.ts |
+| TR-025 | Transport incidents | Report an issue to an authorized responder. | Tested | db/036, lib/cases.ts, app/cases; tests/pilot-foundation.test.ts, tests/pilot-foundation.e2e.ts |
 | TR-026 | Emergency information | Show institution-approved emergency procedures and channels. | Proposed | F |
 
 ## Smart Campus · transport operations
@@ -408,7 +412,7 @@ Dispatchers, transport managers, assigned conductors and stationary operators co
 | TO-009 | QR boarding verification | Reject duplicate, expired and revoked boarding proofs. | Proposed | F |
 | TO-010 | Authorized counts | Record count, source, correction and observation time. | Designed | T |
 | TO-011 | Disruption management | Publish scoped alerts with effective and expiry times. | Designed | T |
-| TO-012 | Incident response | Assign responders, record action and verify resolution. | Proposed | F |
+| TO-012 | Incident response | Assign responders, record action and verify resolution. | Tested (assign, record outcome; the reporter reads the outcome, no reporter confirmation step) | db/036, lib/cases.ts, app/cases; tests/pilot-foundation.test.ts, tests/pilot-foundation.e2e.ts |
 | TO-013 | Vehicle maintenance | Track faults, service dates and clearance before operation. | Proposed | F |
 | TO-014 | Operational analytics | Review freshness, service performance and ETA errors. | Designed | T |
 | TO-015 | Route optimization | Evaluate alternatives under cost, demand and privacy constraints. | Proposed | F |
@@ -425,25 +429,25 @@ Students, placement and research offices, opted-in mentors, approved alumni and 
 | ID | Capability | Functional workflow or acceptance outcome | Status | Evidence |
 | --- | --- | --- | --- | --- |
 | CR-001 | Internship search | Discover active verified internships. | Tested | Staff-reviewed directory, lib/opportunities.ts and tests/opportunities.*. Eligibility is displayed for manual review. |
-| CR-002 | Jobs and placement opportunities | Search roles and approved placement drives. | Proposed | F |
+| CR-002 | Jobs and placement opportunities | Search roles and approved placement drives. | Tested | db/032, lib/careers.ts, lib/opportunities.ts, app/careers, app/opportunities; tests/careers.test.ts, tests/careers.e2e.ts |
 | CR-003 | Course discovery | Compare relevant courses with prerequisites and source links. | Proposed | F |
 | CR-004 | NPTEL and SWAYAM discovery | Discover verified listings through permitted interfaces. | Proposed | F |
 | CR-005 | Scholarships | Find applicable funding and application deadlines. | Tested | Staff-reviewed directory, lib/opportunities.ts and tests/opportunities.*. Eligibility is displayed for manual review. |
 | CR-006 | Competitions | Compare verified competition requirements. | Tested | Staff-reviewed directory, lib/opportunities.ts and tests/opportunities.*. Eligibility is displayed for manual review. |
-| CR-007 | Hackathons | Find challenges, deadlines and team eligibility. | Proposed | F |
-| CR-008 | Research opportunities | Find approved programs and openings. | Proposed | F |
-| CR-009 | Fellowships | Compare eligibility and funding terms. | Proposed | F |
-| CR-010 | Eligibility matching | Explain requirements met, missing evidence and correction paths. | Proposed | F |
+| CR-007 | Hackathons | Find challenges, deadlines and team eligibility. | Tested (verified listings; no team eligibility) | db/032, lib/careers.ts, lib/opportunities.ts, app/careers, app/opportunities; tests/careers.test.ts, tests/careers.e2e.ts |
+| CR-008 | Research opportunities | Find approved programs and openings. | Tested (verified research listings) | db/032, lib/careers.ts, lib/opportunities.ts, app/careers, app/opportunities; tests/careers.test.ts, tests/careers.e2e.ts |
+| CR-009 | Fellowships | Compare eligibility and funding terms. | Tested (verified listings; funding terms in the eligibility text) | db/032, lib/careers.ts, lib/opportunities.ts, app/careers, app/opportunities; tests/careers.test.ts, tests/careers.e2e.ts |
+| CR-010 | Eligibility matching | Explain requirements met, missing evidence and correction paths. | Tested (department enrolment requirement with a correction path) | db/032, lib/careers.ts, lib/opportunities.ts, app/careers, app/opportunities; tests/careers.test.ts, tests/careers.e2e.ts |
 | CR-011 | Skills and skill gaps | Compare evidenced skills with a selected goal. | Proposed | F |
 | CR-012 | Career pathways | Map user-selected goals to courses, projects and opportunities. | Proposed | F |
-| CR-013 | Résumé preparation | Draft and review a résumé using authorized portfolio data. | Proposed | F |
-| CR-014 | Portfolios | Select and share evidence with revocable visibility. | Proposed | F |
-| CR-015 | Application drafts | Prepare required materials for applicant review. | Proposed | F |
-| CR-016 | Application tracking | Track submission, status, deadlines and verified outcome. | Proposed | F |
+| CR-013 | Résumé preparation | Draft and review a résumé using authorized portfolio data. | Tested (plain-text draft from profile and chosen portfolio records) | db/032, lib/careers.ts, lib/opportunities.ts, app/careers, app/opportunities; tests/careers.test.ts, tests/careers.e2e.ts |
+| CR-014 | Portfolios | Select and share evidence with revocable visibility. | Tested (the student portfolio, shared by profile visibility) | lib/student-life.ts, app/profile; tests/meetings-portfolio.test.ts, tests/sports.test.ts |
+| CR-015 | Application drafts | Prepare required materials for applicant review. | Tested (statement draft) | db/032, lib/careers.ts, lib/opportunities.ts, app/careers, app/opportunities; tests/careers.test.ts, tests/careers.e2e.ts |
+| CR-016 | Application tracking | Track submission, status, deadlines and verified outcome. | Tested | db/032, lib/careers.ts, lib/opportunities.ts, app/careers, app/opportunities; tests/careers.test.ts, tests/careers.e2e.ts |
 | CR-017 | Mentor discovery | Find available mentors by approved expertise and request contact. | Proposed | F |
 | CR-018 | Faculty research projects | Publish approved projects and scoped openings. | Proposed | F |
 | CR-019 | Student research teams | Form opt-in teams and manage role-specific access. | Proposed | F |
-| CR-020 | Laboratory access requests | Request facility access under safety and supervision rules. | Proposed | F |
+| CR-020 | Laboratory access requests | Request facility access under safety and supervision rules. | Tested (students must name a current teacher as supervisor and the office decides; no safety-induction record) | lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
 | CR-021 | Industry challenges | Receive approved problem briefs and propose solutions. | Proposed | F |
 | CR-022 | Startup ideas | Capture ideas and validate ownership and disclosure choices. | Proposed | F |
 | CR-023 | Incubation | Track applications, reviews and milestones. | Proposed | F |
@@ -454,9 +458,9 @@ Students, placement and research offices, opted-in mentors, approved alumni and 
 | CR-028 | Certifications | Track learning credentials and verification status. | Proposed | F |
 | CR-029 | Project discovery | Find eligible projects, mentors and resources. | Proposed | F |
 | CR-030 | Team formation | Invite opted-in collaborators and track membership. | Proposed | F |
-| CR-031 | Opportunity tracking | Save relevant opportunities and track decisions. | Proposed | F |
-| CR-032 | Placement drives | Register eligible students and track authorized outcomes. | Proposed | F |
-| CR-033 | Graduate outcomes | Aggregate verified outcomes with appropriate definitions. | Proposed | F |
+| CR-031 | Opportunity tracking | Save relevant opportunities and track decisions. | Tested | db/032, lib/careers.ts, lib/opportunities.ts, app/careers, app/opportunities; tests/careers.test.ts, tests/careers.e2e.ts |
+| CR-032 | Placement drives | Register eligible students and track authorized outcomes. | Tested | db/032, lib/careers.ts, lib/opportunities.ts, app/careers, app/opportunities; tests/careers.test.ts, tests/careers.e2e.ts |
+| CR-033 | Graduate outcomes | Aggregate verified outcomes with appropriate definitions. | Tested (office-recorded placement offers per department) | db/032, lib/careers.ts, lib/opportunities.ts, app/careers, app/opportunities; tests/careers.test.ts, tests/careers.e2e.ts |
 | CR-034 | Grant applications | Track calls, budgets, approvals and decisions. | Proposed | F |
 | CR-035 | Intellectual property disclosure | Route private disclosure to authorized reviewers. | Proposed | F |
 | CR-036 | Experiment documentation | Record scoped experimental methods, evidence and revisions. | Proposed | F |
@@ -468,22 +472,22 @@ Resource custodians, library/lab staff, facilities teams, requesters and approve
 
 | ID | Capability | Functional workflow or acceptance outcome | Status | Evidence |
 | --- | --- | --- | --- | --- |
-| OP-001 | Classroom scheduling | Assign sections to rooms without overlapping confirmed use. | Proposed | F |
-| OP-002 | Laboratory booking | Select authorized lab slots and obtain clearance. | Proposed | F |
-| OP-003 | Equipment reservations | Request equipment, confirm custody, return and inspect condition. | Proposed | F |
-| OP-004 | Library services | Search approved holdings and request institution-permitted services. | Proposed | F |
-| OP-005 | Asset tracking | Record current location, custodian and equipment lifecycle. | Proposed | F |
-| OP-006 | Maintenance | Assign repairs and verify completion. | Proposed | F |
-| OP-007 | Facility issue reporting | Report a fault, attach evidence and track status. | Proposed | F |
+| OP-001 | Classroom scheduling | Assign sections to rooms without overlapping confirmed use. | Tested (room, teacher and section clashes refused at publication) | lib/academic-day.ts; tests/academic-day.test.ts |
+| OP-002 | Laboratory booking | Select authorized lab slots and obtain clearance. | Tested | db/033, lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
+| OP-003 | Equipment reservations | Request equipment, confirm custody, return and inspect condition. | Tested (office-issued custody with due date, return and condition) | db/033, lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
+| OP-004 | Library services | Search approved holdings and request institution-permitted services. | Tested (holdings search and office-issued loans; no holds or renewals) | db/033, lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
+| OP-005 | Asset tracking | Record current location, custodian and equipment lifecycle. | Tested (current custodian and loan history for equipment; no location changes) | db/033, lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
+| OP-006 | Maintenance | Assign repairs and verify completion. | Tested (repairs on the case engine: owner assignment and recorded outcome) | db/025, lib/cases.ts, app/cases (facility kind); tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |
+| OP-007 | Facility issue reporting | Report a fault, attach evidence and track status. | Tested (any member reports a repair and tracks its state; no file evidence) | db/025, lib/cases.ts, app/cases (facility kind); tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |
 | OP-008 | Event venues | Confirm a conflict-free event reservation with a traceable responsible party and decision. | Tested | B |
-| OP-009 | Resource allocation | Compare demand and assign available resources under policy. | Proposed | F |
-| OP-010 | Operational notices | Publish scoped maintenance and closure notices. | Proposed | F |
-| OP-011 | Incident management | Escalate incidents through approved response policies. | Proposed | F |
-| OP-012 | Administrative workflows | Route campus requests to the responsible office. | Proposed | F |
-| OP-013 | Staff assignment | Assign tasks to currently authorized staff. | Proposed | F |
-| OP-014 | Approval management | Collect required approvals with reason and version. | Proposed | F |
-| OP-015 | Verified service completion | Record resolution evidence and allow confirmation or reopening. | Proposed | F |
-| OP-016 | Operational history | Inspect authorized events and decisions. | Proposed | F |
+| OP-009 | Resource allocation | Compare demand and assign available resources under policy. | Tested (seven-day room use from classes and approved bookings; no automatic allocation) | db/033, lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
+| OP-010 | Operational notices | Publish scoped maintenance and closure notices. | Tested (maintenance-or-closure kind and end date on the existing college, department and class notices; no building-level audience) | db/078, lib/connected.ts, app/notices; tests/notices.test.ts |
+| OP-011 | Incident management | Escalate incidents through approved response policies. | Tested (safety incidents to the office, readable by the principal, flagged when unassigned past 24 hours; no configurable response policy or paging) | db/080, lib/cases.ts, app/cases; tests/policies-cases.test.ts |
+| OP-012 | Administrative workflows | Route campus requests to the responsible office. | Tested (service requests routed to the office queue) | db/019, lib/connected.ts; tests/operations.test.ts, tests/operations.e2e.ts |
+| OP-013 | Staff assignment | Assign tasks to currently authorized staff. | Tested (office assigns repairs to current office staff) | db/025, lib/cases.ts, app/cases (facility kind); tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |
+| OP-014 | Approval management | Collect required approvals with reason and version. | Tested (single office approval with reason for bookings; no multi-step approvals) | db/033, lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
+| OP-015 | Verified service completion | Record resolution evidence and allow confirmation or reopening. | Tested (outcome recorded; the reporter can reopen within 14 days) | db/025, lib/cases.ts, app/cases (facility kind); tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |
+| OP-016 | Operational history | Inspect authorized events and decisions. | Tested (audit viewer over event metadata) | lib/reporting.ts auditEvents, app/audit; tests/operations.test.ts, tests/operations.e2e.ts |
 | OP-017 | Sustainability reporting | Measure resource use with documented provenance. | Proposed | F |
 
 ## AURA · shared agent platform
@@ -502,13 +506,13 @@ Authenticated user and accountable tool owners. Route task from session → scop
 | AI-008 | Execution evidence | Return one private persisted draft on replay-safe confirmation. | Tested | A |
 | AI-009 | Rate limits | Bound preview admission by account and institution. | Implemented | A |
 | AI-010 | Cost management | Reserve and reconcile provider usage and spend per institution and feature. | In development | Tutor reservations and token estimates tested with injected transport. Billing reconciliation pending. See AURA_ARCHITECTURE.md |
-| AI-011 | Context and knowledge | Retrieve only approved versions with document-level access and citations. | Proposed | F |
+| AI-011 | Context and knowledge | Retrieve only approved versions with document-level access and citations. | Tested (approved policy versions by audience, quoted with version citations; keyword matching, no model) | lib/aura/ask.ts, app/aura/ask; tests/ask-aura.test.ts, tests/ask-aura.e2e.ts |
 | AI-012 | Agent orchestration | Bound planning and dependent tools with failure handling. | Proposed | F |
-| AI-013 | Durable tasks and workers | Resume eligible long-running work with actual scheduler, cancellation and idempotent retries. | Proposed | F |
+| AI-013 | Durable tasks and workers | Resume eligible long-running work with actual scheduler, cancellation and idempotent retries. | Tested (no scheduler) | db/016_automation.sql + lib/automation.ts + scripts/worker.ts: transactional enqueue, leased SKIP LOCKED claims, fencing, backoff, dead-letter, admin retry, pause. No cron schedules, cancellation or hosted worker. |
 | AI-014 | Agent execution logs | Persist task/tool metadata and outcomes for the deterministic planner. | Tested | A |
 | AI-015 | Agent evaluation | Evaluate groundedness, prompt injection, model cost, tool selection and failure recovery. | Proposed | F |
 | AI-016 | Authority levels L0–L4 | Enforce read, draft, confirmation, pre-authorized low-risk action and human-only sensitive decisions. | Proposed | F |
-| AI-017 | Institutional Knowledge Assistant | Explain enrollment-letter process from approved source and offer scoped next action. | Proposed | F |
+| AI-017 | Institutional Knowledge Assistant | Explain enrollment-letter process from approved source and offer scoped next action. | Tested (local, no model) | lib/aura/ask.ts, app/aura/ask; tests/ask-aura.test.ts, tests/ask-aura.e2e.ts |
 | AI-018 | Faculty Workflow Assistant | Prepare editable course assignment draft under current faculty authority. | Proposed | F |
 | AI-019 | Policy and prompt versioning | Pin tool, prompt, model and source policy versions per run. | Proposed | F |
 | AI-020 | Approval activity and retry | Inspect failed and pending work, with safe cancellation and retry where supported. | Proposed | F |

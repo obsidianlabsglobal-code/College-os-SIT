@@ -2,9 +2,18 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { Chrome } from "../../chrome";
+import { PreparedMessage } from "../../experience/prepared-message";
+import { clubEventMessage } from "../../../lib/prepared-message";
 import { ExperienceHeading } from "../../experience/heading";
 import { account, scope, workspaceQuery } from "../../../lib/scope";
 import { clubView } from "../../../lib/club-views";
+import { eventExtras } from "../../../lib/club-events";
+import { clubNotices } from "../../../lib/club-notices";
+import { clubTasks } from "../../../lib/club-tasks";
+import { clubDepartment } from "../../../lib/club-departments";
+import { departmentSwitches } from "../../../lib/active-departments";
+import { ActionForm } from "../../forms";
+import { clubEventAction } from "../../actions/club-events";
 import { ClubForm, EventFields, stateText } from "../controls";
 
 const actions: Record<string, readonly string[]> = {
@@ -34,6 +43,8 @@ export default async function ClubHome({ params,searchParams }: {
   const active = club.club_state === "active";
   const date = new Intl.DateTimeFormat("en-IN",{ dateStyle:"medium",timeStyle:"short",timeZone:club.timezone });
   const query = workspaceQuery(current);
+  const [extras,notices,tasks,linked,departments] = await Promise.all([eventExtras(current,id,events.map(event => event.id),officer),clubNotices(current,id),clubTasks(current,id),
+    clubDepartment(current,id),admin ? departmentSwitches(current) : Promise.resolve([])]);
   return <Chrome user={user} current={current} section="/clubverse">
     <ExperienceHeading title={club.name} context={club.category} parent={{ href:`/clubverse?${query}`,label:"CLUBVERSE" }} />
     <div className="grid">
@@ -47,10 +58,53 @@ export default async function ClubHome({ params,searchParams }: {
           {!admin && active && !member && club.member_state !== "requested" && (club.joining !== "invitation" || club.member_state === "invited") &&
             <ClubForm current={current} operation="join" label={club.member_state === "invited" ? "Accept invitation" : club.joining === "open" ? "Join club" : "Request membership"} values={key} />}
           {member && !lead && <ClubForm current={current} operation="membership" label="Leave club" values={{ ...key,person:current.account,next:"ended" }} />}
+          {linked && <p className="meta">Departmental association · {linked.name}</p>}
+          {admin && <ActionForm action={clubEventAction} context={current} operation="department" label="Save department link" secondary>
+            <input type="hidden" name="club" value={id} />
+            <label>Department<select name="department" defaultValue={linked?.id ?? ""}><option value="">Not a departmental club</option>
+              {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}</select></label>
+          </ActionForm>}
           {admin && club.club_state !== "archived" && <ClubForm current={current} operation="club-state" label="Update club status" values={key}>
             <label>Club status<select name="next"><option value={active ? "suspended" : "active"}>{active ? "Suspend" : "Reactivate"}</option><option value="archived">Archive permanently</option></select></label>
           </ClubForm>}
         </section>
+        {(notices.length > 0 || (officer && active)) && <section className="panel stack" aria-labelledby="club-notices">
+          <h2 id="club-notices">Notices</h2>
+          {!notices.length && <p>No current notices.</p>}
+          <ul className="items">{notices.map(notice => <li key={notice.id}>
+            <strong>{notice.title}</strong> <span className="meta">{notice.audience === "members" ? "Members" : "Everyone eligible"} · until {notice.expires_on} · {notice.author}</span>
+            <p className="prose-text">{notice.body}</p>
+            {officer && <ActionForm action={clubEventAction} context={current} operation="notice-withdraw" label="Withdraw notice" secondary>
+              <input type="hidden" name="club" value={id} /><input type="hidden" name="notice" value={notice.id} /></ActionForm>}
+          </li>)}</ul>
+          {officer && active && <details><summary>Post a notice</summary>
+            <ActionForm action={clubEventAction} context={current} operation="notice" label="Post notice">
+              <input type="hidden" name="club" value={id} />
+              <label>Title<input name="title" required maxLength={120} /></label>
+              <label>Notice<textarea name="body" required maxLength={4000} /></label>
+              <label>Who sees it<select name="audience"><option value="members">Club members</option><option value="eligible">Everyone eligible for the club</option></select></label>
+              <label>Show until<input type="date" name="expires" required /></label>
+            </ActionForm>
+          </details>}
+        </section>}
+        {member && <section className="panel stack" aria-labelledby="club-tasks">
+          <h2 id="club-tasks">Meeting decisions and tasks</h2>
+          {!tasks.length && <p>No open tasks.</p>}
+          <ul className="items">{tasks.map(task => <li key={task.id}>
+            <strong>{task.decision}</strong> <span className="meta">{task.owner} · due {task.due_on}{task.overdue ? " · overdue" : ""}{task.done ? " · done" : ""} · decided {task.decided_on}</span>
+            {!task.done && task.owner_id === current.account && <ActionForm action={clubEventAction} context={current} operation="task-done" label="Mark done" secondary>
+              <input type="hidden" name="club" value={id} /><input type="hidden" name="task" value={task.id} /></ActionForm>}
+          </li>)}</ul>
+          {officer && active && <details><summary>Record a decision</summary>
+            <ActionForm action={clubEventAction} context={current} operation="task" label="Add task">
+              <input type="hidden" name="club" value={id} />
+              <label>Meeting date<input type="date" name="decided" required /></label>
+              <label>Decision<input name="decision" required maxLength={500} /></label>
+              <label>Owner<select name="owner" required>{people.filter(p => p.state === "active").map(p => <option key={p.account_id} value={p.account_id}>{p.name}</option>)}</select></label>
+              <label>Due<input type="date" name="due" required /></label>
+            </ActionForm>
+          </details>}
+        </section>}
         <section className="panel stack">
           <h2>Events</h2>
           {!events.length && <p>No events are available in this view.</p>}
@@ -65,10 +119,40 @@ export default async function ClubHome({ params,searchParams }: {
               <p>{event.location} · {date.format(event.starts_at)} – {date.format(event.ends_at)}</p>
               <p className="meta">Capacity {event.capacity} · {event.audience === "club" ? "Members only" : "Eligible students"}</p>
               <p className="prose-text">{event.requirements}</p>
+              {officer && active && ["published","registration_open","registration_closed"].includes(event.state) &&
+                event.starts_at>new Date() && <PreparedMessage title="Event announcement" buttonLabel="Copy event announcement"
+                  description={event.audience==="club" ? "Share only with club members. Check the published event before posting." :
+                    "Share with the eligible student audience. Check the published event before posting."}
+                  message={clubEventMessage({club:club.name,title:event.title,when:`${date.format(event.starts_at)} – ${date.format(event.ends_at)} · ${club.timezone}`,
+                    venue:event.location,audience:event.audience==="club" ? "club":"institution",registrationOpen:event.state==="registration_open"})} />}
               {event.registered && <p>{event.verified ? "Participation verified" : "Registered · participation unverified"}</p>}
               {event.total != null && <p>{event.total} registered · {event.attended} verified participants</p>}
-              {active && current.role === "student" && !event.registered && event.state === "registration_open" && new Date(event.starts_at) > new Date() &&
-                <ClubForm current={current} operation="register" label="Register for event" values={values} />}
+              {(() => {
+                const extra = extras.get(event.id);
+                const ref = { club:id,event:event.id };
+                const open = active && current.role === "student" && event.state === "registration_open" && new Date(event.starts_at) > new Date();
+                const full = (extra?.taken ?? 0) >= event.capacity;
+                const hidden = Object.entries(ref).map(([name,value]) => <input key={name} type="hidden" name={name} value={value} />);
+                return <>
+                  {extra?.my_place && <p role="status">On the waitlist · place {extra.my_place} of {extra.waiting}</p>}
+                  {open && !event.registered && !extra?.my_place && !full && <ClubForm current={current} operation="register" label="Register for event" values={values} />}
+                  {open && !event.registered && !extra?.my_place && full &&
+                    <ActionForm action={clubEventAction} context={current} operation="waitlist" label="Join the waitlist">{hidden}<p className="meta">This event is full.</p></ActionForm>}
+                  {active && current.role === "student" && (extra?.my_place || (event.registered && !event.verified && ["registration_open","registration_closed"].includes(event.state) && new Date(event.starts_at) > new Date())) &&
+                    <ActionForm action={clubEventAction} context={current} operation="withdraw" label={extra?.my_place ? "Leave the waitlist" : "Give up my seat"} secondary>{hidden}</ActionForm>}
+                  {active && current.role === "student" && event.registered && event.state === "completed" && !extra?.my_feedback &&
+                    <ActionForm action={clubEventAction} context={current} operation="feedback" label="Send feedback">{hidden}
+                      <label>How was it?<select name="rating" defaultValue="4">{[5,4,3,2,1].map(n => <option key={n} value={n}>{n} of 5</option>)}</select></label>
+                      <label>What should change next time? (optional)<textarea name="comment" maxLength={1000} /></label>
+                    </ActionForm>}
+                  {extra?.my_feedback && <p className="meta">Thanks for your feedback.</p>}
+                  {officer && (extra?.waiting ?? 0) > 0 && <p className="meta">{extra!.waiting} waiting</p>}
+                  {officer && event.state === "completed" && <section aria-label={`Feedback for ${event.title}`}>
+                    <p>{extra?.responses ? `Feedback · ${extra.responses} responses · average ${extra.average} of 5` : "No feedback yet"}</p>
+                    {!!extra?.comments.length && <ul className="items">{extra.comments.map((comment,index) => <li key={index}>{comment}</li>)}</ul>}
+                  </section>}
+                </>;
+              })()}
               {available.length > 0 && <ClubForm current={current} operation="event-state" label="Update event status" values={values}>
                 <label>Next event status<select name="next">{available.map(next=><option key={next} value={next}>{eventLabels[next]}</option>)}</select></label>
               </ClubForm>}

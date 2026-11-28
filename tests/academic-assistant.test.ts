@@ -1,3 +1,4 @@
+// covers: AI-001, AI-003
 import "../scripts/environment";
 import { after,before,test } from "node:test";
 import assert from "node:assert/strict";

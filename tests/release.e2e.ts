@@ -1,3 +1,4 @@
+// covers: ID-001, ID-002, ID-003, ID-004, ID-005, SA-001, SA-003, SA-004, SA-011, SA-012, SA-013, SA-014, SA-020, SL-001, SL-008, SL-012, FC-002, FC-007, FC-012, FC-013, FC-026, DH-001, DH-010, LE-001, AD-001, AD-003, AD-004, AD-006, AD-007, AD-010, CL-001, CL-017, CL-018, CL-019, CL-021, CL-022, CL-029, CL-030, CL-031, CL-038, CL-041, CL-043, AI-004, AI-006, AI-007, AI-008
 import { openWorkflow } from "./workspace-navigation";
 import { expect, test, type Page } from "@playwright/test";
 import { randomUUID } from "node:crypto";
@@ -55,7 +56,7 @@ test("faculty, student and HOD use the persisted assignment workflow", async ({ 
   await page.getByRole("link",{name:"Introduction to Programming · Section A · Term 1"}).click();
   await expect(page.getByRole("heading",{name:"Course assignments"})).toBeVisible();
   await expect(page.getByText(/Fictional Engineering Scheme/)).toBeVisible();
-  await page.getByRole("link",{ name:title }).click();
+  await page.getByRole("link",{ name:title,exact:true }).click();
   await expect(page.getByRole("heading",{ name:title, exact:true })).toBeVisible();
   const studentUrl = page.url();
   const download = page.waitForEvent("download");
@@ -83,6 +84,7 @@ test("faculty, student and HOD use the persisted assignment workflow", async ({ 
   await signOut(page);
 
   await signIn(page,"student");
+  await page.getByText(/Submitted and past assignments/).click();
   await expect(homeAssignment.getByText("Submitted",{exact:true})).toBeVisible();
   await page.goto(studentUrl);
   await expect(page.getByText("Feedback has yet to be published.")).toBeVisible();
@@ -102,6 +104,7 @@ test("faculty, student and HOD use the persisted assignment workflow", async ({ 
   await signOut(page);
 
   await signIn(page,"student");
+  await page.getByText(/Submitted and past assignments/).click();
   await expect(homeAssignment.getByText("Result published",{exact:true})).toBeVisible();
   await page.goto(studentUrl);
   await expect(page.getByRole("heading",{ name:"Published result · 18/20" })).toBeVisible();
@@ -241,7 +244,7 @@ test("administrators configure academic records and manage delegated roles", asy
   await expect(grant.getByText("Ended",{ exact:true })).toBeVisible();
   await signOut(page);
   await signIn(page, "student");
-  await expect(page.getByRole("heading", { name: "Welcome, Asha.", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Good to see you, Asha.", exact: true })).toBeVisible();
   await expect(page.getByRole("combobox", { name: "Workspace" })).toHaveCount(0);
 });
 
@@ -271,7 +274,7 @@ test("workspace navigation is scoped, keyboard-operable and responsive", async (
   await page.setViewportSize({ width: 1440, height: 900 });
   await signIn(page, "student");
   const navigation = page.getByRole("navigation", { name: "Campus workflows" });
-  await expect(navigation.getByRole("link", { name: "Overview" })).toHaveAttribute("aria-current", "page");
+  await expect(navigation.getByRole("link", { name: "Today" })).toHaveAttribute("aria-current", "page");
   await expect(navigation.getByRole("link", { name: "Academic setup and roles" })).toHaveCount(0);
   const toggle = page.getByRole("button", { name: "Hide navigation" });
   await toggle.focus();
@@ -279,11 +282,13 @@ test("workspace navigation is scoped, keyboard-operable and responsive", async (
   await expect(navigation).toBeHidden();
   await expect(page.getByRole("button", { name: "Show navigation" })).toHaveAttribute("aria-expanded", "false");
   await page.setViewportSize({ width: 390, height: 844 });
-  const notices = navigation.getByRole("link", { name: "Notices" });
-  await expect(notices).toBeVisible();
-  expect(await notices.evaluate(link => getComputedStyle(link).transitionDuration)).toBe("0s");
-  await notices.click();
-  await expect(navigation.getByRole("link", { name: "Notices" })).toHaveAttribute("aria-current", "page");
+  const aura = navigation.getByRole("link", { name: "AURA" });
+  await expect(aura).toBeVisible();
+  expect(await aura.evaluate(link => getComputedStyle(link).transitionDuration)).toBe("0s");
+  await navigation.getByRole("button", { name: "More" }).click();
+  await page.getByRole("navigation", { name: "More workflows" }).getByRole("link", { name: "Notices" }).click();
+  await expect(page).toHaveURL(/\/notices\?/);
+  await expect(navigation.getByRole("button", { name: "More" })).toHaveAttribute("data-current", "true");
   await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
 });
@@ -354,6 +359,7 @@ test("CLUBVERSE recognition, membership, event and leadership journeys persist",
   await page.getByLabel("Requirements and event plan").fill("Bring a laptop.");
   await page.getByRole("button",{ name:"Save event draft" }).click();
   await expect(event.locator(".tag")).toHaveText("draft");
+  await expect(event.getByRole("button",{name:"Copy event announcement"})).toHaveCount(0);
   await transition("pending_approval");
   await signOut(page);
 
@@ -368,6 +374,9 @@ test("CLUBVERSE recognition, membership, event and leadership journeys persist",
   await openClub();
   await transition("published");
   await transition("registration_open");
+  const announcement=event.getByRole("region",{name:"Event announcement"});
+  await announcement.getByText("Preview message",{exact:true}).click();
+  await expect(announcement.getByLabel("Message")).toHaveValue(/Location in the event listing: Electronics lab[\s\S]*Registration is open/);
   await signOut(page);
 
   await signIn(page,"student");
@@ -375,6 +384,7 @@ test("CLUBVERSE recognition, membership, event and leadership journeys persist",
   await openClub();
   await expect(page.getByRole("heading",{ name:"Member area" })).toBeVisible();
   await expect(page.getByRole("heading",{ name:"Organizer console" })).toHaveCount(0);
+  await expect(event.getByRole("button",{name:"Copy event announcement"})).toHaveCount(0);
   await event.getByRole("button",{ name:"Register for event" }).click();
   await expect(event.getByText("Registered · participation unverified")).toBeVisible();
   await signOut(page);
@@ -433,7 +443,6 @@ test("AURA event planning confirms a private persisted draft", async ({ page }) 
   const { Client } = await import("pg");
   const { fixtures } = await import("../scripts/fixtures");
   const { changeClub } = await import("../lib/clubverse");
-  const { db:runtime } = await import("../lib/db");
   const connection = new Client({ connectionString:migrationUrl });
   await connection.connect();
   const name = `AURA planning club ${randomUUID().slice(0,8)}`;
@@ -475,7 +484,7 @@ test("AURA event planning confirms a private persisted draft", async ({ page }) 
     await expect(event.locator(".tag")).toHaveText("draft");
     await expect(event.getByText(/Capacity 80/)).toBeVisible();
   } finally {
-    await Promise.all([connection.end(),runtime.end()]);
+    await connection.end(); // the app pool (runtime) is shared by every test in this worker; leave it open
   }
 });
 
@@ -496,12 +505,12 @@ test("course workspaces require the current offering roster", async ({page}) => 
 test("student home uses responsive layout, keyboard navigation and reduced motion",async ({page})=>{
   await page.emulateMedia({reducedMotion:"reduce",colorScheme:"dark"});
   await signIn(page,"student");
-  await expect(page.getByRole("heading",{name:"Welcome, Asha."})).toBeVisible();
+  await expect(page.getByRole("heading",{name:"Good to see you, Asha."})).toBeVisible();
   const shortcut = page.getByRole("navigation",{name:"Academic summary"}).getByRole("link",{name:/Open assignments/});
   await shortcut.focus();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/#student-assignments$/);
-  await expect(page.getByRole("region",{name:"Your next best moves"})).toBeFocused();
+  await expect(page.getByRole("region",{name:"My assignments"})).toBeFocused();
   const intro = page.getByRole("heading",{level:1});
   expect(await intro.evaluate(node=>getComputedStyle(node.parentElement!).animationName)).toBe("none");
   const summary = page.getByRole("navigation",{name:"Academic summary"});
@@ -516,7 +525,7 @@ test("student home uses responsive layout, keyboard navigation and reduced motio
 
 test("an unrelated institution receives the empty priority and a keyboard course shortcut", async ({ page }) => {
   await signIn(page, "tenant");
-  const priority = page.getByRole("region", { name: "Next up" });
+  const priority = page.getByRole("region", { name: "Assignments", exact:true });
   await expect(priority.getByText("No assignments awaiting submission")).toBeVisible();
   await priority.getByRole("link", { name: "See my courses" }).focus();
   await page.keyboard.press("Enter");
@@ -549,10 +558,10 @@ test("Student Today links to the most recently released feedback", async ({ page
              ($1,$2,2,9,'Private correction draft',NULL)`, [fixtures.otherInstitution,...submissions]);
 
     await signIn(page, "tenant");
-    const priority = page.getByRole("region", {name:"Next up"});
+    const priority = page.getByRole("region", {name:"Feedback is ready", exact:true});
     await expect(priority).toContainText("Latest released feedback");
     await expect(page.getByRole("link", {name:/Published results/})).toHaveAttribute("href", new RegExp(latest));
-    await priority.getByRole("link", {name:"Read feedback"}).click();
+    await priority.getByRole("link", {name:"Latest released feedback"}).click();
     await expect(page.getByRole("heading", {name:"Published result · 8/10"})).toBeVisible();
     await expect(page.getByText("Private correction draft")).toHaveCount(0);
   } finally {
@@ -571,7 +580,7 @@ test("student home shows a loading state and recovers after a database timeout",
   const {Client} = await import("pg");
   const lock = new Client({connectionString:migrationUrl});
   await signIn(page,"student");
-  const home = page.getByRole("heading",{name:"Welcome, Asha."});
+  const home = page.getByRole("heading",{name:"Good to see you, Asha."});
   await expect(home).toBeVisible();
   await lock.connect();
   try {

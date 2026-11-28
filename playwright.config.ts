@@ -8,6 +8,8 @@ export default defineConfig({
   expect: { timeout: 8000 },
   use: {
     baseURL: "http://127.0.0.1:3000",
+    // The app-shell service worker would hide navigations from page.route; tests/app-shell.e2e.ts allows it explicitly.
+    serviceWorkers: "block",
     launchOptions: process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {},
   },
   webServer: {

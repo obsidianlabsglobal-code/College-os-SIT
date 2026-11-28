@@ -1,0 +1,24 @@
+.board,.columns { display:grid; gap:var(--space-4); min-width:0; }
+.columns > * { min-width:0; margin:0; align-content:start; }
+@media (min-width:64rem) { .columns { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+.hero { background:var(--atmosphere); display:grid; gap:.5rem; }
+.hero h2 { font:680 clamp(1.45rem,3vw,2.2rem)/1.12 var(--font-display); letter-spacing:-.03em; max-width:32ch; }
+.eyebrow { color:var(--accent); text-transform:uppercase; letter-spacing:.11em; font-size:var(--text-meta); font-weight:750; }
+.kpis { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--space-3); margin-top:var(--space-2); }
+@media (min-width:48rem) { .kpis { grid-template-columns:repeat(4,minmax(0,1fr)); } }
+.kpis > div { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-control); padding:var(--space-3); min-width:0; }
+.kpis dt { color:var(--muted); font-size:var(--text-meta); }
+.kpis dd { margin:0; font:680 1.6rem/1.2 var(--font-display); color:var(--accent); font-variant-numeric:tabular-nums; }
+.people { display:grid; gap:0; }
+.people > li { border-top:1px solid var(--border); padding-block:.8rem; display:grid; gap:.35rem; overflow-wrap:anywhere; }
+.people h3 { font-size:1rem; margin:0; }
+.head { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:var(--space-2); }
+.chips { display:flex; flex-wrap:wrap; gap:.4rem; }
+.chips > div { display:flex; gap:.35rem; align-items:baseline; background:var(--tint); border-radius:2rem; padding:.2rem .65rem; font-size:var(--text-meta); }
+.chips > div[data-attention] { background:var(--peach); color:var(--warning); }
+.chips dt { color:inherit; }
+.chips dd { margin:0; font-weight:700; font-variant-numeric:tabular-nums; }
+.roster { columns:12rem auto; padding-top:.4rem; font-size:var(--text-meta); }
+.roster li { break-inside:avoid; padding-block:.1rem; }
+.people details summary { cursor:pointer; min-height:44px; display:flex; align-items:center; font-weight:600; }
+.compare th, .compare td { overflow-wrap:normal; word-break:normal; hyphens:none; }

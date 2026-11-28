@@ -1,0 +1,37 @@
+import { expect,test } from "@playwright/test";
+import { demoEmail,demoPassword,fixtures } from "../scripts/fixtures";
+
+test("student drafts and copies a personal letter without submitting it; role scope remains enforced",async ({page})=>{
+  await page.setExtraHTTPHeaders({"x-forwarded-for":"198.19.220.74"});
+  await page.setViewportSize({width:390,height:844});
+  await page.goto("/login");
+  await page.getByLabel("Email").fill(demoEmail("student"));
+  await page.getByLabel("Password").fill(demoPassword);
+  await page.getByRole("button",{name:"Sign in"}).click();
+  await page.getByRole("button",{name:"More",exact:true}).click();
+  await page.getByRole("dialog").getByRole("link",{name:"Letter drafts"}).click();
+  await expect(page.getByRole("heading",{name:"Letter drafts",exact:true})).toBeVisible();
+  await page.getByLabel("Addressed to").fill("Head of Department");
+  await page.getByLabel("From date").fill("2026-12-17");
+  await page.getByLabel("Through date").fill("2026-12-16");
+  await page.getByRole("button",{name:"Generate draft"}).click();
+  await expect(page.getByRole("region",{name:"Prepare a request"}).getByRole("alert")).toContainText("end date cannot be earlier");
+  await page.getByLabel("Through date").fill("2026-12-18");
+  await page.getByLabel("Brief reason").fill("personal reasons");
+  await page.getByRole("button",{name:"Generate draft"}).click();
+  const draft=page.getByRole("region",{name:"Your letter draft"});
+  await expect(draft.getByLabel("Letter text")).toHaveValue(/Request for leave[\s\S]*17 December 2026 to 18 December 2026[\s\S]*Asha Sen\nStudent/);
+  await page.context().grantPermissions(["clipboard-read","clipboard-write"]);
+  await draft.getByRole("button",{name:"Copy letter"}).press("Enter");
+  await expect(draft.getByRole("status")).toHaveText("Copied. Nothing has been sent.");
+  await expect(await page.evaluate(()=>navigator.clipboard.readText())).toContain("Subject: Request for leave");
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBe(390);
+  await page.getByLabel("Request type").selectOption("permission");
+  await expect(draft).toHaveCount(0);
+  await page.getByLabel("Purpose of request").fill("participating in a workshop");
+  await page.getByRole("button",{name:"Generate draft"}).click();
+  await expect(draft.getByLabel("Letter text")).toHaveValue(/Request for permission[\s\S]*participating in a workshop/);
+  await page.reload();
+  await expect(draft).toHaveCount(0);
+  expect((await page.goto(`/letters?institution=${fixtures.institution}&role=faculty`))?.status()).toBe(404);
+});

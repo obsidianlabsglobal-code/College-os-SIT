@@ -1,0 +1,54 @@
+# Handoff to ChatGPT — NEXUS engineering state (27 Nov 2026)
+
+You are the independent product architect and critical reviewer. Everything below is verified in a local fictional-data environment unless marked otherwise. Nothing is hosted, merged by me, or user-validated.
+
+1. **Repo / branch / commit.** `obsidianlabsglobal-code/College-os-SIT`. Baseline `main` c0902ae (PRs #1–#16 merged, none open). My work: branch `audit/nexus-engineering-audit` (commits 1b794cb audit, fe0545d fixes, 94fca3e design slice, 71de370 timetable). Not merged; no PR opened yet.
+2. **Stack (actual).** Next.js 16 app router + server actions, React 19, TypeScript 6, PostgreSQL via `pg` (17 migrations, 41 tables), Better Auth, Zod 4, Tailwind 4 + CSS tokens, Anthropic SDK 1.6.0, Playwright, node:test. Modular monolith; domain services own authorization (membership + roster + tenant in SQL).
+3. **Verified functionality.** Auth/throttling/multi-role; admin academic catalog and rosters; assignments → submission → grading → publication/correction; faculty mission control + evaluation queue; timetable publication (overlap/DST/cancel/move) and audited attendance revisions; planning targets; notices; service requests; leadership counts; opportunity directory; admission preview; CLUBVERSE recognition/membership/grants/events/seat concurrency/booking; AURA deterministic reads, governed model path (test double only), event draft with owner confirmation, budgeted tutor (fixture only).
+4. **Registry coverage (480).** 63 functionally tested (local), 8 implemented-unverified, 6 partial, 13 blocked, 390 missing; 0 hosted, 0 user-validated. Zero implementation: personal learning, sports, mobility, transport ops, all 78 agents, all 15 invention systems. Matrix: `docs/NEXUS_TRACEABILITY_MATRIX.md`.
+5. **Defects.** Fixed: invisible active secondary nav (desktop, all roles); walkthrough seed refused main's 17 migrations; missing classes-needed maths. Open: two model paths/ledgers (provider.ts vs tutor.ts); partial CSP; files as bytea; e2e tests depend on shared DB state (fail with walkthrough fixtures); unmerged `[skip ci]` branches from Codex/Dot (fees, attendance workbench, prepared messages, campus change brief, design directions) unreviewed.
+6. **Tests (final commit, fresh DB, CI order).** lint ✓, typecheck ✓, PostgreSQL 49/49, build ✓, Chromium 24/24, tutor 1/1. Audit crawl: 8 personas, 421 page loads, 0 errors/overflow/axe violations; 482 cross-role/tenant/forged requests correctly 404. Axe after redesign: light 88 pages, dark phone 74 pages, 0 violations.
+7. **Evidence.** `docs/evidence/engineering-audit-2026-11-27/` (before), `docs/evidence/design-bible-slice-2026-11-27/` (after: Student Today light/dark/phone, AURA, faculty, timetable).
+8. **UI/UX vs Design Bible.** Done: Bible palette + dark theme via tokens, sans display type with editorial serif only in hero, violet active states, violet next-class hero, attendance ring with exact counts/target tick, per-course target bars with "attend next N", student dock (Today, Timetable, raised AURA, CLUBVERSE, More), AURA action capsule, Board 03 timetable (segmented, date strip, time rail, explicit states). Not done: chart kit beyond ring/bars, command palette, bottom sheets, card→detail shared transitions, spring motion, Orbit entry/OTP, faculty/HOD/principal/admin visual passes, empty-state illustrations, logo (file not supplied).
+9. **AURA.** Request state machine with nonce idempotency and rate limits → deterministic router → typed capabilities over domain services → optional Anthropic structured output (enable flag, key, institution allowlist, per-model price, per-call/daily/total caps, user consent) → event preview/confirm via CLUBVERSE. No worker, scheduler, outbox, retrieval/citations, multi-step orchestration; one agent (event planner). No real inference ever executed.
+10. **Weaknesses.** No background execution means no real automation yet; no shared component library or chart primitives (being built incrementally); duplicated AI ledgers; seed/fixture brittleness; registry statuses hand-maintained.
+11. **Environment.** Ephemeral Linux container, Node 22 (Node 24 via npx), embedded PostgreSQL, headless Chromium, GitHub via gh (PRs/push OK; deployments API blocked), no Anthropic key, no Vercel/Supabase/Render/Neon access used. Ponytail 5.3.3 installed in this container only.
+12. **Decisions needing review.** (a) Bible violet identity supersedes merged forest-green "Living Atmosphere" — I assumed yes. (b) "Learn" dock label withheld until a learning studio exists (shows "Timetable"). (c) Classes-needed uses equal weighting and planning targets only; eligibility stays policy-owned. (d) Ring/bars hand-built SVG instead of a chart library until density requires ECharts.
+13. **Recommended architecture.** Keep monolith/schema/services. Add: shared primitives + SVG chart kit with data contracts; transactional outbox + one durable worker (Render or cron) for reminders, deadline sync, attendance recalculation, request routing; unify AI provider/ledger; retrieval with citations over permitted records; agents as configurations of one governed runtime. One authoritative Postgres (Neon or Supabase, not both).
+14. **Work packages (dependency order).** WP1 chart kit + metric card contract → WP2 faculty/HOD/principal visual passes on real data → WP3 outbox/worker + notifications + first automations with baseline minutes → WP4 AURA provider unification + retrieval/citations + agent registry → WP5 personal learning (study planner, quiz engine) → WP6 transport simulation (labelled) → WP7 sports/careers → WP8 invention prototypes with baselines. Parallel-safe: WP1 ∥ WP3; WP4 after WP3.
+15. **Questions for you.** (1) Confirm palette supersession and logo source. (2) Which unmerged Codex/Dot branches should be integrated vs retired? (3) Neon vs Supabase as the single primary, given Better Auth stays? (4) Approve an Anthropic smoke-test cap (≤ $1) or keep fixture-only? (5) Baseline method for the 90% automation metric: which 5 workflows and who times them? (6) Is a worker on Render Free acceptable for the pilot, or cron on the web host?
+16. **What I need for a precise mandate.** Answers to §15, priority order of WP1–WP8, acceptance rubric per board (Bible score ≥4 per dimension), and whether to open a PR from this branch now or continue stacking packages.
+
+## Addendum — after Backend Blueprint vol. 03 (27 Nov 2026)
+- **Built:** durable automation (blueprint package 4). Transactional outbox via a trigger on the existing `audit_event`, leased worker (`npm run worker`), 3 deterministic L3 rules (assignment published, result published, request routed), student and admin inboxes, Automation Centre with pause/resume/retry and honest worker status. Also chart kit primitive `SegmentedBar` on faculty, HOD and principal screens.
+- **Tests:** PostgreSQL+unit 55/55, Chromium 26/26, tutor 1/1, lint/typecheck/build ✓. Local and fictional only; not hosted.
+- **90% metric:** instrumented but not measured. Baselines are NULL by design until consented timing exists.
+- **Decisions for you:** (1) which always-on host runs the worker (Render worker vs cron `--once`); (2) Neon vs Supabase (code is provider-neutral); (3) which 5 workflows to time for baselines; (4) next package: scheduled reminders (deadline T-24h) and the reusable workflow engine for office requests, or the faculty/HOD visual passes.
+
+## Addendum 2 — after the independent review mandate (27 Nov 2026)
+- **PR:** draft obsidianlabsglobal-code/College-os-SIT#17 from `audit/nexus-engineering-audit`. Not merged.
+- **Recovered:** all ten Codex/Dot branches, via their two tips (fees chain and prepared-messages chain), in the violet identity. Migrations reconciled by filename/checksum; fresh and upgrade paths verified.
+- **Hardened automation:** tenant FKs, read-time access re-checks, paused/disabled/cancel/defer semantics, audited operator actions, `nexus_worker` role, LISTEN + adaptive polling, job health vs worker liveness, sanitized errors, versioned handlers, concurrency-safe fencing (3 parallel workers tested).
+- **New workflows:** T-24h reminders, timetable change notices, teacher attendance summaries, request follow-up/escalation. Not yet done: periodic reports, the office workflow engine.
+- **90%:** instrumented for 5 workflows. Only labelled synthetic data exists; real baselines need authorized participants.
+- **Evidence-linked traceability:** 58 functionally tested (local) with per-file evidence at `da0ee07`; 5 Tested claims have no test (CR-001, CR-006, DH-015, LE-007, AD-035).
+- **Tests (fresh DB):** 69/69 PostgreSQL+unit, 31/31 Chromium, 1/1 tutor, lint/typecheck/build ✓.
+- **Prepared, not provisioned:** Render worker/cron example; $1 AURA smoke-test plan.
+- **Needs you:** approval to spend on a Render worker or cron; Supabase project access when ready; Anthropic key and cap; authorized participants for real baselines; whether to write tests for the 5 unlinked Tested claims or downgrade them in the registry.
+
+## Addendum 3 — progress push (27 Nov 2026, commit 66574f2)
+
+Built and tested locally with fictional data:
+- HOD and principal boards backed by records.
+- Accountable request ownership with an assignment notification.
+- Admin audit viewer (metadata only).
+- 30-day operations report.
+- Student assessment history.
+- Linked tests for the five "Tested" IDs that previously had no linked test.
+
+Evidence:
+- Fresh-DB CI run: 81/81 PostgreSQL and unit tests, 33/33 Chromium, 1/1 tutor.
+- Traceability: 69 tested (local), 14 partial, 376 missing of 480.
+- Screenshots in `docs/evidence/boards-2026-11-27/`.
+
+Nothing is hosted, merged or user-validated. Founder dependencies are unchanged: Render spend, Supabase access, an Anthropic key and cap, real baseline participants, and merge authorization.

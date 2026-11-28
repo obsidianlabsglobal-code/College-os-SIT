@@ -4,7 +4,7 @@ import { z } from "zod";
 import { auth } from "./auth";
 import { db } from "./db";
 
-export type Role = "student" | "faculty" | "hod" | "admin" | "principal";
+export type Role = "student" | "faculty" | "hod" | "admin" | "principal" | "transport" | "driver";
 export type Scope = { institution: string; account: string; role: Role };
 
 export async function account() {

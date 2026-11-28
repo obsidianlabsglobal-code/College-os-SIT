@@ -1,3 +1,4 @@
+// covers: ID-004, CR-001, CR-005, CR-006
 import "../scripts/environment";
 import assert from "node:assert/strict";
 import { test,before,after } from "node:test";
@@ -52,4 +53,23 @@ test("reviewed opportunities have scoped publication, date and category filters,
   assert.equal((await opportunities(student,filter)).rows.length,0);
   assert.equal(await openOpportunityCount(student),initialCount);
   assert.equal((await opportunities(admin,filter)).rows.find(r=>r.id===expired)?.status,"Expired");
+});
+
+test("students discover verified internships and compare competition requirements by type",async()=>{
+  const admin=actors.get("admin")!, student=actors.get("student")!, tenant=actors.get("tenant")!;
+  const tag=randomUUID();
+  const base={operation:"publish",sponsor:"Example Labs",source:"https://example.org/listing",verified:"on",deadline:"2099-06-01"};
+  const listings=[
+    {...base,id:randomUUID(),kind:"internship",title:`Fictional internship ${tag}`,eligibility:"Second-year students"},
+    {...base,id:randomUUID(),kind:"competition",title:`Fictional hackathon ${tag}`,eligibility:"Teams of 2 to 4 · prototype required",deadline:"2099-03-01"},
+    {...base,id:randomUUID(),kind:"competition",title:`Fictional design contest ${tag}`,eligibility:"Individual entry · portfolio required"},
+  ];
+  for (const listing of listings) await changeOpportunity(admin,listing);
+  const internships=(await opportunities(student,{query:tag,page:1,kind:"internship"})).rows;
+  assert.deepEqual(internships.map(r=>r.title),[listings[0].title]);
+  const competitions=(await opportunities(student,{query:tag,page:1,kind:"competition"})).rows;
+  assert.deepEqual(competitions.map(r=>r.title),[listings[1].title,listings[2].title],"ordered by closing date for comparison");
+  assert.deepEqual(competitions.map(r=>r.eligibility),[listings[1].eligibility,listings[2].eligibility]);
+  assert.equal((await opportunities(tenant,{query:tag,page:1})).rows.length,0);
+  for (const listing of listings) await changeOpportunity(admin,{operation:"withdraw",id:listing.id,reason:"Test cleanup"});
 });

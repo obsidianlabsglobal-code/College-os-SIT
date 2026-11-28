@@ -25,7 +25,7 @@ BEGIN
     RAISE EXCEPTION 'Use the dedicated fictional NEXUS database as its approved owner';
   END IF;
   IF NOT pg_try_advisory_xact_lock(607146) THEN RAISE EXCEPTION 'Another NEXUS setup operation is active'; END IF;
-  IF (SELECT count(*) FROM schema_migration) <> 16
+  IF NOT EXISTS (SELECT 1 FROM schema_migration WHERE name='014_opportunity_directory.sql')
      OR (SELECT count(*) FROM institution) <> 2
      OR NOT EXISTS (SELECT 1 FROM institution WHERE id=campus AND name='Northfield Institute · Fictional demo')
      OR NOT EXISTS (SELECT 1 FROM institution WHERE id=other_campus AND name='Westhaven College · Fictional demo')
