@@ -94,7 +94,7 @@ Students need a single route from discovery to action. From a student workspace 
 | ID | Capability | Functional workflow or acceptance outcome | Status | Evidence |
 | --- | --- | --- | --- | --- |
 | SL-001 | CLUBVERSE discovery | Discover recognized communities and review joining policy. | Tested | C |
-| SL-002 | Sports participation | Find eligible teams and trials; see sports specialization. | Proposed | F |
+| SL-002 | Sports participation | Find eligible teams and trials; see sports specialization. | Tested (sports teams with the student's eligibility and trial requests) | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
 | SL-003 | Cultural events | Find productions, rehearsals and participation opportunities. | Proposed | F |
 | SL-004 | Academic societies | Discover recognized subject communities and join. | Proposed | F |
 | SL-005 | Volunteering | Discover service activities and track verified contributions. | Proposed | F |
@@ -126,7 +126,7 @@ Faculty need to organize teaching and evaluation by assigned offering. Select as
 | FC-007 | Assignment drafting and publication | Create private draft, attach instructions and publish to assigned offering. | Tested | R |
 | FC-008 | Assessment creation | Prepare assessment instruments against approved concepts. | Tested (draft assignment composed from banked question versions; no concept alignment) | db/025, lib/question-bank.ts, app/questions; tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |
 | FC-009 | Question bank | Version reusable questions with controlled visibility. | Tested | db/025, lib/question-bank.ts, app/questions; tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |
-| FC-010 | Rubrics | Define criteria, score dimensions and feedback; existing free-text rubric is narrower. | Proposed | F |
+| FC-010 | Rubrics | Define criteria, score dimensions and feedback; existing free-text rubric is narrower. | Tested | db/074, lib/rubrics.ts, lib/assignments.ts gradeIn, app/assignments/[id]; tests/rubrics.test.ts, tests/rubrics.e2e.ts |
 | FC-011 | Evaluation queues | Find ungraded work across assigned courses and prioritize review. | Tested | FQ; ordering by age or deadline only, no priority model |
 | FC-012 | Grade publication and corrections | Save draft, explicitly publish, then revise with reason and history. | Tested | R |
 | FC-013 | Feedback drafting | Prepare and save human-authored feedback before publication. | Tested | R |
@@ -200,7 +200,7 @@ Principal and authorized leaders need defensible institution-level decisions. Re
 | LE-011 | Institutional improvement planning | Measure progress and actions against approved plans. | Tested (open, overdue and on-time measures over owned actions) | db/023, lib/improvement.ts, app/improvement; tests/exams-improvement.test.ts, tests/exams-improvement.e2e.ts |
 | LE-012 | Research and innovation overview | Review disclosure-approved activity and outcomes. | Tested | db/026, lib/faculty-records.ts, app/growth; tests/growth-operations.test.ts, tests/growth-operations.e2e.ts |
 | LE-013 | Industry partnerships | Track approved agreements and responsibilities. | Proposed | F |
-| LE-014 | Placement performance | Review verified and appropriately aggregated outcomes. | Proposed | F |
+| LE-014 | Placement performance | Review verified and appropriately aggregated outcomes. | Tested | db/032, lib/careers.ts placementOutcomes, app/careers; tests/careers.test.ts, tests/careers.e2e.ts |
 | LE-015 | Campus operations | Inspect critical issues and verified resolutions. | Tested | lib/reporting.ts campusOperations, app/leadership/boards.tsx; tests/growth-operations.test.ts, tests/growth-operations.e2e.ts |
 | LE-016 | Transport oversight | Review authorized aggregate service health. | Proposed | F |
 | LE-017 | Accreditation evidence | Review approved evidence and provenance for applicable criteria. | Proposed | F |
@@ -257,15 +257,15 @@ Institution administrators, academic office and designated specialists manage ac
 | AD-022 | Audit viewer | Search authorized event metadata without exposing private payloads. | Tested | lib/reporting.ts auditEvents, app/audit; tests/operations.test.ts, tests/operations.e2e.ts |
 | AD-023 | Staff notifications | Deliver scoped work updates with retry and acknowledgement. | Tested (in-app only) | Request routing to active admins via outbox job; retry, dedupe, read acknowledgement. tests/automation.test.ts, tests/automation.e2e.ts. No email/WhatsApp channel. |
 | AD-024 | Operational reporting | Measure queue age, service resolution, rework and reopenings. | Tested | lib/reporting.ts operationsReport latestDigest, lib/automation.ts deliverDigests; tests/operations.test.ts, tests/operations.e2e.ts, tests/cases.test.ts, tests/cases.e2e.ts, tests/work-closing.test.ts, tests/work-closing.e2e.ts |
-| AD-025 | Library desk | Authorize circulation, search and external library integration. | Proposed | F |
-| AD-026 | Laboratory staff | Manage inventory, access, maintenance and equipment issues. | Proposed | F |
+| AD-025 | Library desk | Authorize circulation, search and external library integration. | Tested (holdings, circulation and returns with condition; no external library integration) | db/033, lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
+| AD-026 | Laboratory staff | Manage inventory, access, maintenance and equipment issues. | Tested (equipment custody, lab booking approval and repairs through cases; no separate lab-staff role) | db/033, lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
 | AD-027 | Research administration | Track grants, approved disclosures and project milestones. | Proposed | F |
-| AD-028 | Placement office | Manage drives, employers, eligibility and graduate outcomes. | Proposed | F |
+| AD-028 | Placement office | Manage drives, employers, eligibility and graduate outcomes. | Tested (placement drives as verified listings with department eligibility, applicants and recorded outcomes; no employer records) | db/032, lib/careers.ts, app/careers; tests/careers.test.ts, tests/careers.e2e.ts |
 | AD-029 | Examination cell | Allocate rooms and authorized invigilators. | Tested | db/023, lib/exams.ts, app/exams; tests/exams-improvement.test.ts, tests/exams-improvement.e2e.ts |
 | AD-030 | Finance office | Review authorized invoices, approvals and reconciliation. | Proposed | F |
 | AD-031 | Facilities office | Assign and verify estate service requests. | Tested | db/025, lib/cases.ts, app/cases; tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |
 | AD-032 | Maintenance staff | Record repair evidence and reopen unresolved work. | Tested | db/025, lib/cases.ts, app/cases; tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |
-| AD-033 | Sports coordination | Coordinate trials, venues, teams and travel approvals. | Proposed | F |
+| AD-033 | Sports coordination | Coordinate trials, venues, teams and travel approvals. | Tested (office-run teams, coaches, venues, fixtures and officials; no travel approvals) | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
 | AD-034 | Transport administration | Assign routes, operators and service responsibilities. | Designed | T |
 | AD-035 | Controlled announcements | Draft and publish notices scoped to the allowed institutional audience. | Tested | R; tests/notices.test.ts |
 

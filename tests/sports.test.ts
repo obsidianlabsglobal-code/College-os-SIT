@@ -1,4 +1,4 @@
-// covers: SP-001, SP-003, SP-004, SP-005, SP-006, SP-007, SP-008, SP-009, SP-010, SP-011, SP-015, SP-016, SP-017, SP-018, SP-019, SP-020, SP-021, SP-023, ID-004, ID-006
+// covers: SL-002, AD-033, SP-001, SP-003, SP-004, SP-005, SP-006, SP-007, SP-008, SP-009, SP-010, SP-011, SP-015, SP-016, SP-017, SP-018, SP-019, SP-020, SP-021, SP-023, ID-004, ID-006
 import "../scripts/environment";
 import assert from "node:assert/strict";
 import { test, before, after } from "node:test";

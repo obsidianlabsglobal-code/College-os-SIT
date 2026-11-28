@@ -12,6 +12,7 @@ import Link from "next/link";
 import { assignmentProgress, evaluationLabels, evaluationState, nextAwaitingEvaluation } from "../../../lib/faculty";
 import { actionLabels, href, plural } from "../../faculty/format";
 import { ProgressLine } from "../../faculty/progress-line";
+import { rubric, rubricScores } from "../../../lib/rubrics";
 
 // Above this many submissions the faculty view lists submissions and grades one at a time.
 const inlineGradingLimit = 20;
@@ -37,6 +38,9 @@ export default async function Detail({ params, searchParams }: { params: Promise
     files(current, id, undefined, compact ? [] : selectedIds),
   ]);
   if (focus && !received.length) notFound();
+  const [criteria, scoreRows] = await Promise.all([rubric(current, id), Promise.all(received.map(r => rubricScores(current, r.id).then(rows => [r.id, rows] as const)))]);
+  const scores = new Map(scoreRows);
+  const graded = (summary?.published ?? 0) > 0 || received.some(r => r.draft || r.published);
   const query = workspaceQuery(current);
   const deadline = new Intl.DateTimeFormat("en-IN", { dateStyle: "long", timeStyle: "short", timeZone: assignment.timezone }).format(assignment.deadline);
   const fileLinks = (submissionId: string | null) => attachments.filter(file => file.submission_id === submissionId).map(file =>
@@ -52,6 +56,14 @@ export default async function Detail({ params, searchParams }: { params: Promise
         <dl><dt>Deadline</dt><dd>{deadline} ({assignment.timezone})</dd><dt>Maximum marks</dt><dd>{assignment.max_marks}</dd></dl>
         <div><h2>Instructions</h2><p className="prose-text">{assignment.description}</p></div>
         {assignment.rubric && <div><h2>Rubric</h2><p className="prose-text">{assignment.rubric}</p></div>}
+        {criteria.length > 0 && <div className="stack"><h2>Rubric criteria</h2><table className="standings"><caption className="sr-only">Rubric criteria</caption>
+          <thead><tr><th scope="col">Criterion</th><th scope="col">Points</th></tr></thead>
+          <tbody>{criteria.map(c => <tr key={c.id}><th scope="row">{c.name}{c.descriptor && <span className="meta"> · {c.descriptor}</span>}</th><td>{c.points}</td></tr>)}</tbody></table></div>}
+        {isFaculty && !graded && <details><summary>{criteria.length ? "Change rubric criteria" : "Add rubric criteria"}</summary>
+          <ActionForm action={workflow} context={current} operation="rubric" label="Save criteria">{assignmentField}
+            <p className="meta">One criterion per line: <code>Name | points | what earns full points</code>. Points must add up to {assignment.max_marks}. Leave empty to remove the rubric.</p>
+            <label>Criteria<textarea name="criteria" rows={5} defaultValue={criteria.map(c => `${c.name} | ${c.points}${c.descriptor ? ` | ${c.descriptor}` : ""}`).join("\n")} /></label>
+          </ActionForm></details>}
         {fileLinks(null)}
         {isFaculty && !assignment.published_at && <ActionForm action={workflow} context={current} operation="publish" label="Publish assignment">{assignmentField}</ActionForm>}
       </section>
@@ -93,11 +105,18 @@ export default async function Detail({ params, searchParams }: { params: Promise
             <p className="meta">{new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: assignment.timezone }).format(submission.submitted_at)}</p>
             {submission.body && <p className="prose-text">{submission.body}</p>}
             {fileLinks(submission.id)}
-            {submission.published ? <div><h3>Published result · {submission.published.marks}/{assignment.max_marks}</h3><p className="prose-text">{submission.published.feedback}</p></div> : !isFaculty && <p className="meta">Feedback has yet to be published.</p>}
+            {submission.published ? <div><h3>Published result · {submission.published.marks}/{assignment.max_marks}</h3><p className="prose-text">{submission.published.feedback}</p>
+              {!isFaculty && (scores.get(submission.id) ?? []).length > 0 && <ul className="items" aria-label="Score by criterion">{scores.get(submission.id)!.map(c =>
+                <li key={c.criterion_id}>{c.name} · {c.points}/{c.max}{c.comment ? ` · ${c.comment}` : ""}</li>)}</ul>}</div> : !isFaculty && <p className="meta">Feedback has yet to be published.</p>}
             {isFaculty && <>
               <ActionForm key={`draft-${revision}-${!!submission.draft}`} action={workflow} context={current} operation="grade" label={submission.published ? "Save correction draft" : "Save grade draft"}>
                 {gradeFields}
-                <label>Marks<input name="marks" type="number" min={0} max={assignment.max_marks} defaultValue={submission.draft?.marks ?? submission.published?.marks} required /></label>
+                {criteria.length ? <fieldset><legend>Score by criterion</legend>{criteria.map(c => {
+                  const prior = scores.get(submission.id)?.find(x => x.criterion_id === c.id);
+                  return <div key={c.id} className="stack"><label>{c.name} (out of {c.points})<input name={`score:${c.id}`} type="number" min={0} max={c.points} defaultValue={prior?.points} required /></label>
+                    <label>Comment on {c.name} (optional)<input name={`comment:${c.id}`} maxLength={1000} defaultValue={prior?.comment} /></label></div>;
+                })}</fieldset>
+                  : <label>Marks<input name="marks" type="number" min={0} max={assignment.max_marks} defaultValue={submission.draft?.marks ?? submission.published?.marks} required /></label>}
                 <label>Feedback<textarea name="feedback" defaultValue={submission.draft?.feedback ?? submission.published?.feedback} maxLength={8000} required /></label>
                 {submission.published && <label>Correction reason<input name="reason" defaultValue={submission.draft?.reason ?? ""} maxLength={1000} required /></label>}
               </ActionForm>
