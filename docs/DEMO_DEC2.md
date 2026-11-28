@@ -167,7 +167,7 @@ Open a second browser profile or private window for the public verification page
 - Sign in as `tenant` (Westhaven College). Show that none of Northfield's students, outcomes, sports or applications appear.
 
 ## What to say about status
-- The whole script, transport opening included, was rehearsed automatically on a clean demo database (`tests/demo/dec2.rehearsal.ts`, passed on 28 Nov at 11:35 UTC).
+- The whole script, transport opening included, was rehearsed automatically on a clean demo database (`tests/demo/dec2.rehearsal.ts`, passed on 28 Nov at about 11:17 UTC).
 - Transport is simulated: no phone has reported a real bus position, and live tracking, push alerts and map tiles are off until approved. Everything shown is also functionally tested on a fresh local PostgreSQL database. The latest run is recorded in `docs/NEXUS_ENGINEERING_LEDGER.md` and `docs/evidence/test-run.json`.
 - It is not hosted, not connected to SIT systems, and not validated with SIT staff or students.
 - AURA answers from records; no live AI model is connected until a key with a spending cap is approved.
