@@ -1,4 +1,4 @@
-// covers: ID-012
+// covers: ID-012, ID-009
 import "../scripts/environment";
 import { expect, test } from "@playwright/test";
 import { randomUUID } from "node:crypto";
@@ -25,4 +25,7 @@ test("the office checks a student sheet and admits the clean rows", async ({ pag
   await expect(page.getByRole("heading", { name: "1 student rows ready" })).toBeVisible();
   await page.getByRole("button", { name: "Add 1 students" }).click();
   await expect(page.getByRole("heading", { name: "Students imported" })).toBeVisible();
+  await page.goto(`/admin/pilot-health?institution=${f.institution}&role=admin`);
+  await expect(page.getByRole("heading", { name: "Pilot health" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Pilot summary" })).toContainText("Waiting for approval");
 });

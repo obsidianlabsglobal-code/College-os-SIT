@@ -8,6 +8,8 @@ const CODES_PER_EMAIL_PER_HOUR = 5;
 
 export const auth = betterAuth({
   database: db,
+  // Shared phones: a session lasts 3 days and is renewed at most daily while in use. Settings offers "sign out everywhere".
+  session: { expiresIn: 3 * 24 * 3600, updateAge: 24 * 3600 },
   emailAndPassword: { enabled: true, disableSignUp: true },
   advanced: {
     ipAddress: {

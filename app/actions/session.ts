@@ -3,6 +3,11 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "../../lib/auth";
+import { db } from "../../lib/db";
+
+/** Counted for the office's pilot health page; never shown to the person signing in. */
+const recordFailure = (email: string, method: "password" | "code") =>
+  db.query("INSERT INTO sign_in_failure (email,method) VALUES ($1,$2)", [email.trim().toLowerCase().slice(0, 254), method]).catch(() => undefined);
 import type { ActionState } from "./workflow";
 
 async function forwardCookies(response: Response) {
@@ -31,7 +36,10 @@ export async function signIn(_state: ActionState, form: FormData): Promise<Actio
       headers: requestHeaders,
       body: JSON.stringify({ email, password }),
     }));
-    if (!response.ok) return { error: response.status === 429 ? "Too many attempts. Try again shortly." : "Sign-in failed. Check your email and password." };
+    if (!response.ok) {
+      await recordFailure(email, "password");
+      return { error: response.status === 429 ? "Too many attempts. Try again shortly." : "Sign-in failed. Check your email and password." };
+    }
     await forwardCookies(response);
   } catch {
     return { error: "Sign-in is temporarily unavailable." };
@@ -75,12 +83,23 @@ export async function signInWithCode(_state: ActionState, form: FormData): Promi
   try {
     const response = await authPost("/sign-in/email-otp", { email, otp: otp.trim() });
     if (response.status === 429) return { error: "Too many attempts. Try again shortly." };
-    if (!response.ok) return { error: "That code is wrong or has expired. Ask for a new one." };
+    if (!response.ok) {
+      await recordFailure(email, "code");
+      return { error: "That code is wrong or has expired. Ask for a new one." };
+    }
     await forwardCookies(response);
   } catch {
     return { error: "Sign-in is temporarily unavailable." };
   }
   redirect(safeNext(form.get("next")) ?? "/");
+}
+
+/** Shared phones: end every session of this account, on every device. */
+export async function signOutEverywhere() {
+  await auth.api.revokeSessions({ headers: await headers() }).catch(() => undefined);
+  const response = await auth.api.signOut({ headers: await headers(), asResponse: true });
+  await forwardCookies(response);
+  redirect("/login");
 }
 
 export async function signOut() {

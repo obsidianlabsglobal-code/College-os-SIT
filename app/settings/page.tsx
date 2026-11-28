@@ -7,6 +7,7 @@ import { preferences } from "../../lib/preferences";
 import { roleKinds } from "../../lib/automation";
 import { pushPublicKey } from "../../lib/push";
 import { PushToggle } from "../experience/push-toggle";
+import { signOutEverywhere } from "../actions/session";
 
 const kindLabel: Record<string, string> = { assignment: "New assignments", reminder: "Due-date reminders", result: "Published results", class: "Class changes",
   correction: "Attendance corrections", case: "Cases and requests", attendance: "Attendance to record", request: "Service requests", followup: "Request follow-ups", escalation: "Escalations", sport: "Team selection decisions" };
@@ -34,6 +35,11 @@ export default async function Settings({ searchParams }: { searchParams: Promise
         </fieldset>
       </ActionForm>
       <p className="meta">Muted notifications are hidden from your inbox; the records themselves are unchanged. Email and text messages are not sent by NEXUS yet.</p>
+    </section>
+    <section className="panel stack" aria-labelledby="devices-title">
+      <h2 id="devices-title">Shared or lost phone</h2>
+      <p className="meta">Sessions end by themselves after 3 days. If you signed in on a shared or lost phone, end every session now; you will sign in again with an email code.</p>
+      <form action={signOutEverywhere}><button className="button secondary">End sessions on all devices</button></form>
     </section>
     {pushPublicKey() && <section className="panel stack" aria-labelledby="phone-alerts">
       <h2 id="phone-alerts">Phone alerts</h2>

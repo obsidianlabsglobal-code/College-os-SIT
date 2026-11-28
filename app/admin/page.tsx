@@ -101,7 +101,8 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
       <section className="panel stack" aria-labelledby="pilot-onboarding">
         <h2 id="pilot-onboarding">People</h2>
         <p className="meta">Add teachers from the college’s sheet; they then sign in with an email code. Students ask to join through the college’s join link and their section’s teachers approve them.</p>
-        <p className="row"><Link className="button secondary" href={`/admin/roster-import?${workspaceQuery(current)}`}>Import teachers</Link>
+        <p className="row"><Link className="button secondary" href={`/admin/roster-import?${workspaceQuery(current)}`}>Import teachers and students</Link>
+          <Link className="button secondary" href={`/admin/pilot-health?${workspaceQuery(current)}`}>Pilot health</Link>
           <span className="meta">Student join link: <code>/join/student?institution={current.institution}</code></span></p>
       </section>
       {consent && <section className="panel stack" aria-labelledby="privacy-notice">
