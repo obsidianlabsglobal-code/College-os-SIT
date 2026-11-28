@@ -798,3 +798,17 @@ Observed at bd85542, fresh local PostgreSQL in CI order, with the transport test
 - migrate ×2 + seed, lint, typecheck and build passed.
 - 197/197 PostgreSQL and unit tests, 72/72 Chromium, 1/1 tutor.
 - Matrix: 135 tested, 91 partial, 237 missing (484 rows), 8 unverified, 13 blocked.
+
+**Phone and laptop sweep (5014253), ID-015:**
+- `tests/layout-sweep.e2e.ts` signs in as student, faculty, HOD and admin. Each of their main pages must answer 200 and must not scroll sideways at 390 px and 1366×768; the HOD and office pages are also checked at 1920.
+  - Student pages include home, timetable, transport, CLUBVERSE, notices, cases, search and settings.
+  - Faculty pages include home, timetable, grading, student approvals and facilities.
+  - Office pages include pilot health, students, facilities and cases.
+- No overflow was found. On laptop, pages have side navigation and the full-width header with search.
+- Not done: two-column queue and detail layouts on laptop.
+- Screenshots: `docs/evidence/layout-2026-11-28/`.
+
+Observed at 5014253, fresh local PostgreSQL in CI order, with the transport test settings:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 197/197 PostgreSQL and unit tests, 76/76 Chromium, 1/1 tutor.
+- Matrix: 135 tested, 91 partial, 237 missing, 8 unverified, 13 blocked.
