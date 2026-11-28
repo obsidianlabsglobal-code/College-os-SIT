@@ -3,7 +3,6 @@ import "../scripts/environment";
 import {expect,test} from "@playwright/test";
 import {randomUUID} from "node:crypto";
 import {Pool} from "pg";
-import {db} from "../lib/db";
 import {changeTransportCatalog,transportCatalog} from "../lib/transport/catalog";
 import {changeTransportTrip} from "../lib/transport/trips";
 import {boardDisplay,issueBoardCredential} from "../lib/transport/boarding";
@@ -62,6 +61,6 @@ test("a simulated bus screen shows a trip QR and the student records boarding at
     if(trip)await owner.query("DELETE FROM transport_trip WHERE institution_id=$1 AND id=$2",[f.institution,trip]);
     if(vehicle)await owner.query("DELETE FROM transport_boarding_device WHERE institution_id=$1 AND vehicle_id=$2",[f.institution,vehicle]);
     await clearTransportFixture(owner,[routeCode],[vehicleName],fixture);
-    await owner.end();await db.end();
+    await owner.end();
   }
 });
