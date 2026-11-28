@@ -13,9 +13,9 @@ No row is Hosted and verified, Visually accepted or User-validated.
 | Functionally tested (local) | 133 |
 | Tested claim without linked evidence | 0 |
 | Implemented but unverified | 8 |
-| Partially implemented | 76 |
+| Partially implemented | 79 |
 | Blocked by an actual dependency | 13 |
-| Missing | 250 |
+| Missing | 247 |
 | Hosted and verified | 0 |
 | User-validated | 0 |
 | **Total** | **480** |
@@ -29,7 +29,7 @@ No row is Hosted and verified, Visually accepted or User-validated.
 | Student Life · personal learning | 0 | 0 | 0 | 0 | 0 | 16 |
 | Student Life · campus and growth | 5 | 0 | 0 | 7 | 0 | 5 |
 | Faculty Intelligence OS | 19 | 0 | 0 | 5 | 0 | 5 |
-| Department OS | 16 | 0 | 0 | 4 | 0 | 7 |
+| Department OS | 16 | 0 | 0 | 7 | 0 | 4 |
 | Institutional Leadership OS | 11 | 0 | 0 | 4 | 0 | 5 |
 | Guardian experience | 0 | 0 | 0 | 0 | 12 | 0 |
 | Administration and specialist staff | 18 | 0 | 0 | 11 | 0 | 6 |
@@ -168,10 +168,10 @@ No row is Hosted and verified, Visually accepted or User-validated.
 | DH-015 | Department notices | Tested | Functionally tested (local) | `tests/notices.test.ts` | R; tests/notices.test.ts |
 | DH-016 | Faculty development | Tested (HOD verification of development records; no training coordination) | Partially implemented | `tests/growth-operations.e2e.ts`, `tests/growth-operations.test.ts` | db/026, lib/faculty-records.ts, app/growth; tests/growth-operations.test.ts, tests/growth-operations.e2e.ts |
 | DH-017 | Research projects | Tested | Functionally tested (local) | `tests/growth-operations.e2e.ts`, `tests/growth-operations.test.ts` | db/026, lib/faculty-records.ts, app/growth; tests/growth-operations.test.ts, tests/growth-operations.e2e.ts |
-| DH-018 | Laboratory resources | Implemented (room-use totals on /facilities; requests use the facility booking flow) | Missing | `tests/campus-operations.test.ts` | F |
-| DH-019 | Equipment status | Implemented (state, due date and last condition; no borrower names) | Missing | `tests/campus-operations.test.ts` | F |
+| DH-018 | Laboratory resources | Tested (room-use totals on /facilities; requests use the facility booking flow) | Partially implemented | `tests/campus-operations.test.ts` | lib/operations.ts, app/facilities; tests/campus-operations.test.ts |
+| DH-019 | Equipment status | Tested (state, due date and last condition; no borrower names; no maintenance schedule) | Partially implemented | `tests/campus-operations.test.ts` | lib/operations.ts, app/facilities; tests/campus-operations.test.ts |
 | DH-020 | Department clubs | Proposed | Missing | — | F |
-| DH-021 | Sports and activity oversight | Implemented (read-only overview of the department's teams) | Missing | `tests/sports.test.ts` | F |
+| DH-021 | Sports and activity oversight | Tested (read-only overview of the department's teams) | Partially implemented | `tests/sports.test.ts` | lib/sports.ts, app/sports; tests/sports.test.ts |
 | DH-022 | Department approvals | Tested | Functionally tested (local) | `tests/course-delivery.e2e.ts`, `tests/course-delivery.test.ts` | lib/course-delivery.ts, app/courses/[id], app/leadership/boards.tsx; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
 | DH-023 | Department service requests | Tested | Functionally tested (local) | `tests/policies-cases.test.ts` | db/025, lib/cases.ts, app/cases; tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |
 | DH-024 | Accreditation evidence | Proposed | Missing | — | F |

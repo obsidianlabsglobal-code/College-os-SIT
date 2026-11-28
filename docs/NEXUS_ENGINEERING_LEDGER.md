@@ -644,4 +644,4 @@ Observed at 11590e1, fresh local PostgreSQL in CI order:
 Observed at d1835ad, fresh local PostgreSQL in CI order:
 - migrate ×2 + seed, lint, typecheck and build passed.
 - 166/166 PostgreSQL and unit tests, 65/65 Chromium, 1/1 tutor.
-- Matrix: 133 tested, 76 partial, 250 missing, 8 unverified, 13 blocked. The three new rows are Implemented with a scope note, so they count as partial; the counts don't move because other rows also changed category.
+- Matrix: 133 tested, 79 partial, 247 missing, 8 unverified, 13 blocked. The three new rows are Tested with a scope note, so they count as partial.
