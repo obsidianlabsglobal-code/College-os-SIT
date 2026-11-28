@@ -128,7 +128,9 @@ export async function Chrome({ user, current, section = "/", children, skipConse
   if (current && current.role !== "principal") destinations.push("/facilities");
   if (current) destinations.push("/outcomes");
   if (current) destinations.push("/search", "/letters", "/support", "/settings");
-  if (current && transportBuilt) destinations.splice(1, 0, "/transport");
+  // Students get Transport in the dock (second); staff find it under More so it doesn't displace their dock items.
+  if (current?.role === "student" && transportBuilt) destinations.splice(1, 0, "/transport");
+  else if (current && transportBuilt) destinations.push("/transport");
   // Transport office and drivers see only what their work needs.
   if (current?.role === "transport" || current?.role === "driver") destinations.splice(0, destinations.length,
     ...(["/", ...(transportBuilt ? ["/transport" as const] : []), "/cases", "/notices", "/support", "/settings"] as Destination[]));
