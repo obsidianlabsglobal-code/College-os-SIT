@@ -11,9 +11,10 @@ import { fictionalTransportRoutes } from "../lib/transport/demo-fixtures";
 import { changeTransportTrip } from "../lib/transport/trips";
 import { acceptOsmAnd,acceptStockOsmAnd,issueTransportDevice,purgeTransportHistory,revokeTransportDevice,transportDevices } from "../lib/transport/telemetry";
 import { decodeOsmAnd } from "../lib/transport/osmand";
-import { clearTransportFixture,grantFakeTransportOffice } from "./transport-fixture";
+import { clearTransportFixture,grantFakeTransportOffice,scheduledTransportTestPool } from "./transport-fixture";
 import type { Scope } from "../lib/scope";
 const owner=new Pool({connectionString:process.env.MIGRATION_DATABASE_URL});
+const worker=scheduledTransportTestPool();
 const marker=randomUUID().slice(0,8),code="GPS-"+marker,title="Fictional GPS test "+marker;
 const priorLive=process.env.NEXUS_TRANSPORT_LIVE_ENABLED;
 let gate:Awaited<ReturnType<typeof grantFakeTransportOffice>>,office:Scope,rider:Scope,driver:string,driverGranted=false;
@@ -39,7 +40,7 @@ after(async()=>{
     if(vehicle)await owner.query("DELETE FROM transport_device WHERE institution_id=$1 AND vehicle_id=$2",[f.institution,vehicle]);
     if(driverGranted)await owner.query("DELETE FROM membership WHERE institution_id=$1 AND account_id=$2 AND role='driver'",[f.institution,driver]);
     if(gate)await clearTransportFixture(owner,[code],[title],gate);
-  }finally{await Promise.all([owner.end(),db.end()]);}
+  }finally{await Promise.all([owner.end(),db.end(),worker.end()]);}
 });
 test("OsmAnd form accepts documented timestamp and coordinate formats and converts default knots",()=>{
   const p=decodeOsmAnd(new URLSearchParams({deviceid:"fake-1",timestamp:"2026-11-28 08:00:00",location:"12.2,76.2",speed:"10",valid:"true",accuracy:"5"}));
@@ -92,7 +93,14 @@ test("device token, trip, ordering, revocation, plausibility, limit and seven-da
   assert.equal(await acceptOsmAnd(b.token,backupId,fix(20)),"rate-limited");
   const aged=await owner.query<{id:string}>(`INSERT INTO transport_position(institution_id,trip_id,vehicle_id,device_id,source,observed_at,latitude,longitude)
     VALUES ($1,$2,$3,$4,'live',clock_timestamp()-interval '169 hours',12.25,76.62) RETURNING id`,[f.institution,trip,vehicle,b.id]);
-  assert.equal(await purgeTransportHistory(office),1);
+  await assert.rejects(()=>purgeTransportHistory(rider), "manual purge requires the office role");
+  await assert.rejects(()=>db.query("SELECT * FROM public.transport_scheduled_maintenance()"),{code:"42501"});
+  await assert.rejects(()=>worker.query("SELECT latitude FROM transport_position"),{code:"42501"});
+  const sweep=async()=>Number((await worker.query("SELECT positions_removed FROM public.transport_scheduled_maintenance()")).rows[0].positions_removed);
+  assert.equal(await sweep(),1);
+  assert.equal(await sweep(),0);
+  assert.equal(await purgeTransportHistory(office),0);
+  assert.equal((await owner.query("SELECT 1 FROM transport_latest_position WHERE institution_id=$1 AND trip_id=$2",[f.institution,trip])).rowCount,1);
   assert.equal((await owner.query("SELECT 1 FROM transport_position WHERE institution_id=$1 AND id=$2",[f.institution,aged.rows[0].id])).rowCount,0);
   await changeTransportTrip(office,{operation:"complete-trip",trip});
   await owner.query("UPDATE transport_device SET rate_count=0 WHERE institution_id=$1 AND id=$2",[f.institution,b.id]);

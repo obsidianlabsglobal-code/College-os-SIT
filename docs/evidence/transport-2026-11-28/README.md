@@ -29,3 +29,8 @@ The QR browser test confirms the **display** and the signed payload submitted by
 - [Fictional rider boarding and estimated seat count](transport-rider-boarded-390.png)
 
 [Local transport handoff and outstanding integration requirements](../../TRANSPORT_LOCAL_HANDOFF.md).
+
+
+## Scheduled maintenance follow-up (migration 068)
+
+On a fresh loopback PostgreSQL database with fictional records: 54 migrations applied, repeat applied none, and the seed completed. The real one-shot CLI connected with the restricted worker login and reported zero work on a clean database. The focused transport suite passed **20/20**, including the real database function deleting an expired fix while preserving a recent latest fix, concurrent warning invocations creating one office message only, no early or repeat warnings, app role denied scheduler execution, and worker role denied reading raw coordinates. This is not evidence of a hosted schedule or delivery to a physical handset.

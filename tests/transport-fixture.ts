@@ -1,4 +1,4 @@
-import type { Pool } from "pg";
+import { Pool } from "pg";
 import { demoEmail, fixtures as f } from "../scripts/fixtures";
 export async function grantFakeTransportOffice(owner:Pool) {
   for(const v of [process.env.DATABASE_URL,process.env.MIGRATION_DATABASE_URL]) {
@@ -19,4 +19,15 @@ export async function clearTransportFixture(owner:Pool,codes:string[],vehicleTit
   await owner.query("DELETE FROM transport_route WHERE institution_id=$1 AND code=ANY($2)",args);
   await owner.query("DELETE FROM transport_vehicle WHERE institution_id=$1 AND label=ANY($2)",[f.institution,vehicleTitles]);
   if(office.granted) await owner.query("DELETE FROM membership WHERE institution_id=$1 AND account_id=$2 AND role='transport'",[f.institution,office.account]);
+}
+
+export function scheduledTransportTestPool() {
+  const migration = new URL(process.env.MIGRATION_DATABASE_URL!);
+  const worker = new URL(process.env.WORKER_DATABASE_URL!);
+  if (!["127.0.0.1", "localhost"].includes(worker.hostname) ||
+      worker.host !== migration.host || worker.pathname !== migration.pathname ||
+      worker.username !== "nexus_worker" || worker.search || worker.hash) {
+    throw new Error("Fictional loopback worker database required.");
+  }
+  return new Pool({ connectionString: worker.href });
 }
