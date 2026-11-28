@@ -9,6 +9,7 @@ import { account, scope, workspaceQuery } from "../../../lib/scope";
 import { clubView } from "../../../lib/club-views";
 import { eventExtras } from "../../../lib/club-events";
 import { clubNotices } from "../../../lib/club-notices";
+import { clubTasks } from "../../../lib/club-tasks";
 import { ActionForm } from "../../forms";
 import { clubEventAction } from "../../actions/club-events";
 import { ClubForm, EventFields, stateText } from "../controls";
@@ -40,7 +41,7 @@ export default async function ClubHome({ params,searchParams }: {
   const active = club.club_state === "active";
   const date = new Intl.DateTimeFormat("en-IN",{ dateStyle:"medium",timeStyle:"short",timeZone:club.timezone });
   const query = workspaceQuery(current);
-  const [extras,notices] = await Promise.all([eventExtras(current,id,events.map(event => event.id),officer),clubNotices(current,id)]);
+  const [extras,notices,tasks] = await Promise.all([eventExtras(current,id,events.map(event => event.id),officer),clubNotices(current,id),clubTasks(current,id)]);
   return <Chrome user={user} current={current} section="/clubverse">
     <ExperienceHeading title={club.name} context={club.category} parent={{ href:`/clubverse?${query}`,label:"CLUBVERSE" }} />
     <div className="grid">
@@ -74,6 +75,24 @@ export default async function ClubHome({ params,searchParams }: {
               <label>Notice<textarea name="body" required maxLength={4000} /></label>
               <label>Who sees it<select name="audience"><option value="members">Club members</option><option value="eligible">Everyone eligible for the club</option></select></label>
               <label>Show until<input type="date" name="expires" required /></label>
+            </ActionForm>
+          </details>}
+        </section>}
+        {member && <section className="panel stack" aria-labelledby="club-tasks">
+          <h2 id="club-tasks">Meeting decisions and tasks</h2>
+          {!tasks.length && <p>No open tasks.</p>}
+          <ul className="items">{tasks.map(task => <li key={task.id}>
+            <strong>{task.decision}</strong> <span className="meta">{task.owner} · due {task.due_on}{task.overdue ? " · overdue" : ""}{task.done ? " · done" : ""} · decided {task.decided_on}</span>
+            {!task.done && task.owner_id === current.account && <ActionForm action={clubEventAction} context={current} operation="task-done" label="Mark done" secondary>
+              <input type="hidden" name="club" value={id} /><input type="hidden" name="task" value={task.id} /></ActionForm>}
+          </li>)}</ul>
+          {officer && active && <details><summary>Record a decision</summary>
+            <ActionForm action={clubEventAction} context={current} operation="task" label="Add task">
+              <input type="hidden" name="club" value={id} />
+              <label>Meeting date<input type="date" name="decided" required /></label>
+              <label>Decision<input name="decision" required maxLength={500} /></label>
+              <label>Owner<select name="owner" required>{people.filter(p => p.state === "active").map(p => <option key={p.account_id} value={p.account_id}>{p.name}</option>)}</select></label>
+              <label>Due<input type="date" name="due" required /></label>
             </ActionForm>
           </details>}
         </section>}

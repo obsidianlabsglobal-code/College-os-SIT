@@ -321,7 +321,7 @@ Founders, eligible members, officers, faculty advisors and independent instituti
 | CL-044 | Event waitlist | Promote eligible participants in order as capacity opens. | Tested | db/076, lib/club-events.ts, app/clubverse/[id]; tests/club-events.test.ts, tests/club-events.e2e.ts |
 | CL-045 | Event volunteers | Assign shifts and duties without publishing unnecessary personal data. | Proposed | F |
 | CL-046 | Event feedback and outcomes | Collect feedback and publish an evidence-backed outcome report. | Tested (one rating and comment per registered student; anonymous summary for officers; no published outcome report) | db/076, lib/club-events.ts, app/clubverse/[id]; tests/club-events.test.ts |
-| CL-047 | Club meetings and tasks | Coordinate meeting decisions, owners and due dates. | Proposed | F |
+| CL-047 | Club meetings and tasks | Coordinate meeting decisions, owners and due dates. | Tested (decisions recorded as tasks with an owner and due date; no meeting scheduling or minutes for clubs) | db/079, lib/club-tasks.ts, app/clubverse/[id]; tests/club-tasks.test.ts, tests/club-events.e2e.ts |
 | CL-048 | Configurable recognition rules | Authorized staff version local recognition requirements. | Proposed | F |
 | CL-049 | Founding members | Record multiple founders and policy-compliant initial officer grants. | Proposed | F |
 | CL-050 | Approved expenditures | Link authorized spending evidence to budget decisions. | Proposed | F |

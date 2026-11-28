@@ -1,4 +1,4 @@
-// covers: CL-044, CL-046, CL-028, SL-003
+// covers: CL-044, CL-046, CL-028, SL-003, CL-047
 import "../scripts/environment";
 import { expect, test, type Page } from "@playwright/test";
 import { randomUUID } from "node:crypto";
@@ -66,6 +66,17 @@ test("a full event offers the waitlist, and a seat given up goes to the first pe
     await page.getByLabel("Show until").fill(new Date(Date.now() + 3 * 86400000).toLocaleDateString("sv-SE", { timeZone: "Asia/Kolkata" }));
     await page.getByRole("button", { name: "Post notice" }).click();
     await expect(page.getByRole("region", { name: "Notices" })).toContainText("Bring a charged battery");
+    const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Kolkata" });
+    const tasks = page.getByRole("region", { name: "Meeting decisions and tasks" });
+    await tasks.getByText("Record a decision").click();
+    await tasks.getByLabel("Meeting date").fill(today);
+    await tasks.getByLabel("Decision").fill("Charge spare batteries");
+    await tasks.getByLabel("Owner").selectOption({ label: "Riya Rao" });
+    await tasks.getByLabel("Due").fill(today);
+    await tasks.getByRole("button", { name: "Add task" }).click();
+    await expect(tasks).toContainText(`Charge spare batteries Riya Rao · due ${today}`);
+    await tasks.getByRole("button", { name: "Mark done" }).click();
+    await expect(tasks).toContainText(" · done");
     await signIn(page, "outsider");
     await page.goto(url("student"));
     await expect(page.getByRole("region", { name: "Notices" })).toContainText("Flights start at 9 sharp.");
