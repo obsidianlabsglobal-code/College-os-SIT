@@ -1,5 +1,5 @@
 # Transport 5b: disruption notice implementation handoff
-Status: deterministic copy and decision helpers locally tested. No app wiring, migration, PR, delivery, institutional permission, or working production integration.
+Status: local branch has bilingual in-app notices and receipts, an office ledger, parked-driver device gating, replacement estimates and onboard accident check-in. Scoped tests were run with fictional data. The attendance adapter, unattended worker and real institutional/device/phone-delivery approval are not established. No push, deployment or real tracking.
 
 ## States and ownership
 - Start from the authoritative trip and current route revision, not a browser-declared vehicle. For driver actions, resolve the bound boarding device and active trip, lock that trip and recheck fresh bus-owned stationary evidence; no rider backup or stale speed qualifies. If not provable, disable driver incident reporting with a clear reason and keep the office path available. Office uses an active transport grant.
@@ -24,5 +24,5 @@ Status: deterministic copy and decision helpers locally tested. No app wiring, m
 - [OSMF raster tile policy](https://operations.osmfoundation.org/policies/tiles/): use optional, lazy HTTPS tiles on visible map only, with attribution, caching and valid referer. No offline downloads/prefetch; do not send private stop labels or telemetry in tile URLs. Audit the app's global referrer policy before enabling the map; any override in shared headers belongs to integration. Text route must stay usable without maps.
 - Rider backup location must remain off until separate consent/college approval. Update the earlier bus-only privacy draft before distribution if that optional feature enters the approved pilot; track no rider location for boarding/SOS. Keep real data, any notification delivery, and live hardware out of this demo.
 
-## What is staged now
-Fictional-only Zod copy generator and pure receipt/deadline/attendance projections. These helpers do not replace server-side authorization, database locking, localization review, outbox delivery, proper attendance logic, or field testing. See test-result.txt for the standalone checks.
+## Boundaries of the local package
+Fictional-only Zod copy generator and pure receipt/deadline/attendance projections. These helpers do not replace server-side authorization, database locking, localization review, outbox delivery, proper attendance logic, or field testing. See the module evidence directory for the local test results.
