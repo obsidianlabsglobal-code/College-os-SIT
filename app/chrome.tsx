@@ -3,6 +3,7 @@ import { Brand } from "./experience/brand";
 import { ThemePicker } from "./experience/theme";
 import { InstallApp } from "./experience/app-shell";
 import { GlobalSearch } from "./experience/global-search";
+import { InstallBanner } from "./experience/install-banner";
 import { themePreference } from "./experience/theme-preference";
 import type { Icon } from "./experience/workspace-icon";
 import type { ComponentProps } from "react";
@@ -166,6 +167,6 @@ export async function Chrome({ user, current, section = "/", children, skipConse
       icon: icons[destination],
       active: destination === section,
     }))} />}
-    <main className="app-main" id="main" tabIndex={-1}>{children}</main>
+    <main className="app-main" id="main" tabIndex={-1}><InstallBanner />{children}</main>
   </div>;
 }

@@ -114,3 +114,24 @@ Positions are accepted only during an active trip and deleted after 7 days. No s
 - **Morning, before the first trip:** check health and each bus phone's last report time.
 - **Evening:** read the ETA feedback and transport reports, and check that the 7-day position deletion ran. Record incidents and fixes in the ledger.
 - **Widening to another department:** switch it on only after a clean week for EEE. Record the date and the reason.
+
+## Android app (APK) and iPhone install (ID-016)
+
+The app is the website installed on the device. Content and code updates come from the site, so the APK is built once per signing key and never rebuilt for a code change. Free tools only: no Play Store or Apple developer account.
+
+### Android APK (Trusted Web Activity)
+1. Deploy the site on its final HTTPS domain and check that `/manifest.webmanifest` and the icons load.
+2. Build the APK with PWABuilder: go to pwabuilder.com, enter the site URL, choose Package for stores → Android → "Other Android". Or build it locally with Bubblewrap: `npx @bubblewrap/cli init --manifest https://<domain>/manifest.webmanifest`, then `build`. Choose a package name such as `org.<college>.collegeos`. Keep the generated signing key safe and private, never in Git.
+3. Read the key's SHA-256 fingerprint. PWABuilder shows it; with Bubblewrap run `keytool -list -v -keystore android.keystore`.
+4. On the web service, set `NEXUS_ANDROID_PACKAGE=<package name>` and `NEXUS_ANDROID_SHA256=<AA:BB:…>` (comma-separate several keys). `https://<domain>/.well-known/assetlinks.json` then answers; without both it returns 404. This file is what lets the APK open full screen with no browser bar.
+5. Host the APK on an HTTPS link the college controls and set `NEXUS_ANDROID_APK_URL` to it. `/get-app` then shows the download.
+6. On a test phone: install, open, confirm there is no address bar, sign in, and allow notifications.
+
+### iPhone
+No build is needed. Students open the site in Safari and choose Share → Add to Home Screen. Web push works only from the home-screen app (iOS 16.4 or later); in-app alerts remain the fallback. On an iPhone, `/get-app` shows these steps first.
+
+### Install banner
+In a browser tab, as opposed to the installed app, every page shows "Get NEXUS as an app" until the app is installed. "Not now" hides it for that visit only.
+
+### WebKit test runs
+`npx playwright test -c playwright.webkit.config.ts` runs the install, sign-in, join and mobile flows in WebKit at iPhone size. **Not yet run:** the cloud sandbox has only Chromium. Run it on a machine with Playwright's WebKit installed before the pilot.

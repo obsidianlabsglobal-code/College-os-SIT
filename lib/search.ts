@@ -108,7 +108,7 @@ export async function search(scope: Scope, raw: unknown, extra: Intent[] = []): 
   const groups = expand(words, related);
   const ranked = await rank(groups, candidates.map(c => c.text));
   const hits = ranked.map(r => ({ ...candidates[r.i], score: r.score + (candidates[r.i].kind === "Go to" ? 0.5 : 0) }))
-    .sort((a, b) => b.score - a.score).slice(0, 60).map(({ text: _text, ...hit }) => hit);
+    .sort((a, b) => b.score - a.score).slice(0, 60).map(({ kind, title, detail, path, score }) => ({ kind, title, detail, path, score }));
   return { hits, didYouMean: hits.length ? null : await suggest(words, candidates.map(c => c.text)) };
 }
 
