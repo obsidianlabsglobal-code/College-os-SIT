@@ -1,0 +1,13 @@
+.driver-console { max-width: 41rem; margin: 0 auto; padding: max(14px,env(safe-area-inset-top)) 14px 32px; color: #183529; background: #edf4ee; min-height: 100svh; }
+.driver-console h1,.driver-console h2 {color: #073d2f; margin: 0; }
+.driver-console header { margin-bottom: 12px; }
+.driver-console section {padding: 16px; border: 1px solid #b9cfbf; border-radius: 16px; background: #fff; margin: 10px 0; }
+.driver-console .driver-action { display: inline-flex; justify-content: center; align-items: center; gap: 8px; min-height: 64px; min-width: 64px; padding: 8px 16px; border: 0; border-radius: 14px; background: #08573d; color: white; font: inherit; font-weight: 750; cursor: pointer; text-align: center; text-decoration: none; touch-action: manipulation; }
+.driver-console .driver-action:focus-visible { outline: 3px solid #030; outline-offset: 3px; }
+.driver-console .driver-warn { padding: 12px; border-left: 5px solid #9d2525; background: #fff0ed; color: #771c1c; }
+.driver-console .driver-danger { background: #982e23; user-select: none; }
+.driver-console .driver-action:disabled {opacity: .58; cursor: default;}
+.driver-console .driver-row {display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: space-between;}
+.driver-console label {display: block; margin: 8px 0;}
+.driver-console input {max-width: 100%; width: 100%; min-height: 48px; font: inherit;}
+.driver-console .driver-test-action { flex: 1; }
