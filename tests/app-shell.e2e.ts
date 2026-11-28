@@ -20,6 +20,7 @@ test("the app installs from a manifest, shows an offline page without caching re
   expect(manifest).toMatchObject({ name: "NEXUS College OS", short_name: "NEXUS", display: "standalone", start_url: "/" });
   for (const icon of manifest.icons) expect((await request.get(icon.src)).status()).toBe(200);
   expect((await request.get("/offline.html")).status()).toBe(200);
+  expect((await request.get("/api/push")).status(), "phone messages need a session").toBe(401);
 
   const db = new Client({ connectionString: process.env.MIGRATION_DATABASE_URL });
   await db.connect();

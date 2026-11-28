@@ -5,6 +5,8 @@ import { planningAction } from "../actions/planning";
 import { account, scope, workspaceQuery } from "../../lib/scope";
 import { preferences } from "../../lib/preferences";
 import { roleKinds } from "../../lib/automation";
+import { pushPublicKey } from "../../lib/push";
+import { PushToggle } from "../experience/push-toggle";
 
 const kindLabel: Record<string, string> = { assignment: "New assignments", reminder: "Due-date reminders", result: "Published results", class: "Class changes",
   correction: "Attendance corrections", case: "Cases and requests", attendance: "Attendance to record", request: "Service requests", followup: "Request follow-ups", escalation: "Escalations", sport: "Team selection decisions" };
@@ -33,5 +35,10 @@ export default async function Settings({ searchParams }: { searchParams: Promise
       </ActionForm>
       <p className="meta">Muted notifications are hidden from your inbox; the records themselves are unchanged. Email and text messages are not sent by NEXUS yet.</p>
     </section>
+    {pushPublicKey() && <section className="panel stack" aria-labelledby="phone-alerts">
+      <h2 id="phone-alerts">Phone alerts</h2>
+      <p className="meta">Get a notification on this phone when your bus is about 5 minutes from your stop, or when the transport office posts a delay. The notification service never sees the message; your phone fetches it from NEXUS.</p>
+      <PushToggle publicKey={pushPublicKey()!} context={{ institution: current.institution, role: current.role }} />
+    </section>}
   </Chrome>;
 }

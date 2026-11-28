@@ -15,3 +15,21 @@ self.addEventListener("fetch", event => {
   if (event.request.mode !== "navigate") return;
   event.respondWith(fetch(event.request).catch(() => caches.match(OFFLINE)));
 });
+
+// Phone notifications: the push carries no content. Fetch the member's own unread messages with their session.
+self.addEventListener("push", event => {
+  event.waitUntil(fetch("/api/push", { credentials: "same-origin", cache: "no-store" })
+    .then(response => response.ok ? response.json() : [])
+    .then(messages => messages.length
+      ? Promise.all(messages.map(m => self.registration.showNotification(m.title, { body: m.body, data: m.url, icon: "/icons/icon-192.png", tag: m.id })))
+      : self.registration.showNotification("NEXUS", { body: "Open NEXUS for a new update.", data: "/", icon: "/icons/icon-192.png" })));
+});
+
+self.addEventListener("notificationclick", event => {
+  event.notification.close();
+  const url = typeof event.notification.data === "string" && event.notification.data.startsWith("/") ? event.notification.data : "/";
+  event.waitUntil(self.clients.matchAll({ type: "window" }).then(windows => {
+    const open = windows.find(w => new URL(w.url).pathname === url);
+    return open ? open.focus() : self.clients.openWindow(url);
+  }));
+});
