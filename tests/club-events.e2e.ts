@@ -4,7 +4,6 @@ import { expect, test, type Page } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { Client } from "pg";
 import { changeClub } from "../lib/clubverse";
-import { db as appDb } from "../lib/db";
 import { demoEmail, demoPassword, fixtures as f } from "../scripts/fixtures";
 
 async function signIn(page: Page, person: string) {
@@ -56,7 +55,6 @@ test("a full event offers the waitlist, and a seat given up goes to the first pe
     await page.goto(url("student"));
     await expect(page.getByText("Registered · participation unverified")).toBeVisible();
   } finally {
-    await db.end();
-    await appDb.end();
+    await db.end(); // the app pool is shared with other tests in this worker; leave it open
   }
 });
