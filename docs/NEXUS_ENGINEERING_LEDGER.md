@@ -598,3 +598,4 @@ Observed at 26e2eb3 on cc/pilot-access:
 - Sign-up no longer collects a bus stop. Migration 071 drops the columns; transport owns the route and stop.
 - Newly approved students see "Pick your bus stop (coming soon)", which becomes a link once the transport page lands.
 - Pending for integration: dot/transport will send "Request to integration:" lines for bus-delay late marks on first-period attendance. This session builds them in attendance when they arrive.
+- Observed at c0ceb78, fresh local PostgreSQL in CI order: migrate ×2 + seed, lint, typecheck and build passed; 159/159 PostgreSQL and unit tests, 60/60 Chromium, 1/1 tutor.
