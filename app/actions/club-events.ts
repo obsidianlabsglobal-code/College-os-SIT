@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { WorkflowError } from "../../lib/assignments";
 import { giveFeedback, joinWaitlist, withdraw } from "../../lib/club-events";
+import { postClubNotice, withdrawClubNotice } from "../../lib/club-notices";
 import { scope } from "../../lib/scope";
 import type { ActionState } from "./workflow";
 
@@ -13,10 +14,12 @@ export async function clubEventAction(_state: ActionState, form: FormData): Prom
     if (input.operation === "waitlist") await joinWaitlist(actor, input);
     else if (input.operation === "withdraw") await withdraw(actor, input);
     else if (input.operation === "feedback") await giveFeedback(actor, input);
+    else if (input.operation === "notice") await postClubNotice(actor, input);
+    else if (input.operation === "notice-withdraw") await withdrawClubNotice(actor, input);
     else return { error: "This action is unavailable." };
   } catch (error) {
     if (error instanceof WorkflowError) return { error: error.message };
-    if ((error as { name?: string }).name === "ZodError") return { error: "Check the rating and comment." };
+    if ((error as { name?: string }).name === "ZodError") return { error: "Check the required fields." };
     console.error("Club event write failed", { code: (error as { code?: string }).code ?? "unknown" });
     return { error: "The change could not be confirmed. Refresh and try again." };
   }

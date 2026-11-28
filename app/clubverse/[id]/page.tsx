@@ -8,6 +8,7 @@ import { ExperienceHeading } from "../../experience/heading";
 import { account, scope, workspaceQuery } from "../../../lib/scope";
 import { clubView } from "../../../lib/club-views";
 import { eventExtras } from "../../../lib/club-events";
+import { clubNotices } from "../../../lib/club-notices";
 import { ActionForm } from "../../forms";
 import { clubEventAction } from "../../actions/club-events";
 import { ClubForm, EventFields, stateText } from "../controls";
@@ -39,7 +40,7 @@ export default async function ClubHome({ params,searchParams }: {
   const active = club.club_state === "active";
   const date = new Intl.DateTimeFormat("en-IN",{ dateStyle:"medium",timeStyle:"short",timeZone:club.timezone });
   const query = workspaceQuery(current);
-  const extras = await eventExtras(current,id,events.map(event => event.id),officer);
+  const [extras,notices] = await Promise.all([eventExtras(current,id,events.map(event => event.id),officer),clubNotices(current,id)]);
   return <Chrome user={user} current={current} section="/clubverse">
     <ExperienceHeading title={club.name} context={club.category} parent={{ href:`/clubverse?${query}`,label:"CLUBVERSE" }} />
     <div className="grid">
@@ -57,6 +58,25 @@ export default async function ClubHome({ params,searchParams }: {
             <label>Club status<select name="next"><option value={active ? "suspended" : "active"}>{active ? "Suspend" : "Reactivate"}</option><option value="archived">Archive permanently</option></select></label>
           </ClubForm>}
         </section>
+        {(notices.length > 0 || (officer && active)) && <section className="panel stack" aria-labelledby="club-notices">
+          <h2 id="club-notices">Notices</h2>
+          {!notices.length && <p>No current notices.</p>}
+          <ul className="items">{notices.map(notice => <li key={notice.id}>
+            <strong>{notice.title}</strong> <span className="meta">{notice.audience === "members" ? "Members" : "Everyone eligible"} · until {notice.expires_on} · {notice.author}</span>
+            <p className="prose-text">{notice.body}</p>
+            {officer && <ActionForm action={clubEventAction} context={current} operation="notice-withdraw" label="Withdraw notice" secondary>
+              <input type="hidden" name="club" value={id} /><input type="hidden" name="notice" value={notice.id} /></ActionForm>}
+          </li>)}</ul>
+          {officer && active && <details><summary>Post a notice</summary>
+            <ActionForm action={clubEventAction} context={current} operation="notice" label="Post notice">
+              <input type="hidden" name="club" value={id} />
+              <label>Title<input name="title" required maxLength={120} /></label>
+              <label>Notice<textarea name="body" required maxLength={4000} /></label>
+              <label>Who sees it<select name="audience"><option value="members">Club members</option><option value="eligible">Everyone eligible for the club</option></select></label>
+              <label>Show until<input type="date" name="expires" required /></label>
+            </ActionForm>
+          </details>}
+        </section>}
         <section className="panel stack">
           <h2>Events</h2>
           {!events.length && <p>No events are available in this view.</p>}

@@ -302,7 +302,7 @@ Founders, eligible members, officers, faculty advisors and independent instituti
 | CL-025 | Officer terms | Schedule access start and expiry with a succession policy. | Designed | S |
 | CL-026 | Club elections | Conduct elections only under an approved governance policy. | Proposed | F |
 | CL-027 | Governance records | Retain recognition decisions, effective rules and accountable officers. | Proposed | F |
-| CL-028 | Club notices | Publish to defined club audiences and expire notices. | Proposed | F |
+| CL-028 | Club notices | Publish to defined club audiences and expire notices. | Tested | db/077, lib/club-notices.ts, app/clubverse/[id]; tests/club-notices.test.ts, tests/club-events.e2e.ts |
 | CL-029 | Club event lifecycle | Draft, submit, approve, publish, open/close, start and complete or cancel. | Tested | C |
 | CL-030 | Registrations | Enforce eligibility, duplicate prevention and final-seat capacity. | Tested | C |
 | CL-031 | Attendance verification | Authorized organizer independently verifies participation and evidence. | Tested | C |

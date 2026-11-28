@@ -1,4 +1,4 @@
-// covers: CL-044, CL-046
+// covers: CL-044, CL-046, CL-028
 import "../scripts/environment";
 import { expect, test, type Page } from "@playwright/test";
 import { randomUUID } from "node:crypto";
@@ -54,6 +54,20 @@ test("a full event offers the waitlist, and a seat given up goes to the first pe
     await signIn(page, "outsider");
     await page.goto(url("student"));
     await expect(page.getByText("Registered · participation unverified")).toBeVisible();
+
+    // The founder (club lead) posts a notice for everyone eligible; a student who is not a member sees it.
+    await signIn(page, "faculty");
+    await page.goto(url("faculty"));
+    await page.getByText("Post a notice").click();
+    await page.getByLabel("Title", { exact: true }).fill("Bring a charged battery");
+    await page.getByLabel("Notice", { exact: true }).fill("Flights start at 9 sharp.");
+    await page.getByLabel("Who sees it").selectOption("eligible");
+    await page.getByLabel("Show until").fill(new Date(Date.now() + 3 * 86400000).toLocaleDateString("sv-SE", { timeZone: "Asia/Kolkata" }));
+    await page.getByRole("button", { name: "Post notice" }).click();
+    await expect(page.getByRole("region", { name: "Notices" })).toContainText("Bring a charged battery");
+    await signIn(page, "outsider");
+    await page.goto(url("student"));
+    await expect(page.getByRole("region", { name: "Notices" })).toContainText("Flights start at 9 sharp.");
   } finally {
     await db.end(); // the app pool is shared with other tests in this worker; leave it open
   }
