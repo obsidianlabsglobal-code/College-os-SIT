@@ -242,7 +242,7 @@ export async function runJobs({ worker = "local", limit = 20, leaseSeconds = 60 
   return summary;
 }
 
-const roleKinds: Record<Scope["role"], string[]> = {
+export const roleKinds: Record<Scope["role"], string[]> = {
   student: ["assignment", "reminder", "result", "class", "correction", "case"], faculty: ["attendance", "correction", "case"],
   admin: ["request", "followup", "case"], principal: ["escalation"], hod: ["case"],
 };
@@ -252,6 +252,7 @@ export async function notifications(current: Scope) {
   return (await db.query<{ id: string; kind: string; entity_id: string; title: string; created_at: Date; read_at: Date | null }>(
     `SELECT n.id,n.kind,n.entity_id,n.title,n.created_at,n.read_at FROM notification n
      WHERE n.institution_id=$1 AND n.recipient_id=$2 AND n.kind = ANY($4)
+       AND NOT EXISTS (SELECT 1 FROM account_preference p WHERE p.institution_id=n.institution_id AND p.account_id=n.recipient_id AND n.kind = ANY(p.muted_kinds))
        AND EXISTS (SELECT 1 FROM membership m WHERE m.institution_id=n.institution_id AND m.account_id=n.recipient_id AND m.role=$3 AND m.ended_at IS NULL)
        AND CASE
          WHEN n.kind IN ('assignment','reminder','result') THEN EXISTS (

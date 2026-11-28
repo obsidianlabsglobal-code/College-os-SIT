@@ -18,6 +18,8 @@ import { createStudyGroup, joinStudyGroup, leaveStudyGroup, saveProfile, setPort
 import { addMeetingAction, completeMeetingAction, recordMinutes, scheduleMeeting } from "../../lib/meetings";
 import { composeAssessment, saveQuestion } from "../../lib/question-bank";
 import { addMilestone, createTeam, reviewEvidence, submitEvidence } from "../../lib/teams";
+import { savePreferences } from "../../lib/preferences";
+import { publishService, withdrawService } from "../../lib/support-services";
 import { scope, workspaceQuery } from "../../lib/scope";
 import type { ActionState } from "./workflow";
 
@@ -31,7 +33,7 @@ const messages: Record<string, string> = { "exam-draft": "Sitting drafted.", "ex
   "catalog-show": "Offering shown in the catalog.", "delegation-grant": "Duty delegated until its expiry.", "delegation-revoke": "Delegation revoked.",
   "certificate-draft": "Draft prepared from current records.", "certificate-revoke": "Certificate revoked.", "group-create": "Study group created.",
   "group-join": "You joined the group.", "meeting-schedule": "Meeting scheduled.", "meeting-minutes": "Minutes recorded.",
-  "meeting-action": "Action assigned.", "meeting-done": "Action completed.", "portfolio-add": "Added to your portfolio.", "portfolio-remove": "Removed from your portfolio.", "group-leave": "You left the group.", "profile-save": "Profile saved.", "catalog-hide": "Offering hidden from the catalog.", rename: "Name corrected; the previous name is kept in the history.", compose: "Draft assignment created from the selected questions." };
+  "meeting-action": "Action assigned.", "meeting-done": "Action completed.", "portfolio-add": "Added to your portfolio.", "portfolio-remove": "Removed from your portfolio.", "group-leave": "You left the group.", "profile-save": "Profile saved.", "preferences-save": "Preferences saved.", "service-publish": "Service published to the directory.", "service-withdraw": "Service withdrawn.", "catalog-hide": "Offering hidden from the catalog.", rename: "Name corrected; the previous name is kept in the history.", compose: "Draft assignment created from the selected questions." };
 
 export async function planningAction(_state: ActionState, form: FormData): Promise<ActionState> {
   const current = await scope(form.get("institution"), form.get("role"));
@@ -98,6 +100,10 @@ export async function planningAction(_state: ActionState, form: FormData): Promi
     else if (operation === "meeting-action") await addMeetingAction(current, { meeting: value("meeting"), owner: value("owner"), title: value("title"), due: value("due") });
     else if (operation === "meeting-done") await completeMeetingAction(current, value("action"));
     else if (operation === "portfolio-add" || operation === "portfolio-remove") await setPortfolioItem(current, { source: value("source"), id: value("id"), include: operation === "portfolio-add" });
+    else if (operation === "preferences-save") await savePreferences(current, { large_text: form.get("large_text") === "on", reduced_motion: form.get("reduced_motion") === "on",
+      discoverable: form.get("discoverable") === "on", muted_kinds: form.getAll("muted").map(String) });
+    else if (operation === "service-publish") await publishService(current, { category: value("category"), name: value("name"), description: value("description"), contact: value("contact"), hours: value("hours") });
+    else if (operation === "service-withdraw") await withdrawService(current, value("id"));
     else return { error: "This action is unavailable." };
   } catch (error) {
     if (error instanceof WorkflowError) return { error: error.message };

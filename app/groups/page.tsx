@@ -16,7 +16,7 @@ export default async function Groups({ searchParams }: { searchParams: Promise<R
   const query = workspaceQuery(current);
   return <Chrome user={user} current={current} section="/groups">
     <PageHeader title="Study groups" parent={{ href: `/?${query}`, label: "Workspace" }}
-      context="Opt-in groups for your courses. Members' names are shown to classmates in the same course." />
+      context="Opt-in groups for your courses. Members' names are shown to classmates in the same course unless a member turns off discovery in Settings." />
     {courses.length > 0 && <section className="panel stack" aria-labelledby="new-group">
       <h2 id="new-group">Start a group</h2>
       <ActionForm action={planningAction} context={current} operation="group-create" label="Create group">
@@ -32,7 +32,7 @@ export default async function Groups({ searchParams }: { searchParams: Promise<R
         <p className="meta">{g.course} · {g.members.map(m => m.id === current.account ? "You" : m.name).join(", ")}</p>
         {g.joined ? <ActionForm action={planningAction} context={current} operation="group-leave" label="Leave group" secondary><input type="hidden" name="group" value={g.id} /></ActionForm>
           : g.members.length < g.capacity && <ActionForm action={planningAction} context={current} operation="group-join" label="Join group"><input type="hidden" name="group" value={g.id} /></ActionForm>}
-        <p className="meta">{g.members.filter(m => m.id !== current.account).map(m => <Link key={m.id} href={`/profile?${query}&student=${m.id}`}>{m.name}’s profile </Link>)}</p>
+        <p className="meta">{g.members.filter(m => m.id && m.id !== current.account).map(m => <Link key={m.id} href={`/profile?${query}&student=${m.id}`}>{m.name}’s profile </Link>)}</p>
       </article></li>)}</ul> : <p>No groups yet.</p>}
     </section>
   </Chrome>;

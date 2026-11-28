@@ -9,11 +9,13 @@ const unavailable = () => new WorkflowError("This action is unavailable.");
 const enrolled = (offering: string) => `EXISTS (SELECT 1 FROM roster r JOIN membership m ON m.institution_id=r.institution_id AND m.account_id=r.account_id
   AND m.role='student' AND m.ended_at IS NULL WHERE r.institution_id=$1 AND r.offering_id=${offering} AND r.account_id=$2 AND r.role='student' AND r.ended_at IS NULL)`;
 
-export type StudyGroup = { id: string; name: string; course: string; offering_id: string; capacity: number; members: { id: string; name: string }[]; joined: boolean };
+export type StudyGroup = { id: string; name: string; course: string; offering_id: string; capacity: number; members: { id: string | null; name: string }[]; joined: boolean };
 export async function studyGroups(scope: Scope) {
   if (scope.role !== "student") return [];
   return (await db.query<StudyGroup>(`SELECT g.id,g.name,c.name||' · '||s.name AS course,g.offering_id,g.capacity,
-      coalesce((SELECT json_agg(json_build_object('id',u.id,'name',u.name) ORDER BY u.name) FROM study_group_member x JOIN "user" u ON u.id=x.student_id
+      coalesce((SELECT json_agg(json_build_object('id',CASE WHEN v.shown THEN u.id END,'name',CASE WHEN v.shown THEN u.name ELSE 'A classmate' END) ORDER BY NOT v.shown,u.name)
+        FROM study_group_member x JOIN "user" u ON u.id=x.student_id
+        CROSS JOIN LATERAL (SELECT x.student_id=$2 OR coalesce((SELECT p.discoverable FROM account_preference p WHERE p.institution_id=x.institution_id AND p.account_id=x.student_id),true) AS shown) v
         WHERE (x.institution_id,x.group_id)=(g.institution_id,g.id)),'[]') AS members,
       EXISTS (SELECT 1 FROM study_group_member x WHERE (x.institution_id,x.group_id)=(g.institution_id,g.id) AND x.student_id=$2) AS joined
     FROM study_group g JOIN offering o ON (o.institution_id,o.id)=(g.institution_id,g.offering_id)

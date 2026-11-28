@@ -12,13 +12,14 @@ import type { Scope } from "./scope";
 //   integrity — SA-023: a student's confidential appeal tied to a published policy version and one of their assignments.
 //   department — DH-023: a student's request to a department, routed by its HOD.
 //   representation — SL-016: an issue raised for students generally; every current student can read and support it.
-export type CaseKind = "support" | "grievance" | "facility" | "integrity" | "department" | "representation";
+//   letter    — AD-020: a leave or permission letter a member submits to the office; only they and the office read it.
+export type CaseKind = "support" | "grievance" | "facility" | "integrity" | "department" | "representation" | "letter";
 /** Kinds a role works with, in display order. */
 export const caseKinds: Record<Scope["role"], CaseKind[]> = {
-  student: ["grievance", "integrity", "department", "representation", "facility"], faculty: ["support", "department", "integrity", "facility"],
-  hod: ["support", "department", "integrity", "facility"], admin: ["grievance", "representation", "facility"], principal: ["grievance"],
+  student: ["grievance", "integrity", "department", "representation", "facility", "letter"], faculty: ["support", "department", "integrity", "facility", "letter"],
+  hod: ["support", "department", "integrity", "facility", "letter"], admin: ["grievance", "representation", "facility", "letter"], principal: ["grievance"],
 };
-export const officeKinds: CaseKind[] = ["grievance", "facility", "representation"];  // coordinated by admins; the rest by the department HOD
+export const officeKinds: CaseKind[] = ["grievance", "facility", "representation", "letter"];  // coordinated by admins; the rest by the department HOD
 const REOPEN_DAYS = 14;
 const unavailable = () => new WorkflowError("This case is unavailable or has already changed.");
 const ESCALATE_DAYS = 7;
@@ -27,14 +28,16 @@ const member = (role: string, account = "$2") =>
   `EXISTS (SELECT 1 FROM membership x WHERE x.institution_id=k.institution_id AND x.account_id=${account} AND x.role='${role}' AND x.ended_at IS NULL)`;
 const hodOf = (account = "$2") =>
   `EXISTS (SELECT 1 FROM membership h WHERE h.institution_id=k.institution_id AND h.account_id=${account} AND h.role='hod' AND h.department_id=k.department_id AND h.ended_at IS NULL)`;
+const ownOrOffice = `(k.opened_by=$2 AND EXISTS (SELECT 1 FROM membership x WHERE x.institution_id=k.institution_id AND x.account_id=$2
+    AND x.role=$3 AND x.ended_at IS NULL)) OR ($3='admin' AND ${member("admin")})`;
 // Who can read a case. Students never see support cases about them; grievance notes stay with staff (see `notes`).
 const readable = `CASE k.kind
   WHEN 'support' THEN ($3='hod' AND ${hodOf()}) OR ($3='faculty' AND ${member("faculty")} AND (k.assigned_to=$2 OR k.opened_by=$2))
   WHEN 'grievance' THEN ($3='student' AND k.subject_id=$2 AND ${member("student")}) OR ($3='admin' AND ${member("admin")})
     OR ($3='principal' AND ${member("principal")} AND k.state IN ('open','in_progress') AND k.created_at < clock_timestamp()-interval '${ESCALATE_DAYS} days')
   WHEN 'representation' THEN ($3='student' AND ${member("student")}) OR ($3='admin' AND ${member("admin")})
-  WHEN 'facility' THEN (k.opened_by=$2 AND EXISTS (SELECT 1 FROM membership x WHERE x.institution_id=k.institution_id AND x.account_id=$2
-    AND x.role=$3 AND x.ended_at IS NULL)) OR ($3='admin' AND ${member("admin")})
+  WHEN 'facility' THEN ${ownOrOffice}
+  WHEN 'letter' THEN ${ownOrOffice}
   ELSE ($3='student' AND k.subject_id=$2 AND ${member("student")}) OR ($3='hod' AND ${hodOf()})
     OR ($3='faculty' AND k.assigned_to=$2 AND ${member("faculty")})
 END`;
@@ -114,6 +117,7 @@ const openInput = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("grievance"), title: text(160), body: text(4000) }),
   z.object({ kind: z.literal("facility"), title: text(160), body: text(4000) }),
   z.object({ kind: z.literal("representation"), title: text(160), body: text(4000) }),
+  z.object({ kind: z.literal("letter"), title: text(160), body: text(4000) }),
   z.object({ kind: z.literal("integrity"), assignment: z.uuid(), title: text(160), body: text(4000) }),
   z.object({ kind: z.literal("department"), department: z.uuid(), title: text(160), body: text(4000) }),
 ]);
@@ -144,6 +148,8 @@ export function openCase(scope: Scope, raw: unknown) {
     if (scope.role === "principal" || !(await locked(client, scope, scope.role))) throw unavailable();
     if (input.kind === "grievance" || input.kind === "representation") {
       if (scope.role !== "student") throw unavailable();
+    } else if (input.kind === "letter") {
+      if (scope.role === "admin") throw unavailable();  // the office receives letters; it does not send them to itself
     } else if (input.kind === "facility") {
       // Any current member may report a repair; it is theirs to follow and, if needed, reopen.
     } else if (input.kind === "department") {

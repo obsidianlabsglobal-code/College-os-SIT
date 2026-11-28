@@ -11,6 +11,7 @@ import { WorkspaceNavigation } from "./workspace-navigation";
 import { chooseWorkspace } from "./actions/workspace";
 import { workspaces, workspaceQuery, type Scope } from "../lib/scope";
 import { feesPreviewAvailable } from "../lib/fees-preview";
+import { preferences } from "../lib/preferences";
 
 export const roleLabels = {
   student: "Student",
@@ -20,7 +21,7 @@ export const roleLabels = {
   principal: "Principal",
 } satisfies Record<Scope["role"], string>;
 
-type Destination = "/meetings" | "/decisions" | "/certificates" | "/groups" | "/profile" | "/work" | "/growth" | "/policies" | "/questions" | "/exams" | "/improvement" | "/cases" | "/mentoring" | "/calendar" | "/catalog" | "/history" | "/audit" | "/automation" | "/fees" | "/letters" | "/opportunities" | "/" | "/grading" | "/notices" | "/requests" | "/admin" | "/clubverse" | "/aura" | "/timetable";
+type Destination = "/settings" | "/support" | "/meetings" | "/decisions" | "/certificates" | "/groups" | "/profile" | "/work" | "/growth" | "/policies" | "/questions" | "/exams" | "/improvement" | "/cases" | "/mentoring" | "/calendar" | "/catalog" | "/history" | "/audit" | "/automation" | "/fees" | "/letters" | "/opportunities" | "/" | "/grading" | "/notices" | "/requests" | "/admin" | "/clubverse" | "/aura" | "/timetable";
 const labels: Record<Destination, string> = {
   "/fees": "Fees & dues",
   "/opportunities": "Opportunities",
@@ -44,6 +45,8 @@ const labels: Record<Destination, string> = {
   "/work": "My work",
   "/certificates": "Certificates",
   "/meetings": "Meetings",
+  "/settings": "Settings",
+  "/support": "Support services",
   "/decisions": "Decision simulation",
   "/groups": "Study groups",
   "/profile": "My profile",
@@ -57,7 +60,7 @@ const icons: Record<Destination, ComponentProps<typeof Icon>["name"]> = {
   "/fees": "service",
   "/opportunities": "service",
   "/": "home", "/timetable": "calendar", "/grading": "check", "/notices": "notice", "/clubverse": "people",
-  "/aura": "spark", "/automation": "spark", "/audit": "book", "/history": "check", "/calendar": "calendar", "/mentoring": "people", "/cases": "service", "/exams": "calendar", "/policies": "book", "/growth": "spark", "/work": "check", "/certificates": "book", "/meetings": "people", "/decisions": "spark", "/groups": "people", "/profile": "people", "/questions": "book", "/improvement": "check", "/catalog": "book", "/requests": "service", "/admin": "book", "/letters": "notice",
+  "/aura": "spark", "/automation": "spark", "/audit": "book", "/history": "check", "/calendar": "calendar", "/mentoring": "people", "/cases": "service", "/exams": "calendar", "/policies": "book", "/growth": "spark", "/work": "check", "/certificates": "book", "/meetings": "people", "/settings": "check", "/support": "service", "/decisions": "spark", "/groups": "people", "/profile": "people", "/questions": "book", "/improvement": "check", "/catalog": "book", "/requests": "service", "/admin": "book", "/letters": "notice",
 };
 
 const dock: Destination[] = ["/", "/timetable", "/aura", "/clubverse", "/notices", "/requests", "/opportunities"];
@@ -68,7 +71,7 @@ export async function Chrome({ user, current, section = "/", children }: {
   section?: Destination;
   children: ReactNode;
 }) {
-  const [options, preferences] = await Promise.all([workspaces(user.id), cookies()]);
+  const [options, cookieJar, chosen] = await Promise.all([workspaces(user.id), cookies(), current ? preferences(current) : null]);
   const selected = options.find(option => option.id === current?.institution && option.role === current.role);
   const query = current ? workspaceQuery(current) : "";
   const home = query ? `/?${query}` : "/";
@@ -101,9 +104,9 @@ export async function Chrome({ user, current, section = "/", children }: {
   if (current?.role === "student" || current?.role === "admin") destinations.push("/certificates");
   if (current && feesPreviewAvailable(current,user)) destinations.push("/fees");
 
-  if (current) destinations.push("/letters");
+  if (current) destinations.push("/letters", "/support", "/settings");
 
-  return <div className={current ? "app-shell" : "app-shell app-shell-single"}>
+  return <div className={current ? "app-shell" : "app-shell app-shell-single"} data-text={chosen?.large_text ? "large" : undefined} data-motion={chosen?.reduced_motion ? "reduce" : undefined}>
     <header className="app-top">
       <Link href={home} className="brand"><Brand /></Link>
       {selected && <span className="institution-label"><span className="workspace-crumb">Campus workspace / {labels[section]}</span>
@@ -120,7 +123,7 @@ export async function Chrome({ user, current, section = "/", children }: {
           </label>
           <button className="button secondary">Switch</button>
         </form>}
-        <ThemePicker initial={themePreference(preferences.get("nexus_theme")?.value)} />
+        <ThemePicker initial={themePreference(cookieJar.get("nexus_theme")?.value)} />
         <span className="account-name">{user.name}</span>
         <form action={signOut}><button className="button secondary">Sign out</button></form>
       </div>

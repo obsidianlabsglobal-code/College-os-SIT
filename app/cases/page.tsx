@@ -8,7 +8,7 @@ import { caseKinds, officeKinds, caseStaff, cases, caseSummary, integrityPolicy,
 import { assessmentHistory } from "../../lib/assignments";
 
 const stateLabel = { open: "Open", in_progress: "In progress", resolved: "Resolved", declined: "Declined" };
-const kindLabel: Record<CaseKind, string> = { support: "Student support", grievance: "Grievances", facility: "Repairs", integrity: "Integrity appeals", department: "Department requests", representation: "Student representation" };
+const kindLabel: Record<CaseKind, string> = { support: "Student support", grievance: "Grievances", facility: "Repairs", integrity: "Integrity appeals", department: "Department requests", representation: "Student representation", letter: "Letters" };
 const about: Record<CaseKind, string> = {
   support: "Academic support coordinated by the department head. Students do not see these cases.",
   grievance: "Confidential complaints to the administrative office. Grievances open for more than 7 days are visible to the principal by title only.",
@@ -16,6 +16,7 @@ const about: Record<CaseKind, string> = {
   integrity: "Confidential appeals about an assessment, tied to the published integrity policy version. Reviewed in the course’s department.",
   department: "Requests to a department where you study, routed by its head to an accountable teacher.",
   representation: "Issues raised for students generally. Every current student can read them and add support; the office owns the response.",
+  letter: "Leave and permission letters submitted to the office. Only you and the office can read them; draft one from Letter drafts.",
 };
 
 export default async function Cases({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
@@ -28,7 +29,7 @@ export default async function Cases({ searchParams }: { searchParams: Promise<Re
   const query = workspaceQuery(current);
   const when = new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kolkata" });
   const coordinator = officeKinds.includes(kind) ? current.role === "admin" : current.role === "hod";
-  const canOpen = kind === "facility" ? current.role !== "principal" : kind === "support" ? (current.role === "hod" || current.role === "faculty") && students.length > 0
+  const canOpen = kind === "letter" ? false : kind === "facility" ? current.role !== "principal" : kind === "support" ? (current.role === "hod" || current.role === "faculty") && students.length > 0
     : current.role === "student" && (kind !== "integrity" || !!policy) && (kind !== "department" || departments.length > 0);
   return <Chrome user={user} current={current} section="/cases">
     <PageHeader title="Cases and requests" parent={{ href: `/?${query}`, label: "Workspace" }} context={about[kind]} />
@@ -42,9 +43,9 @@ export default async function Cases({ searchParams }: { searchParams: Promise<Re
       </dl>
     </section>}
     {canOpen && <section className="panel stack" aria-labelledby="open-title">
-      <h2 id="open-title">{{ support: "Open a support case", grievance: "Raise a grievance", facility: "Report a repair", integrity: "Appeal an integrity decision", department: "Request from a department", representation: "Raise an issue for students" }[kind]}</h2>
+      <h2 id="open-title">{{ support: "Open a support case", grievance: "Raise a grievance", facility: "Report a repair", integrity: "Appeal an integrity decision", department: "Request from a department", representation: "Raise an issue for students", letter: "" }[kind]}</h2>
       {kind === "integrity" && policy && <p className="meta">Your appeal will cite {policy.title}, version {policy.version}.</p>}
-      <ActionForm action={caseAction} context={current} operation="open" label={{ support: "Open case", grievance: "Submit grievance", facility: "Report repair", integrity: "Submit appeal", department: "Send request", representation: "Raise issue" }[kind]}>
+      <ActionForm action={caseAction} context={current} operation="open" label={{ support: "Open case", grievance: "Submit grievance", facility: "Report repair", integrity: "Submit appeal", department: "Send request", representation: "Raise issue", letter: "" }[kind]}>
         <input type="hidden" name="kind" value={kind} />
         {kind === "support" && <label>Student<select name="subject" required defaultValue=""><option value="" disabled>Choose a student</option>
           {students.map(s => <option key={`${s.id}|${s.department}`} value={`${s.id}|${s.department}`}>{s.name} · {s.department_name}</option>)}</select></label>}
@@ -64,7 +65,7 @@ export default async function Cases({ searchParams }: { searchParams: Promise<Re
           <p className="meta">{current.role !== "student" && row.opened_by !== current.account && row.opener !== row.subject ? `${row.subject} · ` : ""}{current.role !== "student" ? `Opened by ${row.opener} · ` : ""}{row.department && `${row.department} · `}Opened {when.format(row.created_at)}
             {current.role !== "student" && ` · ${row.assignee ? `Owner ${row.assignee}` : "No owner"}`}</p>
           {(row.policy || row.assignment) && <p className="meta">{row.assignment && `Assessment: ${row.assignment}`}{row.policy && ` · Policy: ${row.policy}`}</p>}
-          {current.role !== "principal" && <p>{row.body}</p>}
+          {current.role !== "principal" && <p style={kind === "letter" ? { whiteSpace: "pre-wrap" } : undefined}>{row.body}</p>}
           {row.outcome && <p><strong>Outcome:</strong> {row.outcome}</p>}
           {kind === "representation" && <p className="meta">{row.supporters} {row.supporters === 1 ? "student supports" : "students support"} this issue</p>}
           {kind === "representation" && current.role === "student" && !row.supported && (row.state === "open" || row.state === "in_progress") &&

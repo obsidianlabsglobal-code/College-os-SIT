@@ -10,7 +10,8 @@ export default async function Letters({searchParams}:{searchParams:Promise<{inst
   const workspace=(await workspaces(user.id)).find(option=>option.id===current.institution && option.role===current.role);
   if(!workspace)notFound();
   return <Chrome user={user} current={current} section="/letters">
-    <ExperienceHeading title="Letter drafts" context="Prepare a clear request to review and copy. A draft does not submit a request or issue an official letter." />
-    <LetterBuilder key={`${workspace.id}:${workspace.role}`} institution={workspace.name} person={user.name} affiliation={roleLabels[current.role]}/>
+    <ExperienceHeading title="Letter drafts" context="Prepare a clear request to review, copy or submit to the office. A draft does not issue an official letter." />
+    <LetterBuilder key={`${workspace.id}:${workspace.role}`} institution={workspace.name} person={user.name} affiliation={roleLabels[current.role]}
+      context={current.role === "admin" || current.role === "principal" ? undefined : {institution:current.institution,role:current.role}}/>
   </Chrome>;
 }
