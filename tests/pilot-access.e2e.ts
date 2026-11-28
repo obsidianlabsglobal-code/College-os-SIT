@@ -2,6 +2,7 @@
 import "../scripts/environment";
 import { expect, test } from "@playwright/test";
 import { randomUUID } from "node:crypto";
+import { existsSync } from "node:fs";
 import { Client } from "pg";
 import { demoEmail, demoPassword, fixtures as f } from "../scripts/fixtures";
 
@@ -80,7 +81,9 @@ test("the office imports a teacher, a new student joins by email code, the teach
     await page.screenshot({ path: testInfo.outputPath("privacy-notice-390.png"), fullPage: true });
     await page.getByRole("button", { name: "I have read this and agree" }).click();
     await expect(page.getByRole("heading", { name: /Good to see you|Welcome back/ })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Pick your bus stop (coming soon)" })).toBeVisible();
+    // Same switch as the app shell: once the transport page is built, home points to it.
+    if (existsSync("app/transport/page.tsx")) await expect(page.getByRole("link", { name: "Pick my route and stop" })).toHaveAttribute("href", /\/transport\?/);
+    else await expect(page.getByRole("heading", { name: "Pick your bus stop (coming soon)" })).toBeVisible();
   } finally {
     await db.query("UPDATE institution SET consent_required=false WHERE id=$1", [f.institution]);
     await db.end();
