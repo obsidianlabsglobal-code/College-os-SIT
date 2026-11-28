@@ -770,3 +770,17 @@ Request to integration: Schedule the implemented one-shot transport worker (`nod
 Transport local verification (dot/transport; not yet pushed): at 2e1b0e1 fresh migration count 53, repeat no-op, baseline seed/lint/typecheck/build passed, PostgreSQL and Node 174 passed, standard Chromium 56 passed/11 skipped/3 failed, tutor fixture 1 passed. With explicit simulated device mode both targeted Chromium cases passed at 390 px. At 932c7ec the transport-only suite passed 20 tests and the parked-driver endpoint passed its loopback denial/acceptance rehearsal. Actual SIT tracking, approval and camera hardware are not verified. See docs/evidence/transport-2026-11-28/README.md.
 
 Request to integration: The NEXUS Driver app uses transport migration 069. The existing one-shot transport worker now also queues 15-minute duty notices and 7/30-day document reminders; keep the same approved recurring transport invocation, and verify physical Android notification delivery with NEXUS Driver closed before making that pilot promise. Configure a separate server-only PIN secret and the institution's callback number; rehearse the app's own manifest, motion lock, speech voices, slow data, and emergency procedure on the approved phone. Keep student post-approval routing, the shared mobile dock, and 5b attendance effects with their existing owners.
+
+### 2026-11-28 — Integration: cc/pilot-access@92b50f2 + dot/transport@00191bf → audit/nexus-engineering-audit
+- **Review of dot/transport:**
+  - Migrations 055–069 are inside Dot's range.
+  - Outside lib/transport, app/transport, app/api/transport, app/actions/transport.ts, tests/transport* and docs/TRANSPORT_*, it adds the driver app (`app/driver/*`, `public/driver-assets/*`), which is transport scope, and ledger entries. No dependency changes.
+  - The earlier request (shared pool) was fixed in 51bb807.
+- **Conflicts:** only this ledger (append-only; both sides kept).
+- **Transport test settings:** these browser tests need `NEXUS_TRANSPORT_LOCAL_TEST=1`, `NEXUS_TRANSPORT_SIMULATION_ENABLED=true` and a fictional `NEXUS_TRANSPORT_BOARDING_SECRET` on the test server, as documented in TRANSPORT_LOCAL_HANDOFF.md. Without them the boarding and driver tests fail; with them they pass. Never set them in the pilot.
+- **Matrix:** the transport rows remain at the status Dot recorded in the registry; integration doesn't promote them.
+
+Observed at 8f1b761 (the merge), fresh local PostgreSQL in CI order, with those settings:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 196/196 PostgreSQL and unit tests, 71/71 Chromium, 1/1 tutor.
+- Matrix: 135 tested, 90 partial, 237 missing, 8 unverified, 13 blocked.

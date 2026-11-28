@@ -1,7 +1,7 @@
 {
- "commit": "21df2bce0008ef00a838658c2386421196157c35",
+ "commit": "8f1b761a7e9f3e6851c48ebf13268232bdd56964",
  "uncommitted_source_changes": false,
- "recorded_at": "2026-11-28T10:49:24+00:00",
+ "recorded_at": "2026-11-28T11:03:05+00:00",
  "environment": "local fresh PostgreSQL, fictional data, headless Chromium",
  "files": {
   "tests/academic-assistant.test.ts": {
@@ -370,6 +370,54 @@
   },
   "tests/student-records.test.ts": {
    "passed": 1,
+   "failed": 0
+  },
+  "tests/transport-boarding.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/transport-boarding.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/transport-catalog.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/transport-catalog.test.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/transport-disruption-copy.test.ts": {
+   "passed": 10,
+   "failed": 0
+  },
+  "tests/transport-disruptions.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/transport-driver-workspace.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/transport-driver.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/transport-eta.test.ts": {
+   "passed": 3,
+   "failed": 0
+  },
+  "tests/transport-iphone.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/transport-parked.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/transport-telemetry.test.ts": {
+   "passed": 2,
    "failed": 0
   },
   "tests/tutor.spec.ts": {
