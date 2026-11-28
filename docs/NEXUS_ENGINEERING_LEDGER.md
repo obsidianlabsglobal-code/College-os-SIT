@@ -599,3 +599,20 @@ Observed at 26e2eb3 on cc/pilot-access:
 - Newly approved students see "Pick your bus stop (coming soon)", which becomes a link once the transport page lands.
 - Pending for integration: dot/transport will send "Request to integration:" lines for bus-delay late marks on first-period attendance. This session builds them in attendance when they arrive.
 - Observed at c0ceb78, fresh local PostgreSQL in CI order: migrate ×2 + seed, lint, typecheck and build passed; 159/159 PostgreSQL and unit tests, 60/60 Chromium, 1/1 tutor.
+
+**cc/pilot-access, continued (coordinator's standing order):**
+- **Student import (33e189e, `db/072`):**
+  - The office checks a student CSV with the same refusals as self sign-up.
+  - It then either sends the rows to section teachers as pending requests or admits them on its own authority. Teacher approval and the office import share `admitStudent`.
+- **Club events in search:** published events open to eligible members, or to members of that club, as on the club page.
+- **Hardening (7163419, `db/073`):**
+  - Failed sign-ins from the app's forms are recorded.
+  - The office's pilot health page shows members by role, students waiting by section (with a reminder after 48 hours), notice acceptance, failed sign-ins in the last 24 hours (only this college's members and applicants), and phones with bus alerts.
+  - Sessions last 3 days, and Settings can end every session on every device.
+  - A browser test loads sign-in, code sign-in, join, student home, settings and approvals on emulated slow 3G at 390 px.
+- The "Sign out on all devices" label collided with existing "Sign out" button lookups; it is now "End sessions on all devices".
+
+Observed at 7163419, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, typecheck, build: passed. **Lint failed** on two unescaped apostrophes and an unused variable.
+- 161/161 PostgreSQL and unit tests, 63/63 Chromium, 1/1 tutor.
+- f31c988 fixes the lint, which then passed. Its full run happens at the 18:00 integration review.
