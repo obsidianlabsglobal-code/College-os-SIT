@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { Brand } from "./experience/brand";
 import { ThemePicker } from "./experience/theme";
+import { InstallApp } from "./experience/app-shell";
 import { themePreference } from "./experience/theme-preference";
 import type { Icon } from "./experience/workspace-icon";
 import type { ComponentProps } from "react";
@@ -142,6 +143,7 @@ export async function Chrome({ user, current, section = "/", children }: {
           </label>
           <button className="button secondary">Switch</button>
         </form>}
+        <InstallApp />
         <ThemePicker initial={themePreference(cookieJar.get("nexus_theme")?.value)} />
         <span className="account-name">{user.name}</span>
         <form action={signOut}><button className="button secondary">Sign out</button></form>
