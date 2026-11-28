@@ -1,3 +1,4 @@
+import type {PoolClient} from "pg";
 import {z} from "zod";
 import {audit,WorkflowError} from "../assignments";
 import {db,transaction} from "../db";
@@ -20,8 +21,10 @@ const input=z.discriminatedUnion("operation",[
 ]);
 export function changeDisruption(s:Scope,raw:unknown,boardKey?:string){
   const i=input.parse(raw);
-  const tenant=s.institution;
-  return transaction(async c=>{
+  return transaction(c=>writeDisruption(c,s,i,boardKey?{boardKey}:undefined));
+}
+async function writeDisruption(c:PoolClient,s:Scope,i:z.infer<typeof input>,driver?:{boardKey:string}|{stopped:true}){
+    const tenant=s.institution;
     if(i.operation==="report-bus"||i.operation==="read-disruption"){
       await holdTransportMember(c,s,"student",true);
       await holdRiderDepartment(c,s);
@@ -44,7 +47,7 @@ export function changeDisruption(s:Scope,raw:unknown,boardKey?:string){
       return entry.id;
     }
     if(s.role==="driver"){
-      if(!boardKey||i.operation!=="open-disruption")throw roleProblem();
+      if(!driver||i.operation!=="open-disruption")throw roleProblem();
       await holdTransportMember(c,s,"driver");
     }else await holdTransportMember(c,s,"transport");
     let id:string,tripId:string,kind:typeof disruptionKinds[number],seq:number,location:string,vehicle:string,routeId:string,state:string,mode:string;
@@ -56,7 +59,7 @@ export function changeDisruption(s:Scope,raw:unknown,boardKey?:string){
         WHERE t.institution_id=$1 AND t.id=$2 AND r.stop_id=$3 FOR UPDATE OF t`,[tenant,i.trip,i.stop]);
       if(!t || (t.state!=="active" && !(t.state==="scheduled"&&i.kind==="trip_cancelled")))throw roleProblem();
       if(s.role==="driver"){
-        if(await stoppedIncidentTarget(c,s,i.trip,boardKey!,true)!==i.stop)
+        if(driver&&"boardKey" in driver&&await stoppedIncidentTarget(c,s,i.trip,driver.boardKey,true)!==i.stop)
           throw new WorkflowError("The bus must be confirmed stopped before using the driver controls.");
         const {rows:[already]}=await c.query<{id:string}>(`SELECT id FROM transport_disruption WHERE institution_id=$1 AND trip_id=$2 AND kind=$3
           AND created_by=$4 AND created_at>clock_timestamp()-interval '60 seconds' ORDER BY created_at DESC LIMIT 1`,[tenant,i.trip,i.kind,s.account]);
@@ -147,7 +150,12 @@ export function changeDisruption(s:Scope,raw:unknown,boardKey?:string){
         [tenant,`${mode==="simulated"?"SIMULATED. ":""}${vehicle}: ${kind.replaceAll("_"," ")} near ${location}. Open Transport to review.`.slice(0,300)]);
     }
     return id;
-  });
+}
+export function writeStoppedDriverReport(c:PoolClient,s:Scope,raw:unknown) {
+  if(s.role!=="driver")throw roleProblem();
+  const i=input.parse(raw);
+  if(i.operation!=="open-disruption")throw roleProblem();
+  return writeDisruption(c,s,i,{stopped:true});
 }
 export async function riderDisruptions(s:Scope){
   if(s.role!=="student")return [];
@@ -169,9 +177,11 @@ export async function officeDisruptions(s:Scope){
   if(s.role!=="transport")return {events:[],trips:[]};
   const args=[s.institution,s.account];
   const [events,trips]=await Promise.all([
-    db.query<{id:string;kind:string;state:string;sequence:number;location:string;vehicle:string;overdue:boolean;age:number;history:{sequence:number;stage:string;read:number;receipts:number;at:string;readers:string[]}[]}>(`
+    db.query<{id:string;kind:string;state:string;sequence:number;location:string;vehicle:string;overdue:boolean;age:number;photo:boolean;history:{sequence:number;stage:string;read:number;receipts:number;at:string;readers:string[]}[]}>(`
       SELECT d.id,d.kind,d.state,d.latest_sequence AS sequence,l.label AS location,v.label AS vehicle,
         d.state='open' AND COALESCE(d.update_by<=clock_timestamp(),false) AS overdue,
+        EXISTS (SELECT 1 FROM transport_driver_report_photo p
+          WHERE (p.institution_id,p.disruption_id)=(d.institution_id,d.id)) AS photo,
         floor(EXTRACT(epoch FROM (COALESCE(d.resolution_at,clock_timestamp())-d.created_at))/60)::int AS age,
         COALESCE((SELECT jsonb_agg(jsonb_build_object('sequence',n.sequence,'stage',n.stage,'at',n.published_at,
           'read',(SELECT count(*) FROM transport_disruption_receipt r WHERE (r.institution_id,r.disruption_id,r.notice_sequence)=(d.institution_id,d.id,n.sequence) AND r.read_at IS NOT NULL),

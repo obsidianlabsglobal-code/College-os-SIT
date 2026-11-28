@@ -3,13 +3,16 @@ import type { transportCatalog } from "../../lib/transport/catalog";
 import type { officeTripList } from "../../lib/transport/trips";
 import type { transportDevices } from "../../lib/transport/telemetry";
 import { transportAction } from "../actions/transport";
+import { officeDriverQueue } from "../../lib/transport/driver-office";
+import { driverPhoneList } from "../../lib/transport/driver-phone";
 import { ActionForm } from "../forms";
 
 const hidden=(name:string,value:string)=><input type="hidden" name={name} value={value}/>;
-export function OfficeOperations({current,catalog,ops,devices}:{
+export async function OfficeOperations({current,catalog,ops,devices}:{
   current:Scope;catalog:NonNullable<Awaited<ReturnType<typeof transportCatalog>>>;
   ops:Awaited<ReturnType<typeof officeTripList>>;devices:Awaited<ReturnType<typeof transportDevices>>;
 }){
+  const [phones,driverQueue]=await Promise.all([driverPhoneList(current),officeDriverQueue(current)]);
   const schedules=catalog.routes.flatMap(r=>r.schedules.map(s=>({...s,route:r.label})));
   const enabled=process.env.NEXUS_TRANSPORT_LIVE_ENABLED==="true";
   return <section className="panel stack" aria-label="Trip and device operations">
@@ -58,6 +61,45 @@ export function OfficeOperations({current,catalog,ops,devices}:{
           {hidden("device",d.id)}
         </ActionForm>}
       </li>)}</ul>}
+    </details>
+    <details><summary>Set up a NEXUS Driver phone</summary>
+      <ActionForm action={transportAction} context={current} operation="bind-driver-phone" label="Issue driver phone enrollment code">
+        <label>Bus<select name="vehicle" required defaultValue=""><option value="" disabled>Select bus</option>
+          {catalog.vehicles.map(v=><option key={v.id} value={v.id}>{v.label}</option>)}</select></label>
+        <label>Driver<select name="driver" required defaultValue=""><option value="" disabled>Select driver</option>
+          {ops.drivers.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}</select></label>
+        <label>Driver PIN (4 digits)<input name="primaryPin" type="password" pattern="[0-9]{4}" inputMode="numeric" required autoComplete="new-password"/></label>
+        <label>Backup driver<select name="backup" defaultValue=""><option value="">No backup</option>
+          {ops.drivers.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}</select></label>
+        <label>Distinct backup PIN (4 digits, when used)<input name="backupPin" type="password" pattern="[0-9]{4}" inputMode="numeric" autoComplete="new-password"/></label>
+      </ActionForm>
+      <ActionForm action={transportAction} context={current} operation="driver-office-contact" label="Set driver SOS callback">
+        <label>Transport office phone<input type="tel" name="phone" required /></label>
+      </ActionForm>
+      {phones.filter(p=>!p.revoked).map(p=><ActionForm key={p.id} action={transportAction} context={current} operation="revoke-driver-phone" label={`Revoke ${p.driver} · ${p.vehicle} phone`}>
+        {hidden("device",p.id)}
+      </ActionForm>)}
+    </details>
+    <details><summary>Driver messages, documents and leave</summary>
+      <ActionForm action={transportAction} context={current} operation="driver-send-message" label="Send office message">
+        <label>Trip<select name="trip" defaultValue="" required><option value="" disabled>Select trip</option>
+          {ops.trips.filter(t=>t.state==="scheduled"||t.state==="active").map(t=><option key={t.id} value={t.id}>{t.vehicle} · {t.day} {t.departure}</option>)}</select></label>
+        <label>Kind<select name="kind"><option value="replacement">Replacement bus</option><option value="diversion">Diversion</option><option value="stop_change">Stop change</option></select></label>
+        <label>English<textarea name="bodyEn" maxLength={240} required/></label><label>Kannada<textarea name="bodyKn" maxLength={240} required/></label>
+      </ActionForm>
+      {driverQueue.messages.map(m=><p key={m.id}>{m.vehicle} · {m.kind.replaceAll("_"," ")} · {m.read_at?"Acknowledged":"Not yet acknowledged"}</p>)}
+      <ActionForm action={transportAction} context={current} operation="driver-document-expiry" label="Record document expiry">
+        <label>Bus<select name="vehicle" required>{catalog.vehicles.map(v=><option key={v.id} value={v.id}>{v.label}</option>)}</select></label>
+        <label>Driver<select name="driver" required>{ops.drivers.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}</select></label>
+        <label>Document<select name="kind"><option value="licence">Licence</option><option value="fitness">Bus fitness</option><option value="insurance">Insurance</option>
+          <option value="permit">Permit</option><option value="puc">PUC</option></select></label>
+        <label>Expiry date<input type="date" name="expiry" required/></label>
+      </ActionForm>
+      {driverQueue.requests.map(r=><div key={r.id}><p>{r.driver} · {r.vehicle} · {r.day} · {r.kind} · {r.state}</p>
+        {r.state==="pending"&&<ActionForm action={transportAction} context={current} operation="driver-decide-leave" label="Record leave decision">
+          {hidden("request",r.id)}<label>Decision<select name="decision"><option value="approved">Approve</option><option value="rejected">Reject</option></select></label>
+        </ActionForm>}
+      </div>)}
     </details>
     <ActionForm action={transportAction} context={current} operation="purge-history" label="Remove positions older than seven days" secondary />
   </section>;

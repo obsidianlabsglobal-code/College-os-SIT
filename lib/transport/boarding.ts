@@ -15,7 +15,7 @@ const secret=()=>{const v=process.env.NEXUS_TRANSPORT_BOARDING_SECRET; return v 
 const newKey=()=>randomBytes(32).toString("base64url");
 const modeAllowed=(s:string)=>s==="simulated" ? process.env.NEXUS_TRANSPORT_SIMULATION_ENABLED==="true" :
   process.env.NEXUS_TRANSPORT_LIVE_ENABLED==="true";
-function screenCode(trip:string,vehicle:string,started:Date) {
+export function screenCode(trip:string,vehicle:string,started:Date) {
   const k=secret();if(!k)throw unavailable();
   const msg=`s1.${trip}.${vehicle}`;
   return `${msg}.${createHmac("sha256",k).update(msg+"."+started.toISOString()).digest("base64url")}`;

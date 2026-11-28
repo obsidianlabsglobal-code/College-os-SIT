@@ -13,7 +13,7 @@ const labels = {
   heavy_traffic: ["is delayed by heavy traffic", "ದಟ್ಟ ಸಂಚಾರದಿಂದ ಬಸ್ ತಡವಾಗಿದೆ"],
   weather_flooding: ["is delayed by unsafe weather or flooding", "ಕೆಟ್ಟ ಹವಾಮಾನ ಅಥವಾ ಪ್ರವಾಹದಿಂದ ಬಸ್ ತಡವಾಗಿದೆ"],
   fuel: ["has stopped due to a fuel issue", "ಇಂಧನದ ಸಮಸ್ಯೆಯಿಂದ ಬಸ್ ನಿಂತಿದೆ"],
-  driver_delayed: ["is starting later than planned", "ಬಸ್ ನಿಗದಿತ ಸಮಯಕ್ಕಿಂತ ತಡವಾಗಿ ಹೊರಡಲಿದೆ"],
+  driver_delayed: ["is running later than planned", "ಬಸ್ ನಿಗದಿತ ಸಮಯಕ್ಕಿಂತ ತಡವಾಗಿದೆ"],
   route_diverted: ["is taking a different route", "ಬಸ್ ಬೇರೆ ಮಾರ್ಗದಲ್ಲಿ ಸಾಗುತ್ತಿದೆ"],
   trip_cancelled: ["will not run this trip", "ಬಸ್ಸಿನ ಈ ಟ್ರಿಪ್ ರದ್ದಾಗಿದೆ"],
 } satisfies Record<typeof disruptionKinds[number], [string,string]>;

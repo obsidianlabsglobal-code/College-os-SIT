@@ -1,3 +1,4 @@
+import type { PoolClient } from "pg";
 import { z } from "zod";
 import { audit,WorkflowError } from "../assignments";
 import { accountInActiveDepartmentSql } from "../active-departments";
@@ -43,21 +44,12 @@ export function changeTransportTrip(s:Scope,raw:unknown) {
         if(t.state!=="scheduled") throw new WorkflowError("This trip has already changed. Reload to check its state.");
         if(t.mode==="live" && (!configuredLive() || !t.same_day || !t.driver_id)) throw new WorkflowError("Live operation requires approval, a current driver and today's trip.");
         if(t.driver_id && !(await c.query(`${transportMemberSql("$2","'driver'")} FOR SHARE`,[tenant,t.driver_id])).rowCount) throw unavailable();
-        await c.query(`UPDATE transport_trip t SET state='active',started_at=clock_timestamp(),seats_at_start=v.seat_capacity
-          FROM transport_vehicle v WHERE t.institution_id=$1 AND t.id=$2 AND (v.institution_id,v.id)=(t.institution_id,t.vehicle_id)`,[tenant,i.trip]);
-        await c.query(`INSERT INTO transport_trip_rider(institution_id,trip_id,student_id,route_id,revision,stop_id)
-          SELECT p.institution_id,$2,p.student_id,p.route_id,$4,p.stop_id FROM transport_choice p
-          JOIN transport_route_stop r ON (r.institution_id,r.route_id,r.revision,r.stop_id)=(p.institution_id,p.route_id,$4,p.stop_id)
-          WHERE p.institution_id=$1 AND p.route_id=$3 AND EXISTS (${transportMemberSql("p.student_id","'student'")})
-            AND ${accountInActiveDepartmentSql("p.student_id")}
-          ORDER BY p.student_id ON CONFLICT DO NOTHING`,[tenant,i.trip,t.route_id,t.revision]);
+        await activateTransportTrip(c,tenant,i.trip,t.route_id,t.revision);
         await audit(c,s,i.trip,"transport.trip_started");return i.trip;
       }
       if(t.state==="completed" || t.state==="cancelled" || (i.operation==="complete-trip"&&t.state!=="active")) throw unavailable();
       const state=i.operation==="complete-trip"?"completed":"cancelled";
-      await c.query("UPDATE transport_trip SET state=$3,ended_at=clock_timestamp() WHERE institution_id=$1 AND id=$2",[tenant,i.trip,state]);
-      await c.query("UPDATE transport_trip_rider SET released_at=clock_timestamp() WHERE institution_id=$1 AND trip_id=$2 AND released_at IS NULL",[tenant,i.trip]);
-      await c.query("DELETE FROM transport_backup_fix WHERE institution_id=$1 AND trip_id=$2",[tenant,i.trip]);
+      await closeTransportTrip(c,tenant,i.trip,state);
       await audit(c,s,i.trip,`transport.trip_${state}`);return i.trip;
     }catch(e){
       if((e as {code?:string}).code==="23505") throw new WorkflowError("A trip already exists for that schedule or the route, bus or driver is in use.");
@@ -65,6 +57,24 @@ export function changeTransportTrip(s:Scope,raw:unknown) {
     }
   });
 }
+// Called only from transaction paths that have verified scope, locked the route and trip,
+ // and validated the current state. Keeping both callers here preserves the rider snapshot.
+export async function activateTransportTrip(c:PoolClient,tenant:string,trip:string,route:string,revision:number) {
+        await c.query(`UPDATE transport_trip t SET state='active',started_at=clock_timestamp(),seats_at_start=v.seat_capacity
+          FROM transport_vehicle v WHERE t.institution_id=$1 AND t.id=$2 AND (v.institution_id,v.id)=(t.institution_id,t.vehicle_id)`,[tenant,trip]);
+        await c.query(`INSERT INTO transport_trip_rider(institution_id,trip_id,student_id,route_id,revision,stop_id)
+          SELECT p.institution_id,$2,p.student_id,p.route_id,$4,p.stop_id FROM transport_choice p
+          JOIN transport_route_stop r ON (r.institution_id,r.route_id,r.revision,r.stop_id)=(p.institution_id,p.route_id,$4,p.stop_id)
+          WHERE p.institution_id=$1 AND p.route_id=$3 AND EXISTS (${transportMemberSql("p.student_id","'student'")})
+            AND ${accountInActiveDepartmentSql("p.student_id")}
+          ORDER BY p.student_id ON CONFLICT DO NOTHING`,[tenant,trip,route,revision]);
+}
+export async function closeTransportTrip(c:PoolClient,tenant:string,trip:string,state:"completed"|"cancelled") {
+      await c.query("UPDATE transport_trip SET state=$3,ended_at=clock_timestamp() WHERE institution_id=$1 AND id=$2",[tenant,trip,state]);
+      await c.query("UPDATE transport_trip_rider SET released_at=clock_timestamp() WHERE institution_id=$1 AND trip_id=$2 AND released_at IS NULL",[tenant,trip]);
+      await c.query("DELETE FROM transport_backup_fix WHERE institution_id=$1 AND trip_id=$2",[tenant,trip]);
+}
+
 export type RiderTrip={id:string;route:string;vehicle:string;stop:string;scheduled_at:string;mode:"live"|"simulated"};
 export async function studentActiveTrip(s:Scope){
   if(s.role!=="student")return null;

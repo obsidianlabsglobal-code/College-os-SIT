@@ -48,6 +48,7 @@ export function DisruptionOffice({current,data,routes,responses}:{current:Scope;
     {data.events.map(e=><section className="panel stack" key={e.id} aria-label={`${e.vehicle}: ${e.kind}`}>
       <h3>{e.vehicle} · {kinds[e.kind as keyof typeof kinds]}</h3>
       <p>{e.location} · {e.state} · {e.age} minutes {e.state==="resolved"?"to resolve":"since reporting"}</p>
+      {e.photo && <p><a href={`/api/transport/driver/photo?institution=${current.institution}&incident=${e.id}`}>Open private driver photo</a></p>}
       {e.overdue && <p className="error" role="status">The promised update is overdue.</p>}
       <ol className="items">{e.history.map(n=><li key={n.sequence}>{time.format(new Date(n.at))} IST · {n.stage.replaceAll("_"," ")} · {n.read} of {n.receipts} read
         {n.readers.length>0&&<details><summary>Read by</summary><p>{n.readers.join(", ")}</p></details>}</li>)}</ol>

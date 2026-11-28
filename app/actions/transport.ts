@@ -5,6 +5,8 @@ import { WorkflowError } from "../../lib/assignments";
 import { scope } from "../../lib/scope";
 import { changeTransportCatalog } from "../../lib/transport/catalog";
 import { changeMaintenance } from "../../lib/transport/maintenance";
+import { driverOfficeAction } from "../../lib/transport/driver-office";
+import { configureDriverPhone } from "../../lib/transport/driver-phone";
 import { linkReplacement,respondToAccident } from "../../lib/transport/incident-responses";
 import { changeTransportOversight } from "../../lib/transport/oversight";
 import { assignRouteTeacher,signalBusSos } from "../../lib/transport/sos";
@@ -25,6 +27,14 @@ export async function transportAction(_prior:ActionState,form:FormData):Promise<
   const s=await scope(form.get("institution"),form.get("role"));
   const operation=form.get("operation");
   try {
+    if(operation==="driver-send-message"||operation==="driver-document-expiry"||operation==="driver-decide-leave"){
+      await driverOfficeAction(s,Object.fromEntries(form));revalidatePath("/transport");return {message:"Driver office record saved."};
+    }
+    if(operation==="bind-driver-phone"||operation==="revoke-driver-phone"||operation==="driver-office-contact"){
+      const enrollment=await configureDriverPhone(s,{...Object.fromEntries(form),backup:form.get("backup")||undefined,backupPin:form.get("backupPin")||undefined});
+      revalidatePath("/transport");
+      return {message:enrollment?`Enter this one-time enrollment code on the assigned phone within 20 minutes: ${enrollment}`:"Driver settings saved."};
+    }
     if(operation==="maintenance-report"||operation==="maintenance-clear"){
       await changeMaintenance(s,Object.fromEntries(form));revalidatePath("/transport");return {message:"Maintenance history updated."};
     }
