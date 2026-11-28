@@ -616,3 +616,16 @@ Observed at 7163419, fresh local PostgreSQL in CI order:
 - migrate ×2 + seed, typecheck, build: passed. **Lint failed** on two unescaped apostrophes and an unused variable.
 - 161/161 PostgreSQL and unit tests, 63/63 Chromium, 1/1 tutor.
 - f31c988 fixes the lint, which then passed. Its full run happens at the 18:00 integration review.
+
+**Matrix work on cc/pilot-access (888e84d, `db/074`):**
+- **Rubrics (FC-010):**
+  - A course teacher sets criteria before marking starts; the points must add up to the maximum marks.
+  - Scoring by criterion saves an ordinary grade draft whose marks are the total, with the scores tied to that revision. `updateGrade` now wraps `gradeIn`, so the grade and its scores share one transaction.
+  - Publication and corrections are unchanged. The student sees the per-criterion breakdown only for the published revision.
+- **Linked to tests that already cover them**, with scope notes where narrower:
+  - Full: SL-002 sports participation, LE-014 placement performance.
+  - Partial: AD-033 sports coordination (no travel approvals), AD-028 placement office (no employer records), AD-025 library desk (no external integration), AD-026 laboratory staff (no separate role).
+
+Observed at 888e84d, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 163/163 PostgreSQL and unit tests, 64/64 Chromium, 1/1 tutor.
