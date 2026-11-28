@@ -443,7 +443,7 @@ Students, placement and research offices, opted-in mentors, approved alumni and 
 | CR-017 | Mentor discovery | Find available mentors by approved expertise and request contact. | Proposed | F |
 | CR-018 | Faculty research projects | Publish approved projects and scoped openings. | Proposed | F |
 | CR-019 | Student research teams | Form opt-in teams and manage role-specific access. | Proposed | F |
-| CR-020 | Laboratory access requests | Request facility access under safety and supervision rules. | Proposed | F |
+| CR-020 | Laboratory access requests | Request facility access under safety and supervision rules. | Tested (students must name a current teacher as supervisor and the office decides; no safety-induction record) | lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
 | CR-021 | Industry challenges | Receive approved problem briefs and propose solutions. | Proposed | F |
 | CR-022 | Startup ideas | Capture ideas and validate ownership and disclosure choices. | Proposed | F |
 | CR-023 | Incubation | Track applications, reviews and milestones. | Proposed | F |

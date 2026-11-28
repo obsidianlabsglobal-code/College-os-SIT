@@ -13,9 +13,9 @@ No row is Hosted and verified, Visually accepted or User-validated.
 | Functionally tested (local) | 135 |
 | Tested claim without linked evidence | 0 |
 | Implemented but unverified | 8 |
-| Partially implemented | 83 |
+| Partially implemented | 84 |
 | Blocked by an actual dependency | 13 |
-| Missing | 241 |
+| Missing | 240 |
 | Hosted and verified | 0 |
 | User-validated | 0 |
 | **Total** | **480** |
@@ -37,7 +37,7 @@ No row is Hosted and verified, Visually accepted or User-validated.
 | Sports specialization | 10 | 0 | 0 | 9 | 0 | 5 |
 | Smart Campus · student mobility | 1 | 0 | 0 | 1 | 0 | 24 |
 | Smart Campus · transport operations | 0 | 0 | 0 | 1 | 0 | 19 |
-| Careers, research and opportunities | 7 | 0 | 0 | 8 | 0 | 22 |
+| Careers, research and opportunities | 7 | 0 | 0 | 9 | 0 | 21 |
 | Campus operations | 2 | 0 | 0 | 13 | 0 | 2 |
 | AURA · shared agent platform | 7 | 0 | 2 | 5 | 0 | 6 |
 | AURA catalog · student and personal | 0 | 0 | 0 | 0 | 0 | 15 |
@@ -385,7 +385,7 @@ No row is Hosted and verified, Visually accepted or User-validated.
 | CR-017 | Mentor discovery | Proposed | Missing | — | F |
 | CR-018 | Faculty research projects | Proposed | Missing | — | F |
 | CR-019 | Student research teams | Proposed | Missing | — | F |
-| CR-020 | Laboratory access requests | Proposed | Missing | — | F |
+| CR-020 | Laboratory access requests | Tested (students must name a current teacher as supervisor and the office decides; no safety-induction record) | Partially implemented | `tests/campus-operations.test.ts` | lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
 | CR-021 | Industry challenges | Proposed | Missing | — | F |
 | CR-022 | Startup ideas | Proposed | Missing | — | F |
 | CR-023 | Incubation | Proposed | Missing | — | F |
