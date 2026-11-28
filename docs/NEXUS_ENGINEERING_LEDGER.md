@@ -691,3 +691,11 @@ Observed at 39e34ea, fresh local PostgreSQL in CI order:
 - migrate ×2 + seed, lint, typecheck and build passed.
 - 170/170 PostgreSQL and unit tests, 66/66 Chromium, 1/1 tutor.
 - Matrix: 135 tested, 85 partial, 239 missing, 8 unverified, 13 blocked.
+
+**Safety incidents (a051ce8, `db/080`):**
+- **OP-011 (partial):** "Safety incidents" is a new case kind. Any member except the principal reports one, and the office owns the response. The principal can read them; notes stay with staff. An open report nobody has been assigned within 24 hours is flagged as escalated, and assigning it clears the flag. The reporter is notified when it closes. The page tells people to call for help first in an emergency. There's no configurable response policy or paging.
+
+Observed at a051ce8, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 171/171 PostgreSQL and unit tests, 66/66 Chromium, 1/1 tutor.
+- Matrix: 135 tested, 86 partial, 238 missing, 8 unverified, 13 blocked.
