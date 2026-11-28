@@ -1,4 +1,4 @@
-// covers: SP-001, SP-003, SP-004, SP-005, SP-006, SP-007, SP-008, SP-009, SP-010, SP-011, SP-015, SP-016, SP-017, SP-018, SP-019, SP-020, SP-021, SP-023, ID-004, ID-006
+// covers: DH-021, SL-002, AD-033, SP-001, SP-003, SP-004, SP-005, SP-006, SP-007, SP-008, SP-009, SP-010, SP-011, SP-015, SP-016, SP-017, SP-018, SP-019, SP-020, SP-021, SP-023, ID-004, ID-006
 import "../scripts/environment";
 import assert from "node:assert/strict";
 import { test, before, after } from "node:test";
@@ -76,6 +76,8 @@ test("the office creates tournaments and teams; entries follow the tournament le
   await enterTeam(admin, { tournament: cup, team: team.open });
   await enterTeam(admin, { tournament: cup, team: team.rival });
   assert.ok(!(await sportsOverview({ ...as.get("tenant")!, role: "admin" })).teams.some(t => t.id === team.ece), "other tenants see nothing");
+  const oversight = (await sportsOverview(as.get("hod")!)).teams.find(t => t.id === team.ece);
+  assert.equal(oversight?.department, "Electronics and Communication Engineering", "the HOD sees their department's team");
 });
 
 test("a coach runs trials for an eligible student, then training and announcements only the squad reads", async () => {

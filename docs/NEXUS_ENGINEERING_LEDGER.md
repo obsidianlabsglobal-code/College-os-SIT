@@ -549,3 +549,211 @@ Steps 1–4 of the integration brief were already done (036 in 3794d44, app shel
 Observed:
 - Demo rehearsal on a clean demo database: 1/1 passed.
 - Fresh local PostgreSQL in CI order at 88acb02: migrate ×2 + seed, lint, typecheck and build passed; 154/154 PostgreSQL and unit tests, 58/58 Chromium, 1/1 tutor.
+
+## 2026-11-28 — cc/pilot-access (taken on by the integration session): teacher import, email sign-in, student sign-up, consent
+
+The founder assigned the pilot-access work to this session (branch `cc/pilot-access`, migrations 070–089). It merges into the audit branch at the 18:00 IST review.
+
+Implemented (8f8990c, `db/070`):
+- **Teacher import (ID-012):**
+  - The office uploads or pastes a CSV (`name,email,phone,department,teaches,mentor_of`). The preview checks every row (duplicate emails, switched-off departments, unknown classes or sections, bad phones) and stores only the checked rows.
+  - Confirming re-checks and writes exactly those rows, or nothing: accounts, faculty memberships, rosters, class mentors and phone numbers.
+- **Email sign-in (AD-002):**
+  - better-auth email OTP: 6 digits, 10-minute expiry, 3 attempts, stored hashed.
+  - Limits: 10 requests per address per 10 minutes (auth library) and 5 codes per email per hour (no email is sent past the limit; the reply is identical, so nobody learns whether an email exists).
+  - Mail goes through `lib/email`. Its console adapter runs only against a local database or the fictional pilot; a real provider needs approval.
+  - `/login/code` keeps a safe same-site `next` link.
+- **Student sign-up (ID-009):**
+  - `/join/student?institution=…` asks for code sign-in (which confirms the email), then name, USN, semester, section in a switched-on department, phone and stop. The student sees nothing until a decision.
+  - Only current teachers of that section, or its class mentor who is a current teacher, see and decide requests (bulk approve, reject with a reason the student sees).
+  - Approval records a `student_admission`, the student membership, the section's rosters and the details.
+  - The office's revoke now ends those rosters and the membership.
+  - Every request and decision is audited.
+- **Consent (ID-010 slice):**
+  - A versioned privacy notice. When an institution requires it (office switch), every workspace page sends members to it until they accept.
+  - The office sees who has not accepted.
+  - The wording is a draft until the college approves it.
+- **Step 5 (one search box):** not started.
+
+Fixes during the full run:
+- The pilot-access integration test left a Mechanical-only section that broke the catalog browser test's selector; it now cleans up.
+- The admission preview test expected `/join/student` to return 404; it now expects the code sign-in, and the preview check moved to `/join/faculty`.
+
+Observed, fresh local PostgreSQL in CI order on cc/pilot-access (8f8990c plus the test fixes):
+- migrate ×2 + seed, lint, typecheck, build: all passed.
+- 158/158 PostgreSQL and unit tests, 59/59 Chromium, 1/1 tutor.
+
+**cc/pilot-access step 5, one search box (26e2eb3):**
+- `lib/search.ts` reads notices and circulars, college dates, verified opportunities, approved policies and support services, each through its existing reader, so access matches that kind's own page.
+- Every typed word must match.
+- Tested: another section's notice, drafts, staff-only policies and other colleges stay hidden, and a role without membership sees nothing.
+- Club events are not included yet: their visibility rules are richer and searching them needs a club-aware reader.
+- The demo data gains an assessment circular; the demo script and rehearsal gain step 1c.
+
+Observed at 26e2eb3 on cc/pilot-access:
+- Demo rehearsal on a clean demo database: 1/1 passed.
+- Fresh local PostgreSQL in CI order: migrate ×2 + seed, lint, typecheck and build passed; 159/159 PostgreSQL and unit tests, 60/60 Chromium, 1/1 tutor.
+
+**cc/pilot-access change (founder, 08:19 UTC):**
+- Sign-up no longer collects a bus stop. Migration 071 drops the columns; transport owns the route and stop.
+- Newly approved students see "Pick your bus stop (coming soon)", which becomes a link once the transport page lands.
+- Pending for integration: dot/transport will send "Request to integration:" lines for bus-delay late marks on first-period attendance. This session builds them in attendance when they arrive.
+- Observed at c0ceb78, fresh local PostgreSQL in CI order: migrate ×2 + seed, lint, typecheck and build passed; 159/159 PostgreSQL and unit tests, 60/60 Chromium, 1/1 tutor.
+
+**cc/pilot-access, continued (coordinator's standing order):**
+- **Student import (33e189e, `db/072`):**
+  - The office checks a student CSV with the same refusals as self sign-up.
+  - It then either sends the rows to section teachers as pending requests or admits them on its own authority. Teacher approval and the office import share `admitStudent`.
+- **Club events in search:** published events open to eligible members, or to members of that club, as on the club page.
+- **Hardening (7163419, `db/073`):**
+  - Failed sign-ins from the app's forms are recorded.
+  - The office's pilot health page shows members by role, students waiting by section (with a reminder after 48 hours), notice acceptance, failed sign-ins in the last 24 hours (only this college's members and applicants), and phones with bus alerts.
+  - Sessions last 3 days, and Settings can end every session on every device.
+  - A browser test loads sign-in, code sign-in, join, student home, settings and approvals on emulated slow 3G at 390 px.
+- The "Sign out on all devices" label collided with existing "Sign out" button lookups; it is now "End sessions on all devices".
+
+Observed at 7163419, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, typecheck, build: passed. **Lint failed** on two unescaped apostrophes and an unused variable.
+- 161/161 PostgreSQL and unit tests, 63/63 Chromium, 1/1 tutor.
+- f31c988 fixes the lint, which then passed. Its full run happens at the 18:00 integration review.
+
+**Matrix work on cc/pilot-access (888e84d, `db/074`):**
+- **Rubrics (FC-010):**
+  - A course teacher sets criteria before marking starts; the points must add up to the maximum marks.
+  - Scoring by criterion saves an ordinary grade draft whose marks are the total, with the scores tied to that revision. `updateGrade` now wraps `gradeIn`, so the grade and its scores share one transaction.
+  - Publication and corrections are unchanged. The student sees the per-criterion breakdown only for the published revision.
+- **Linked to tests that already cover them**, with scope notes where narrower:
+  - Full: SL-002 sports participation, LE-014 placement performance.
+  - Partial: AD-033 sports coordination (no travel approvals), AD-028 placement office (no employer records), AD-025 library desk (no external integration), AD-026 laboratory staff (no separate role).
+
+Observed at 888e84d, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 163/163 PostgreSQL and unit tests, 64/64 Chromium, 1/1 tutor.
+
+**Matrix work, continued (11590e1, `db/075`):**
+- **Student records (AD-005):** the office finds students by name, email or USN and corrects USN, semester or phone with a reason. Every change keeps its old and new value. A student reads their own record on My profile, and nobody else's. Names stay with the sign-in account, which is shared across colleges.
+- **Classroom scheduling (OP-001):** a new timetable test shows two sections cannot hold a class in one room at the same time; the clashing class stays a draft. It also covers part of DH-008 timetable planning (no HOD planning view).
+
+Observed at 11590e1, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 165/165 PostgreSQL and unit tests, 65/65 Chromium, 1/1 tutor.
+
+**Matrix work, continued (d1835ad, no migration):**
+- **Department heads (DH-018, DH-019, DH-021):** an HOD now sees room-use totals and equipment status (available, on loan or overdue; due date; last return condition) on Facilities, without who booked or borrows what. Students, faculty, the principal and other colleges see nothing. A sports test confirms the HOD sees their department's teams.
+
+Observed at d1835ad, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 166/166 PostgreSQL and unit tests, 65/65 Chromium, 1/1 tutor.
+- Matrix: 133 tested, 79 partial, 247 missing, 8 unverified, 13 blocked. The three new rows are Tested with a scope note, so they count as partial.
+
+**Club events (f749015–a14014e, `db/076`):**
+- **Waitlist (CL-044):** when an event is full, an eligible student joins a waitlist and sees their place. A registered student can give up their seat before the event starts, which goes to the earliest person waiting who still has an active student membership (and club membership for members-only events). Verified attendance can't be withdrawn.
+- **Feedback (CL-046):** after an event is completed, each registered student can give one rating (1–5) and an optional comment. Officers see the count, the average and the comments, without names. Students see no summary. No published outcome report yet.
+- At f749015 the new browser test closed the app's shared connection pool, so a later release test in the same worker failed with "Called end on pool more than once" (243 passed, 1 failed). Fixed in a14014e.
+
+Observed at a14014e, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 167/167 PostgreSQL and unit tests, 66/66 Chromium, 1/1 tutor.
+- Matrix: 134 tested, 80 partial, 245 missing, 8 unverified, 13 blocked.
+
+**Club notices and upcoming events (6439930–7ff1950, `db/077`):**
+- **Club notices (CL-028):** a current club lead or officer posts a notice to club members or to everyone eligible for the club. Each notice has an expiry date from today up to 180 days ahead, and can be withdrawn. Other members, admins, other faculty and other colleges can't post. Withdrawn and expired notices disappear.
+- **Upcoming events (SL-003, partial):** the CLUBVERSE home lists the ten soonest club events the person may see. The same query now backs search. There are no separate cultural-production records.
+
+Observed at 7ff1950, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 168/168 PostgreSQL and unit tests, 66/66 Chromium, 1/1 tutor.
+- Matrix: 135 tested, 81 partial, 243 missing, 8 unverified, 13 blocked.
+
+**Room availability and staff dock (aac7477–adf3550, no migration):**
+- **Room availability (SP-012, partial):** on Facilities, any current member can check a room and date and see when it's taken by classes or approved bookings. They see times only, never who booked it, why, or which class. Other colleges see nothing. Requested and cancelled bookings don't count as taken.
+- **Staff dock:** Dot's handoff (dot/transport `docs/TRANSPORT_LOCAL_HANDOFF.md`) noted that Transport displaced Evaluation queue in the faculty mobile dock. Transport now leads only the student dock; staff find it under More. This can only be checked once `app/transport/page.tsx` is merged, so it's on the 18:00 review checklist.
+
+Observed at adf3550, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 168/168 PostgreSQL and unit tests, 66/66 Chromium, 1/1 tutor.
+- Matrix: 135 tested, 82 partial, 242 missing, 8 unverified, 13 blocked.
+
+**Operational notices (9db820f, `db/078`):**
+- **OP-010 (partial):** a notice can be marked "Maintenance or closure" and given an end date (today or later). After that date readers no longer see it, though its author still does. It uses the existing college, department and class audiences; there's no building-level audience.
+
+Observed at 9db820f, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 169/169 PostgreSQL and unit tests, 66/66 Chromium, 1/1 tutor.
+- Matrix: 135 tested, 83 partial, 241 missing, 8 unverified, 13 blocked.
+
+**Club tasks and lab access (39e34ea, `db/079`):**
+- **Club meeting decisions (CL-047, partial):** a club lead or officer records a decision from a meeting as a task, with an owner who is an active member and a due date that isn't before the meeting. Only the owner marks it done, once. Active members see open tasks, overdue ones flagged, plus those done in the last 30 days. Clubs don't have meeting scheduling or minutes.
+- **Lab access (CR-020, partial):** linked to the existing supervised student booking: a current teacher must supervise, and the office decides. There's no safety-induction record.
+- `addClubTask` first threw its date check synchronously, before returning a promise, so the test caught it outside `assert.rejects`. Made the function async; callers now always get a rejected promise.
+
+Observed at 39e34ea, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 170/170 PostgreSQL and unit tests, 66/66 Chromium, 1/1 tutor.
+- Matrix: 135 tested, 85 partial, 239 missing, 8 unverified, 13 blocked.
+
+**Safety incidents (a051ce8, `db/080`):**
+- **OP-011 (partial):** "Safety incidents" is a new case kind. Any member except the principal reports one, and the office owns the response. The principal can read them; notes stay with staff. An open report nobody has been assigned within 24 hours is flagged as escalated, and assigning it clears the flag. The reporter is notified when it closes. The page tells people to call for help first in an emergency. There's no configurable response policy or paging.
+
+Observed at a051ce8, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 171/171 PostgreSQL and unit tests, 66/66 Chromium, 1/1 tutor.
+- Matrix: 135 tested, 86 partial, 238 missing, 8 unverified, 13 blocked.
+
+**Department clubs (63b20b4–f0989b7, `db/081`):**
+- **Safety close notice:** a test now confirms the reporter gets "Your safety report has been resolved" when the office closes a safety case (the case-closed job runs for every kind).
+- **DH-020 (partial):** the office links a recognized club to one department, or removes the link, from the club page. That department's current HOD sees it on their board with state, active members and upcoming published events. Faculty, the principal, students, other HODs and other colleges can't link it, and only that HOD sees it. Moving a club to another department removes it from the first HOD's board. HODs have no actions on the club.
+
+Observed at f0989b7, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 172/172 PostgreSQL and unit tests, 66/66 Chromium, 1/1 tutor.
+- Matrix: 135 tested, 87 partial, 237 missing, 8 unverified, 13 blocked.
+
+**Merge dry run with dot/transport (5885a54–babbbaa):**
+- I merged audit/nexus-engineering-audit + cc/pilot-access + dot/transport@32b630f into a local branch that was never pushed and ran CI on a fresh database.
+  - Only the ledger conflicted (append-only).
+  - 192/192 PostgreSQL tests passed.
+  - First run: 66/67 Chromium. pilot-access e2e still expected "Pick your bus stop (coming soon)", but with the transport page present home shows "Pick my route and stop". Fixed in 5885a54: the test checks for `app/transport/page.tsx`, as the shell does.
+  - Second run, with `NEXUS_TRANSPORT_LOCAL_TEST=1` so Dot's boarding e2e runs: 67/68 Chromium. The boarding test failed with "Called end on pool more than once"; it and `release.e2e.ts` both close the shared app pool in one Playwright worker.
+  - Fixed the release side in babbbaa. Asked Dot, through the coordinator, to drop `db.end()` from `tests/transport-boarding.e2e.ts`.
+
+Observed at babbbaa, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 172/172 PostgreSQL and unit tests, 66/66 Chromium, 1/1 tutor.
+
+**Coordination (2026-11-28, 10:30 UTC):**
+- Request to Dot: in `tests/transport-boarding.e2e.ts` line 65, drop `await db.end();` (keep `owner.end()`). Every e2e file shares one Playwright worker and one `lib/db` pool, so a second `end()` fails with "Called end on pool more than once". This was the only failure in the dry-run merge. The test only runs with `NEXUS_TRANSPORT_LOCAL_TEST=1`, which the review run will set.
+- Request to Dot: please expose a read function for routes and stops the caller may see (for example `lib/transport` `searchableRoutes(scope)`), so universal search (ID-014) can include Transport. Until then, search covers transport by intent shortcut only.
+- Standing test rule from the founder, added to AGENTS.md: 390 px and 1366×768 (1920 for office and HOD dashboards), no overflow, cards on phones and tables on laptops, visible keyboard focus, 44 px targets, and screenshots at both sizes.
+- Claimed by cc: ID-014
+- Claimed by cc: ID-015
+- Claimed by cc: ID-016
+- Claimed by cc: FC-030 (bus-delay attendance context; built on a local branch, lands after the transport merge)
+
+**Universal search (1661202, `db/082`), ID-014:**
+- **Header bar:** a search bar sits in every workspace header, and "/" focuses it when you aren't typing. Ctrl/Cmd+K stays with the existing page palette, which already used it, so it isn't taken over. On phones the bar is a full-width row; on laptops it shares one header row and the workspace label truncates.
+- **Sources:** each kind of result is still read through its own access-checked reader. Search now also covers courses, assignments, people and cases. People follow rosters: a teacher sees their current students, a student their current teachers, the office every member. Transport routes and stops wait for a read function from Dot (Request to Dot, above).
+- **Matching:** every typed word, or a related word, must start a word in the text. Words of five letters or more also match close typos through pg_trgm `strict_word_similarity` ≥ 0.4, so "circulr" finds "circular" and "atendence" finds attendance.
+  - Related words: a built-in list of English and common Kannada transliterations, plus the office's own groups (admin-only, audited).
+  - Short words don't fuzzy-match: "bus" scored 0.75 against "Business".
+- **Decision:** the pg_trgm extension is added, but no GIN indexes. Search scores only rows the reader already allowed (a few hundred per kind, in one `unnest` query) and never scans a table unscoped, so an index wouldn't be used.
+- **Results:** intent shortcuts go to pages the role can open; "Go to" results rank first. Results are grouped by type, best first. On a miss, "Did you mean" suggests the closest word (`similarity` ≥ 0.25, because transposed letters score low) from what the person may see. The last eight searches are kept per person and workspace.
+- **Evidence:** screenshots at 390 px and 1366×768 in `docs/evidence/search-2026-11-28/`.
+
+Observed at 1661202, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 174/174 PostgreSQL and unit tests, 66/66 Chromium, 1/1 tutor.
+- Matrix: 135 tested, 89 partial, 238 missing (483 rows with ID-014 to ID-016), 8 unverified, 13 blocked.
+
+**App install (21df2bc), ID-016:**
+- **Assetlinks:** `/.well-known/assetlinks.json` is built from `NEXUS_ANDROID_PACKAGE` and `NEXUS_ANDROID_SHA256`. Fingerprints are validated, and the route returns 404 unless both are set. The APK build steps (PWABuilder or Bubblewrap, free) are in DEPLOYMENT.md.
+- **Get the app:** `/get-app` is public and orders Android, iPhone and laptop steps by user agent. The APK download appears once `NEXUS_ANDROID_APK_URL` (HTTPS) is set.
+- **Install banner:** in a browser tab every page shows an in-page install banner, not a fixed overlay, so it never covers controls. "Not now" hides it for the visit (sessionStorage). It never shows when the app runs standalone (display-mode or `navigator.standalone`).
+- **Not done:** no APK has been built; that needs the final domain and a signing key the college keeps.
+- **Blocker:** `playwright.webkit.config.ts` is ready but not run, because the sandbox has only Chromium and installing browsers here isn't allowed. Run it on a machine with Playwright's WebKit.
+- **Evidence:** `docs/evidence/install-2026-11-28/` has Android and iPhone at 390 px and laptop at 1366.
+
+Observed at 21df2bc, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 175/175 PostgreSQL and unit tests, 68/68 Chromium (the banner breaks no existing flow), 1/1 tutor.
+- Matrix: 135 tested, 90 partial, 237 missing, 8 unverified, 13 blocked.

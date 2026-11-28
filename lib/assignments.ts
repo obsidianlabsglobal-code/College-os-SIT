@@ -196,8 +196,14 @@ export async function submissions(scope: Scope, assignment: string, only?: strin
   )).rows;
 }
 
-export function updateGrade(scope: Scope, input: { assignment: string; submission: string; expected: number; expectedDraft: boolean; marks?: number; feedback?: string; reason?: string; publish: boolean }) {
-  return transaction(async client => {
+export type GradeInput = { assignment: string; submission: string; expected: number; expectedDraft: boolean; marks?: number; feedback?: string; reason?: string; publish: boolean };
+export function updateGrade(scope: Scope, input: GradeInput) {
+  return transaction(client => gradeIn(client, scope, input));
+}
+
+/** The grade write inside an open transaction, so rubric scores can join the same revision (lib/rubrics.ts). */
+export async function gradeIn(client: PoolClient, scope: Scope, input: GradeInput) {
+  {
     const assignment = await lockAssignment(client, scope, input.assignment, "faculty", "SHARE");
     await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))", [`grade:${scope.institution}:${input.submission}`]);
     const submission = await client.query(
@@ -239,7 +245,8 @@ export function updateGrade(scope: Scope, input: { assignment: string; submissio
       [...key, revision, input.marks, input.feedback, latest?.published_at || latest?.reason ? input.reason?.trim() : null],
     );
     await audit(client, scope, input.submission, latest?.published_at || latest?.reason ? "grade.correction_drafted" : "grade.drafted", revision);
-  });
+    return revision;
+  }
 }
 
 export async function files(scope: Scope, assignment: string, id?: string, submissionIds?: readonly string[]) {

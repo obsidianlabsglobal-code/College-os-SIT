@@ -162,6 +162,7 @@ const handlers: Record<string, (client: PoolClient, job: Job) => Promise<Result>
            WHEN 'integrity' THEN 'Your integrity appeal has been ' WHEN 'department' THEN 'Your department request has been '
            WHEN 'representation' THEN 'Your representation issue has been ' WHEN 'letter' THEN 'Your letter has been '
            WHEN 'transport_incident' THEN 'Your transport report has been ' WHEN 'lost_and_found' THEN 'Your lost-and-found report has been '
+           WHEN 'safety' THEN 'Your safety report has been '
            ELSE 'Support case ' END || k.state
        FROM case_record k WHERE k.institution_id=$1 AND k.id=$2 AND k.state IN ('resolved','declined') AND k.opened_by<>
          (SELECT actor_id FROM audit_event WHERE id=$3) ON CONFLICT DO NOTHING`, [job.institution_id, job.entity_id, job.event_id]);

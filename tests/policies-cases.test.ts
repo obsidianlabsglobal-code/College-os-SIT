@@ -1,4 +1,4 @@
-// covers: OP-006, OP-007, OP-013, OP-015, AD-021, AD-016, SL-007, SA-007, AD-031, AD-032, SA-023, DH-023, AD-020, FC-009, FC-008, ID-004, ID-006
+// covers: OP-011, OP-006, OP-007, OP-013, OP-015, AD-021, AD-016, SL-007, SA-007, AD-031, AD-032, SA-023, DH-023, AD-020, FC-009, FC-008, ID-004, ID-006
 import "../scripts/environment";
 import assert from "node:assert/strict";
 import { test, before, after } from "node:test";
@@ -7,7 +7,8 @@ import { Pool } from "pg";
 import { db } from "../lib/db";
 import { assignments, WorkflowError } from "../lib/assignments";
 import { attendanceEligibility, decidePolicy, draftPolicy, policyVersions, publishedPolicies } from "../lib/policies";
-import { assignCase, cases, caseStaff, closeCase, openCase, reopenCase } from "../lib/cases";
+import { assignCase, cases, caseStaff, closeCase, openCase, reopenCase, startCase } from "../lib/cases";
+import { runJobs } from "../lib/automation";
 import { bankQuestions, composeAssessment, saveQuestion } from "../lib/question-bank";
 import { fixtures, demoEmail, personas } from "../scripts/fixtures";
 import type { Scope } from "../lib/scope";
@@ -157,4 +158,24 @@ test("question bank: versioned, private or department-shared, and composed into 
   assert.match(created.description, /1\. Write a for loop that sums 1\.\.n\. \(5 marks · bank: Loops .* v2\)/);
   assert.equal(created.published_at, null, "composed assessments start as private drafts");
   assert.deepEqual(await assignments(as.get("student")!, draft), []);
+});
+
+test("safety incidents go to the office, the principal can read them, and an unassigned report is flagged after 24 hours", async () => {
+  const student = as.get("student")!, admin = as.get("admin")!, principal = as.get("principal")!;
+  await rejects(() => openCase(principal, { kind: "safety", title: `x ${tag}`, body: "x" }));
+  const id = await openCase(student, { kind: "safety", title: `Loose cable near Lab 3 ${tag}`, body: "Exposed wire at the entrance" });
+  const fresh = (await cases(admin, "safety")).find(c => c.id === id)!;
+  assert.equal(fresh.escalated, false);
+  assert.ok((await cases(principal, "safety")).some(c => c.id === id), "leadership oversight");
+  for (const alias of ["outsider", "faculty", "hod"]) assert.ok(!(await cases(as.get(alias)!, "safety")).some(c => c.id === id), alias);
+  assert.ok(!(await cases({ ...as.get("tenant")!, role: "admin" }, "safety")).some(c => c.id === id));
+  await owner.query("UPDATE case_record SET created_at=now()-interval '25 hours' WHERE institution_id=$1 AND id=$2", [i, id]);
+  assert.equal((await cases(admin, "safety")).find(c => c.id === id)?.escalated, true, "nobody took it up within 24 hours");
+  await assignCase(admin, { case: id, assignee: admin.account });
+  assert.equal((await cases(admin, "safety")).find(c => c.id === id)?.escalated, false, "assigned, so no longer flagged");
+  await startCase(admin, id);
+  await closeCase(admin, { case: id, outcome: "resolved", reason: "Cable covered and taped" });
+  const told = async () => (await owner.query("SELECT title FROM notification WHERE institution_id=$1 AND entity_id=$2 AND recipient_id=$3", [i, id, student.account])).rows[0]?.title;
+  for (let n = 0; n < 40 && !(await told()); n++) { await runJobs({ worker: "safety-test" }); await new Promise(r => setTimeout(r, 100)); }
+  assert.equal(await told(), "Your safety report has been resolved");
 });

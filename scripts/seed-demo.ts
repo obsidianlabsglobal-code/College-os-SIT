@@ -85,6 +85,9 @@ async function main() {
     await q(`INSERT INTO calendar_entry (institution_id,id,title,kind,starts_on,ends_on,created_by) VALUES
       ($1,$2,'Internal assessment week','event',current_date+7,current_date+11,$4),($1,$3,'Founders'' day holiday','holiday',current_date+14,current_date+14,$4) ON CONFLICT DO NOTHING`,
     [i, id(74), id(75), people.admin]);
+    // A college circular that search finds alongside the assessment week date.
+    await q(`INSERT INTO notice (institution_id,id,author_id,author_role,title,body,published_at) VALUES ($1,$2,$3,'admin','Internal assessment circular',
+      'Fictional: internal assessments run next week. Check your timetable for rooms and bring your ID card.',now()-interval '1 day') ON CONFLICT DO NOTHING`, [i, id(81), people.admin]);
     // An approved policy Ask AURA can quote, with its version (AI-011, AI-017).
     await q("INSERT INTO policy (institution_id,id,kind,title,audience,created_by) VALUES ($1,$2,'service','Letters and certificates','students',$3) ON CONFLICT DO NOTHING",
       [i, id(80), people.admin]);

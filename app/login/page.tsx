@@ -1,5 +1,6 @@
 import { Brand } from "../experience/brand";
 import { ActionForm } from "../forms";
+import Link from "next/link";
 import { signIn } from "../actions/session";
 
 export default function LoginPage() {
@@ -15,6 +16,7 @@ export default function LoginPage() {
           <label>Password<input type="password" name="password" autoComplete="current-password" required /></label>
         </ActionForm>
       </section>
+      <p className="meta"><Link href="/login/code">Sign in with an email code instead</Link> · New student? <Link href="/join/student">Ask to join your section</Link></p>
     </main>
   </div>;
 }

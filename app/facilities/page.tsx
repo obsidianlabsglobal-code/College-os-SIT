@@ -3,7 +3,7 @@ import { Chrome } from "../chrome";
 import { ActionForm } from "../forms";
 import { operationsAction } from "../actions/operations";
 import { account, scope, workspaceQuery } from "../../lib/scope";
-import { bookings, holdings, loans, operationChoices, roomUse } from "../../lib/operations";
+import { bookings, busyTimes, equipmentStatus, holdings, loans, operationChoices, roomUse } from "../../lib/operations";
 
 const stateLabel: Record<string, string> = { requested: "Requested", approved: "Approved", declined: "Declined", cancelled: "Cancelled" };
 
@@ -11,7 +11,11 @@ export default async function Facilities({ searchParams }: { searchParams: Promi
   const [params, user] = await Promise.all([searchParams, account()]);
   const current = await scope(params.institution, params.role);
   const admin = current.role === "admin";
-  const [booked, books, myLoans, use, choices] = await Promise.all([bookings(current), holdings(current, params.q ?? ""), loans(current), roomUse(current), operationChoices(current)]);
+  const [booked, books, myLoans, use, choices, equipment] = await Promise.all([bookings(current), holdings(current, params.q ?? ""), loans(current), roomUse(current),
+    operationChoices(current), equipmentStatus(current)]);
+  const check = params.room && params.date ? { room: params.room, date: params.date } : null;
+  const busy = check ? await busyTimes(current, check).catch(() => null) : null;
+  const time = new Intl.DateTimeFormat("en-IN", { timeStyle: "short", timeZone: "Asia/Kolkata" });
   const when = new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kolkata" });
   const query = workspaceQuery(current);
   return <Chrome user={user} current={current} section="/facilities">
@@ -21,6 +25,15 @@ export default async function Facilities({ searchParams }: { searchParams: Promi
 
     {!admin && current.role !== "principal" && <section className="panel stack" aria-labelledby="book-title">
       <h2 id="book-title">Request a room or lab</h2>
+      <form className="form" aria-label="Check when a room is free">
+        <input type="hidden" name="institution" value={current.institution} /><input type="hidden" name="role" value={current.role} />
+        <label>Check room<select name="room" defaultValue={check?.room}>{choices.rooms.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select></label>
+        <label>On<input type="date" name="date" required defaultValue={check?.date} /></label>
+        <div><button className="button secondary">Show taken times</button></div>
+      </form>
+      {check && <div role="status" aria-label="Taken times">{busy === null ? <p>Choose a room and a valid date.</p> : !busy.length ? <p>Free all day.</p> :
+        <><p>Taken (classes and approved bookings):</p><ul className="items">{busy.map((b, n) =>
+          <li key={n}>{time.format(b.starts_at)} – {time.format(b.ends_at)} <span className="meta">· {b.kind === "class" ? "Class" : "Booked"}</span></li>)}</ul></>}</div>}
       <ActionForm action={operationsAction} context={current} operation="book" label="Request booking">
         <label>Room or lab<select name="room" required>{choices.rooms.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select></label>
         <label>Purpose<input name="purpose" required maxLength={300} /></label>
@@ -77,7 +90,12 @@ export default async function Facilities({ searchParams }: { searchParams: Promi
       </article></li>)}</ul> : <p>No loans.</p>}
     </section>
 
-    {admin && <section className="panel stack" aria-labelledby="use-title">
+    {equipment.length > 0 && <section className="panel stack" aria-labelledby="equipment-title">
+      <h2 id="equipment-title">Equipment status</h2>
+      <ul className="items">{equipment.map(e => <li key={e.id} className="row spread"><span><strong>{e.name}</strong> · {e.location}{e.last_condition ? ` · last returned ${e.last_condition}` : ""}</span>
+        <span className={e.state === "overdue" ? "tag tag-attention" : "tag"}>{e.state === "available" ? "Available" : e.state === "overdue" ? `Overdue since ${e.due_on}` : `On loan until ${e.due_on}`}</span></li>)}</ul>
+    </section>}
+    {use.length > 0 && <section className="panel stack" aria-labelledby="use-title">
       <h2 id="use-title">Room use · next 7 days</h2>
       <table className="standings"><thead><tr><th scope="col">Room</th><th scope="col">Class h</th><th scope="col">Booked h</th><th scope="col">Waiting</th></tr></thead>
         <tbody>{use.map(u => <tr key={u.room}><th scope="row">{u.room}</th><td>{u.class_hours}</td><td>{u.booking_hours}</td><td>{u.requested}</td></tr>)}</tbody></table>

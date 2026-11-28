@@ -1,7 +1,7 @@
 {
- "commit": "88acb02822f17670f23fac3edcdad58306c905aa",
+ "commit": "21df2bce0008ef00a838658c2386421196157c35",
  "uncommitted_source_changes": false,
- "recorded_at": "2026-11-28T07:55:43+00:00",
+ "recorded_at": "2026-11-28T10:49:24+00:00",
  "environment": "local fresh PostgreSQL, fictional data, headless Chromium",
  "files": {
   "tests/academic-assistant.test.ts": {
@@ -13,7 +13,7 @@
    "failed": 0
   },
   "tests/academic-day.test.ts": {
-   "passed": 4,
+   "passed": 5,
    "failed": 0
   },
   "tests/allocation-teams.e2e.ts": {
@@ -81,7 +81,7 @@
    "failed": 0
   },
   "tests/campus-operations.test.ts": {
-   "passed": 3,
+   "passed": 4,
    "failed": 0
   },
   "tests/careers.e2e.ts": {
@@ -98,6 +98,26 @@
   },
   "tests/cases.test.ts": {
    "passed": 5,
+   "failed": 0
+  },
+  "tests/club-departments.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/club-events.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/club-events.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/club-notices.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/club-tasks.test.ts": {
+   "passed": 1,
    "failed": 0
   },
   "tests/clubverse.test.ts": {
@@ -176,6 +196,14 @@
    "passed": 1,
    "failed": 0
   },
+  "tests/install.e2e.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/install.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
   "tests/leadership.e2e.ts": {
    "passed": 1,
    "failed": 0
@@ -205,7 +233,7 @@
    "failed": 0
   },
   "tests/notices.test.ts": {
-   "passed": 2,
+   "passed": 3,
    "failed": 0
   },
   "tests/operations.e2e.ts": {
@@ -232,6 +260,14 @@
    "passed": 3,
    "failed": 0
   },
+  "tests/pilot-access.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/pilot-access.test.ts": {
+   "passed": 5,
+   "failed": 0
+  },
   "tests/pilot-foundation.e2e.ts": {
    "passed": 1,
    "failed": 0
@@ -240,12 +276,20 @@
    "passed": 2,
    "failed": 0
   },
+  "tests/pilot-health.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/pilot-mobile.e2e.ts": {
+   "passed": 2,
+   "failed": 0
+  },
   "tests/policies-cases.e2e.ts": {
    "passed": 2,
    "failed": 0
   },
   "tests/policies-cases.test.ts": {
-   "passed": 5,
+   "passed": 6,
    "failed": 0
   },
   "tests/prepared-messages.e2e.ts": {
@@ -276,6 +320,22 @@
    "passed": 1,
    "failed": 0
   },
+  "tests/rubrics.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/rubrics.test.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/search.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/search.test.ts": {
+   "passed": 3,
+   "failed": 0
+  },
   "tests/segments.test.ts": {
    "passed": 2,
    "failed": 0
@@ -298,6 +358,18 @@
   },
   "tests/student-admission.test.ts": {
    "passed": 4,
+   "failed": 0
+  },
+  "tests/student-import.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/student-records.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/student-records.test.ts": {
+   "passed": 1,
    "failed": 0
   },
   "tests/tutor.spec.ts": {

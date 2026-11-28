@@ -1,4 +1,4 @@
-// covers: CR-002, CR-007, CR-008, CR-009, CR-010, CR-013, CR-015, CR-016, CR-031, CR-032, CR-033, ID-004, ID-006
+// covers: LE-014, AD-028, CR-002, CR-007, CR-008, CR-009, CR-010, CR-013, CR-015, CR-016, CR-031, CR-032, CR-033, ID-004, ID-006
 import "../scripts/environment";
 import assert from "node:assert/strict";
 import { test, before, after } from "node:test";

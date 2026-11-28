@@ -1,4 +1,4 @@
-// covers: OP-002, OP-004, OP-014
+// covers: OP-002, OP-004, OP-014, SP-012
 import "../scripts/environment";
 import { expect, test, type Page } from "@playwright/test";
 import { randomUUID } from "node:crypto";
@@ -61,6 +61,12 @@ test("a student requests a supervised lab slot the office approves, and borrows 
     await expect(page.getByRole("article", { name: `Lab ${tag} · Robot build ${tag}` })).toContainText("Office: Lab assistant on duty");
     await expect(page.getByRole("article", { name: `Microelectronics ${tag} · Asha Sen` })).toBeVisible();
     await expect(page.getByText("0 of 1 available")).toBeVisible();
+    const check = page.getByRole("form", { name: "Check when a room is free" });
+    await check.getByLabel("Check room").selectOption({ label: `Lab ${tag}` });
+    await check.getByLabel("On").fill(tomorrowNight.slice(0, 10));
+    await check.getByRole("button", { name: "Show taken times" }).click();
+    await expect(page.getByRole("status", { name: "Taken times" })).toContainText(/9:00\s?pm – 10:00\s?pm · Booked/i);
+    await expect(page.getByRole("status", { name: "Taken times" })).not.toContainText("Robot build");
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
     await page.screenshot({ path: testInfo.outputPath("facilities-student-390.png"), fullPage: true });
   } finally {

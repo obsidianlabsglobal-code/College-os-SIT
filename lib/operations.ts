@@ -164,9 +164,10 @@ export async function loans(scope: Scope) {
     ORDER BY (l.returned_at IS NULL) DESC,l.due_on LIMIT 80`, [scope.institution, scope.account, scope.role])).rows;
 }
 
-/** OP-009: hours of published classes and approved bookings per room over the next seven days, for the office. */
+/** OP-009 / DH-018: hours of published classes and approved bookings per room over the next seven days, for the office and
+ * department heads (who plan and request lab time). Only totals are shown, never who booked or why. */
 export async function roomUse(scope: Scope) {
-  if (scope.role !== "admin") return [];
+  if (scope.role !== "admin" && scope.role !== "hod") return [];
   return (await db.query<{ room: string; class_hours: number; booking_hours: number; requested: number }>(`SELECT * FROM (SELECT r.name AS room,
       coalesce(round((SELECT sum(extract(epoch FROM upper(s.slot)-lower(s.slot)))/3600 FROM class_session s WHERE (s.institution_id,s.room_id)=(r.institution_id,r.id)
         AND s.state IN ('published','conducted') AND s.slot && tstzrange(clock_timestamp(),clock_timestamp()+interval '7 days'))::numeric,1),0)::float8 AS class_hours,
@@ -174,8 +175,8 @@ export async function roomUse(scope: Scope) {
         AND b.state='approved' AND b.slot && tstzrange(clock_timestamp(),clock_timestamp()+interval '7 days'))::numeric,1),0)::float8 AS booking_hours,
       (SELECT count(*)::int FROM facility_booking b WHERE (b.institution_id,b.resource_id)=(r.institution_id,r.id) AND b.state='requested') AS requested
     FROM campus_resource r WHERE r.institution_id=$1 AND r.kind='room'
-      AND EXISTS (SELECT 1 FROM membership m WHERE m.institution_id=$1 AND m.account_id=$2 AND m.role='admin' AND m.ended_at IS NULL)
-    ) used ORDER BY class_hours+booking_hours DESC,room LIMIT 40`, [scope.institution, scope.account])).rows;
+      AND EXISTS (SELECT 1 FROM membership m WHERE m.institution_id=$1 AND m.account_id=$2 AND m.role IN ('admin','hod') AND m.role=$3 AND m.ended_at IS NULL)
+    ) used ORDER BY class_hours+booking_hours DESC,room LIMIT 40`, [scope.institution, scope.account, scope.role])).rows;
 }
 
 export async function operationChoices(scope: Scope) {
@@ -188,4 +189,36 @@ export async function operationChoices(scope: Scope) {
       WHERE m.institution_id=$1 AND m.ended_at IS NULL ORDER BY u.name`, [scope.institution]) : { rows: [] },
   ]);
   return { rooms: rooms.rows, equipment: equipment.rows, teachers: teachers.rows, people: people.rows };
+}
+
+export type EquipmentStatus = { id: string; name: string; location: string; state: "available" | "on loan" | "overdue"; due_on: string | null; last_condition: string | null };
+/** DH-019: equipment and whether it is free, on loan or overdue, with its last returned condition. The office also sees who
+ * holds it on the loans list; department heads see status only. */
+export async function equipmentStatus(scope: Scope) {
+  if (scope.role !== "admin" && scope.role !== "hod") return [];
+  return (await db.query<EquipmentStatus>(`SELECT r.id,r.name,r.location,
+      CASE WHEN l.id IS NULL THEN 'available' WHEN l.due_on < (now() AT TIME ZONE 'Asia/Kolkata')::date THEN 'overdue' ELSE 'on loan' END AS state,
+      to_char(l.due_on,'YYYY-MM-DD') AS due_on,
+      (SELECT x.condition FROM custody_loan x WHERE (x.institution_id,x.resource_id)=(r.institution_id,r.id) AND x.returned_at IS NOT NULL ORDER BY x.returned_at DESC LIMIT 1) AS last_condition
+    FROM campus_resource r LEFT JOIN custody_loan l ON (l.institution_id,l.resource_id)=(r.institution_id,r.id) AND l.returned_at IS NULL
+    WHERE r.institution_id=$1 AND r.kind='equipment'
+      AND EXISTS (SELECT 1 FROM membership m WHERE m.institution_id=$1 AND m.account_id=$2 AND m.role=$3 AND m.role IN ('admin','hod') AND m.ended_at IS NULL)
+    ORDER BY r.name`, [scope.institution, scope.account, scope.role])).rows;
+}
+
+export type BusyTime = { starts_at: Date; ends_at: Date; kind: "class" | "booked" };
+/** SP-012 / OP-002: when a room is taken on a college-local date (published classes and approved bookings), for any current
+ * member planning a request. Times only: never who booked it, why, or which class. */
+export async function busyTimes(scope: Scope, raw: unknown) {
+  const input = z.object({ room: z.uuid(), date: z.iso.date() }).parse(raw);
+  return (await db.query<BusyTime>(`WITH day AS (
+      SELECT tstzrange(($5::date)::timestamp AT TIME ZONE i.timezone,($5::date+1)::timestamp AT TIME ZONE i.timezone) AS span
+      FROM institution i JOIN campus_resource r ON r.institution_id=i.id AND r.id=$4 AND r.kind='room'
+      WHERE i.id=$1 AND EXISTS (SELECT 1 FROM membership m WHERE m.institution_id=$1 AND m.account_id=$2 AND m.role=$3 AND m.ended_at IS NULL))
+    SELECT lower(s.slot) AS starts_at,upper(s.slot) AS ends_at,'class' AS kind FROM class_session s,day
+      WHERE s.institution_id=$1 AND s.room_id=$4 AND s.state IN ('published','conducted') AND s.slot && day.span
+    UNION ALL
+    SELECT lower(b.slot),upper(b.slot),'booked' FROM facility_booking b,day
+      WHERE b.institution_id=$1 AND b.resource_id=$4 AND b.state='approved' AND b.slot && day.span
+    ORDER BY 1 LIMIT 100`, [scope.institution, scope.account, scope.role, input.room, input.date])).rows;
 }

@@ -4,12 +4,15 @@ import { demoEmail, demoPassword, fixtures } from "../scripts/fixtures";
 
 test("join and fictional approval are preview-only", async ({page}) => {
   const enabled=process.env.NEXUS_ONBOARDING_PREVIEW==="true";
-  const join=await page.goto("/join/student");
+  // /join/student is the real sign-up (cc/pilot-access): it asks a signed-out visitor to sign in by email code first.
+  await page.goto("/join/student");
+  await expect(page).toHaveURL(/\/login\/code\?next=/);
+  const join=await page.goto("/join/faculty");
   if (!enabled) {
     expect(join?.status()).toBe(404);
     return;
   }
-  await expect(page.getByRole("heading",{name:"Join NEXUS as a student"})).toBeVisible();
+  await expect(page.getByRole("heading",{name:"Join NEXUS as faculty"})).toBeVisible();
   await expect(page.getByText("This QR page does not give you access.")).toBeVisible();
   await expect(page.locator("input")).toHaveCount(0);
   expect((await page.goto("/join/principal"))?.status()).toBe(404);
