@@ -28,11 +28,11 @@ export function computeTransportEta(i:EtaInput){
   const age=i.fix?Math.max(0,n-observed,n-received):Infinity;
   const state=!i.fix || age>90_000 ? "no-signal" : age>30_000 ? "recent" : "fresh";
   const p=i.fix && state!=="no-signal"?routeProjection(i.stops,i.fix):null;
-  const delay=p ? Math.round((observed-departure-p.offset*60_000)/60_000):null;
+  const delayMs=p ? observed-departure-p.offset*60_000:null;
   const timeline=i.stops.map((s,index)=>{
     const scheduled=departure+s.offset*60_000;
     const passed=!!p && (index<=p.segment && p.fraction>0.03 || index<p.segment);
-    const expected=p && !passed && delay!==null ? Math.max(n,scheduled+delay*60_000):null;
+    const expected=p && !passed && delayMs!==null ? Math.max(n,scheduled+delayMs):null;
     return {...s,pickup:s.id===i.pickup,passed,scheduled:new Date(scheduled).toISOString(),
       expected:expected===null?null:new Date(expected).toISOString(),
       delay:expected===null?null:Math.round((expected-scheduled)/60_000)};

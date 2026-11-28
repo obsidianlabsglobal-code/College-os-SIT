@@ -9,7 +9,7 @@ import { fixtures as f,demoEmail } from "../scripts/fixtures";
 import { changeTransportCatalog } from "../lib/transport/catalog";
 import { fictionalTransportRoutes } from "../lib/transport/demo-fixtures";
 import { changeTransportTrip } from "../lib/transport/trips";
-import { acceptOsmAnd,issueTransportDevice,purgeTransportHistory,revokeTransportDevice,transportDevices } from "../lib/transport/telemetry";
+import { acceptOsmAnd,acceptStockOsmAnd,issueTransportDevice,purgeTransportHistory,revokeTransportDevice,transportDevices } from "../lib/transport/telemetry";
 import { decodeOsmAnd } from "../lib/transport/osmand";
 import { clearTransportFixture,grantFakeTransportOffice } from "./transport-fixture";
 import type { Scope } from "../lib/scope";
@@ -58,6 +58,7 @@ test("device token, trip, ordering, revocation, plausibility, limit and seven-da
   const primaryId="fixture-main-"+marker, backupId="fixture-backup-"+marker;
   const d=await issueTransportDevice(office,{vehicle,label:"Lab fixture primary",clientId:primaryId});
   const b=await issueTransportDevice(office,{vehicle,label:"Lab fixture backup",clientId:backupId});
+  const stock=await issueTransportDevice(office,{vehicle,label:"Lab fixture stock",protocol:"stock"});
   await assert.rejects(()=>issueTransportDevice(rider,{vehicle,label:"not allowed",clientId:"fake"}));
   assert.deepEqual(await transportDevices(rider),[]);
   const tenant={...office,institution:f.otherInstitution};
@@ -65,6 +66,8 @@ test("device token, trip, ordering, revocation, plausibility, limit and seven-da
   const fix=(age:number,lat=12.25,lon=76.62)=>({observedAt:new Date(Date.now()-age*1000).toISOString(),lat,lon,accuracy:8,speedKmh:10});
   assert.equal(await acceptOsmAnd(d.token,"not-bound",fix(1)),"unauthorized");
   assert.equal(await acceptOsmAnd(d.token,primaryId,fix(1)),"no-trip");
+  assert.equal(await acceptStockOsmAnd(stock.token,fix(1)),"no-trip");
+  assert.equal(await acceptStockOsmAnd(primaryId,fix(1)),"unauthorized");
   const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
   const weekday=new Date(today+"T00:00:00Z").getUTCDay()||7;
   const schedule=await changeTransportCatalog(office,{operation:"create-schedule",route,vehicle,weekday,departure:"07:20"});
@@ -81,6 +84,8 @@ test("device token, trip, ordering, revocation, plausibility, limit and seven-da
   const latest=await owner.query<{latitude:number}>(`SELECT p.latitude FROM transport_latest_position l JOIN transport_position p
     ON (l.institution_id,l.position_id)=(p.institution_id,p.id) WHERE l.institution_id=$1 AND l.trip_id=$2`,[f.institution,trip]);
   assert.equal(latest.rows[0].latitude,12.2505);
+  await revokeTransportDevice(office,stock.id);
+  assert.equal(await acceptStockOsmAnd(stock.token,fix(15)),"unauthorized");
   await revokeTransportDevice(office,d.id);
   assert.equal(await acceptOsmAnd(d.token,primaryId,fix(20)),"unauthorized");
   for(let n=0;n<15;n++)assert.equal(await acceptOsmAnd(b.token,backupId,initial),"duplicate-or-old");

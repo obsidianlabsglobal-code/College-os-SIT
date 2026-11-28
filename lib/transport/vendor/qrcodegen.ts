@@ -1,10 +1,10 @@
 /* eslint-disable -- vendor source, Project Nayuki, upstream 9a217d443937f60cc56c1458c39a211d7f2d3af5; see retained license. */
-/* 
+/*
  * QR Code generator library (TypeScript)
- * 
+ *
  * Copyright (c) Project Nayuki. (MIT License)
  * https://www.nayuki.io/page/qr-code-generator-library
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
  * the Software without restriction, including without limitation the rights to
@@ -34,14 +34,14 @@ namespace qrcodegen {
 
 	/*---- QR Code symbol class ----*/
 
-	/* 
+	/*
 	 * A QR Code symbol, which is a type of two-dimensional barcode.
 	 * Invented by Denso Wave and described in the ISO/IEC 18004 standard.
 	 * Instances of this class represent an immutable square grid of dark and light cells.
 	 * The class provides static factory functions to create a QR Code from text or binary data.
 	 * The class covers the QR Code Model 2 specification, supporting all versions (sizes)
 	 * from 1 to 40, all 4 error correction levels, and 4 character encoding modes.
-	 * 
+	 *
 	 * Ways to create a QR Code object:
 	 * - High level: Take the payload data and call QrCode.encodeText() or QrCode.encodeBinary().
 	 * - Mid level: Custom-make the list of segments and call QrCode.encodeSegments().
@@ -727,7 +727,7 @@ namespace qrcodegen {
 
 	/*---- Data segment class ----*/
 
-	/* 
+	/*
 	 * A segment of character/binary/control data in a QR Code symbol.
 	 * Instances of this class are immutable.
 	 * The mid-level way to create a segment is to take the payload data
@@ -922,7 +922,7 @@ namespace qrcodegen.QrCode {
 	type int = number;
 
 
-	/* 
+	/*
 	 * The error correction level in a QR Code symbol. Immutable.
 	 */
 	export class Ecc {
@@ -955,7 +955,7 @@ namespace qrcodegen.QrSegment {
 	type int = number;
 
 
-	/* 
+	/*
 	 * Describes how a segment's data bits are interpreted. Immutable.
 	 */
 	export class Mode {
