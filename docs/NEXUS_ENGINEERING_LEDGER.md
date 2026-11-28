@@ -429,3 +429,24 @@ Observed, fresh local PostgreSQL in CI order at d220450:
 - 143/143 PostgreSQL and unit tests, 54/54 Chromium, 1/1 tutor.
 - An earlier run at 8575dbe showed 53/54 Chromium; the one failure was the course-delivery count above.
 - Evidence: `docs/evidence/facilities-2026-11-28/`.
+
+## 2026-11-28 — Batch 15 (Claude, Codex paused): outcome-based evidence
+
+Implemented (commit 0a0f185, `db/034`, `lib/outcomes.ts`, `app/outcomes`):
+- **Outcome definitions (DH-012, DH-013):**
+  - The office defines programme outcomes (PO/PSO codes).
+  - A current teacher of a course proposes a course outcome with programme-outcome mapping levels 1–3.
+  - The head of the course's department approves or returns it with a reason. Approved outcomes are fixed; a returned code can be proposed again.
+- **Assessment tagging (FC-014):** only a current teacher of the offering can tag its assessments, and only with approved outcomes of that course.
+- **Attainment (FC-014, DH-013):** per course outcome, from published marks only:
+  - A student attains an outcome at 60% of the available marks.
+  - Levels 3/2/1 apply when 70/60/50% of assessed students attain it.
+  - Programme outcome levels are mapping-weighted means.
+  - The rule is stated on the page. Teachers see their offerings, HODs their department's, the principal all; admins do not see attainment.
+- **Student evidence (SA-019):** a student sees only their own per-outcome percentage, labelled as evidence, not a grade.
+- **Not done:** rubric criteria (FC-010) and item-level concept analysis remain open.
+
+Observed, fresh local PostgreSQL in CI order at 0a0f185:
+- migrate ×2 + seed, lint, typecheck, build: all passed.
+- 146/146 PostgreSQL and unit tests, 55/55 Chromium, 1/1 tutor.
+- Evidence: `docs/evidence/outcomes-2026-11-28/`.
