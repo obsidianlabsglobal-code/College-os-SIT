@@ -645,3 +645,13 @@ Observed at d1835ad, fresh local PostgreSQL in CI order:
 - migrate ×2 + seed, lint, typecheck and build passed.
 - 166/166 PostgreSQL and unit tests, 65/65 Chromium, 1/1 tutor.
 - Matrix: 133 tested, 79 partial, 247 missing, 8 unverified, 13 blocked. The three new rows are Tested with a scope note, so they count as partial.
+
+**Club events (f749015–a14014e, `db/076`):**
+- **Waitlist (CL-044):** when an event is full, an eligible student joins a waitlist and sees their place. A registered student can give up their seat before the event starts, which goes to the earliest person waiting who still has an active student membership (and club membership for members-only events). Verified attendance can't be withdrawn.
+- **Feedback (CL-046):** after an event is completed, each registered student can give one rating (1–5) and an optional comment. Officers see the count, the average and the comments, without names. Students see no summary. No published outcome report yet.
+- At f749015 the new browser test closed the app's shared connection pool, so a later release test in the same worker failed with "Called end on pool more than once" (243 passed, 1 failed). Fixed in a14014e.
+
+Observed at a14014e, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 167/167 PostgreSQL and unit tests, 66/66 Chromium, 1/1 tutor.
+- Matrix: 134 tested, 80 partial, 245 missing, 8 unverified, 13 blocked.
