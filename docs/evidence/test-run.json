@@ -1,7 +1,7 @@
 {
- "commit": "a14014e757a98eba037f1afb792be013480733d8",
+ "commit": "7ff19503c4252664df8bef1d91868905c05f202c",
  "uncommitted_source_changes": false,
- "recorded_at": "2026-11-28T09:23:12+00:00",
+ "recorded_at": "2026-11-28T09:32:56+00:00",
  "environment": "local fresh PostgreSQL, fictional data, headless Chromium",
  "files": {
   "tests/academic-assistant.test.ts": {
@@ -105,6 +105,10 @@
    "failed": 0
   },
   "tests/club-events.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/club-notices.test.ts": {
    "passed": 1,
    "failed": 0
   },

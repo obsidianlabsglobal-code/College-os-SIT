@@ -655,3 +655,12 @@ Observed at a14014e, fresh local PostgreSQL in CI order:
 - migrate ×2 + seed, lint, typecheck and build passed.
 - 167/167 PostgreSQL and unit tests, 66/66 Chromium, 1/1 tutor.
 - Matrix: 134 tested, 80 partial, 245 missing, 8 unverified, 13 blocked.
+
+**Club notices and upcoming events (6439930–7ff1950, `db/077`):**
+- **Club notices (CL-028):** a current club lead or officer posts a notice to club members or to everyone eligible for the club. Each notice has an expiry date from today up to 180 days ahead, and can be withdrawn. Other members, admins, other faculty and other colleges can't post. Withdrawn and expired notices disappear.
+- **Upcoming events (SL-003, partial):** the CLUBVERSE home lists the ten soonest club events the person may see. The same query now backs search. There are no separate cultural-production records.
+
+Observed at 7ff1950, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 168/168 PostgreSQL and unit tests, 66/66 Chromium, 1/1 tutor.
+- Matrix: 135 tested, 81 partial, 243 missing, 8 unverified, 13 blocked.
