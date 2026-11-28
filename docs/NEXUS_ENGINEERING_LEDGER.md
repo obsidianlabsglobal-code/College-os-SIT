@@ -681,3 +681,13 @@ Observed at 9db820f, fresh local PostgreSQL in CI order:
 - migrate ×2 + seed, lint, typecheck and build passed.
 - 169/169 PostgreSQL and unit tests, 66/66 Chromium, 1/1 tutor.
 - Matrix: 135 tested, 83 partial, 241 missing, 8 unverified, 13 blocked.
+
+**Club tasks and lab access (39e34ea, `db/079`):**
+- **Club meeting decisions (CL-047, partial):** a club lead or officer records a decision from a meeting as a task, with an owner who is an active member and a due date that isn't before the meeting. Only the owner marks it done, once. Active members see open tasks, overdue ones flagged, plus those done in the last 30 days. Clubs don't have meeting scheduling or minutes.
+- **Lab access (CR-020, partial):** linked to the existing supervised student booking: a current teacher must supervise, and the office decides. There's no safety-induction record.
+- `addClubTask` first threw its date check synchronously, before returning a promise, so the test caught it outside `assert.rejects`. Made the function async; callers now always get a rejected promise.
+
+Observed at 39e34ea, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 170/170 PostgreSQL and unit tests, 66/66 Chromium, 1/1 tutor.
+- Matrix: 135 tested, 85 partial, 239 missing, 8 unverified, 13 blocked.
