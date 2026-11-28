@@ -673,3 +673,11 @@ Observed at adf3550, fresh local PostgreSQL in CI order:
 - migrate ×2 + seed, lint, typecheck and build passed.
 - 168/168 PostgreSQL and unit tests, 66/66 Chromium, 1/1 tutor.
 - Matrix: 135 tested, 82 partial, 242 missing, 8 unverified, 13 blocked.
+
+**Operational notices (9db820f, `db/078`):**
+- **OP-010 (partial):** a notice can be marked "Maintenance or closure" and given an end date (today or later). After that date readers no longer see it, though its author still does. It uses the existing college, department and class audiences; there's no building-level audience.
+
+Observed at 9db820f, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 169/169 PostgreSQL and unit tests, 66/66 Chromium, 1/1 tutor.
+- Matrix: 135 tested, 83 partial, 241 missing, 8 unverified, 13 blocked.
