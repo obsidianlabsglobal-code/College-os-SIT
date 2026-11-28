@@ -21,7 +21,7 @@ export const roleLabels = {
   principal: "Principal",
 } satisfies Record<Scope["role"], string>;
 
-type Destination = "/facilities" | "/careers" | "/sports" | "/settings" | "/support" | "/meetings" | "/decisions" | "/certificates" | "/groups" | "/profile" | "/work" | "/growth" | "/policies" | "/questions" | "/exams" | "/improvement" | "/cases" | "/mentoring" | "/calendar" | "/catalog" | "/history" | "/audit" | "/automation" | "/fees" | "/letters" | "/opportunities" | "/" | "/grading" | "/notices" | "/requests" | "/admin" | "/clubverse" | "/aura" | "/timetable";
+type Destination = "/outcomes" | "/facilities" | "/careers" | "/sports" | "/settings" | "/support" | "/meetings" | "/decisions" | "/certificates" | "/groups" | "/profile" | "/work" | "/growth" | "/policies" | "/questions" | "/exams" | "/improvement" | "/cases" | "/mentoring" | "/calendar" | "/catalog" | "/history" | "/audit" | "/automation" | "/fees" | "/letters" | "/opportunities" | "/" | "/grading" | "/notices" | "/requests" | "/admin" | "/clubverse" | "/aura" | "/timetable";
 const labels: Record<Destination, string> = {
   "/fees": "Fees & dues",
   "/opportunities": "Opportunities",
@@ -49,6 +49,7 @@ const labels: Record<Destination, string> = {
   "/sports": "Sports",
   "/careers": "Careers",
   "/facilities": "Rooms, labs and library",
+  "/outcomes": "Outcomes",
   "/support": "Support services",
   "/decisions": "Decision simulation",
   "/groups": "Study groups",
@@ -63,7 +64,7 @@ const icons: Record<Destination, ComponentProps<typeof Icon>["name"]> = {
   "/fees": "service",
   "/opportunities": "service",
   "/": "home", "/timetable": "calendar", "/grading": "check", "/notices": "notice", "/clubverse": "people",
-  "/aura": "spark", "/automation": "spark", "/audit": "book", "/history": "check", "/calendar": "calendar", "/mentoring": "people", "/cases": "service", "/exams": "calendar", "/policies": "book", "/growth": "spark", "/work": "check", "/certificates": "book", "/meetings": "people", "/settings": "check", "/sports": "people", "/careers": "service", "/facilities": "book", "/support": "service", "/decisions": "spark", "/groups": "people", "/profile": "people", "/questions": "book", "/improvement": "check", "/catalog": "book", "/requests": "service", "/admin": "book", "/letters": "notice",
+  "/aura": "spark", "/automation": "spark", "/audit": "book", "/history": "check", "/calendar": "calendar", "/mentoring": "people", "/cases": "service", "/exams": "calendar", "/policies": "book", "/growth": "spark", "/work": "check", "/certificates": "book", "/meetings": "people", "/settings": "check", "/sports": "people", "/careers": "service", "/facilities": "book", "/outcomes": "check", "/support": "service", "/decisions": "spark", "/groups": "people", "/profile": "people", "/questions": "book", "/improvement": "check", "/catalog": "book", "/requests": "service", "/admin": "book", "/letters": "notice",
 };
 
 const dock: Destination[] = ["/", "/timetable", "/aura", "/clubverse", "/notices", "/requests", "/opportunities"];
@@ -110,6 +111,7 @@ export async function Chrome({ user, current, section = "/", children }: {
   if (current && current.role !== "principal") destinations.push("/sports");
   if (current && ["student", "admin", "principal"].includes(current.role)) destinations.push("/careers");
   if (current && current.role !== "principal") destinations.push("/facilities");
+  if (current) destinations.push("/outcomes");
   if (current) destinations.push("/letters", "/support", "/settings");
 
   return <div className={current ? "app-shell" : "app-shell app-shell-single"} data-text={chosen?.large_text ? "large" : undefined} data-motion={chosen?.reduced_motion ? "reduce" : undefined}>

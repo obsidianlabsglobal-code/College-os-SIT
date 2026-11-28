@@ -58,7 +58,7 @@ Students locate authoritative course work and deadlines for their enrollment. St
 | SA-016 | External examinations | Find authorized SEE schedule, registration and official sources. | Tested (published external sittings citing the official source; no registration) | db/023, lib/exams.ts, app/exams; tests/exams-improvement.test.ts, tests/exams-improvement.e2e.ts |
 | SA-017 | Assessment history | Inspect a chronological cross-course assessment record. | Tested | lib/assignments.ts assessmentHistory, app/history; tests/history.test.ts, tests/operations.e2e.ts |
 | SA-018 | Course resources | Retrieve current authorized course material and versions. | Tested | db/021, lib/course-delivery.ts, app/resources; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
-| SA-019 | Learning progress | Inspect concept-level evidence and its limitations. | Proposed | F |
+| SA-019 | Learning progress | Inspect concept-level evidence and its limitations. | Tested (the student's own per-outcome evidence with its limits stated) | db/034, lib/outcomes.ts, app/outcomes; tests/outcomes.test.ts, tests/outcomes.e2e.ts |
 | SA-020 | Academic announcements | Read published notices in the eligible audience. | Tested | R |
 | SA-021 | Attendance correction workflow | Challenge a record and receive a traceable authorized decision. | Tested | db/020_attendance_correction.sql, lib/corrections.ts, app/timetable; tests/learning-records.test.ts, tests/learning-records.e2e.ts |
 | SA-022 | Academic reports and exports | Download an authorized, scheme-aware record with source references. | Tested | lib/exports.ts studentRecord, app/records/export; tests/learning-records.test.ts, tests/learning-records.e2e.ts, tests/work-closing.test.ts, tests/work-closing.e2e.ts |
@@ -130,7 +130,7 @@ Faculty need to organize teaching and evaluation by assigned offering. Select as
 | FC-011 | Evaluation queues | Find ungraded work across assigned courses and prioritize review. | Tested | FQ; ordering by age or deadline only, no priority model |
 | FC-012 | Grade publication and corrections | Save draft, explicitly publish, then revise with reason and history. | Tested | R |
 | FC-013 | Feedback drafting | Prepare and save human-authored feedback before publication. | Tested | R |
-| FC-014 | Classroom concept analysis | Identify concepts needing support using appropriate assessment evidence. | Proposed | F |
+| FC-014 | Classroom concept analysis | Identify concepts needing support using appropriate assessment evidence. | Tested (outcome-level attainment from tagged assessments, with outcomes needing support listed; no item-level concepts) | db/034, lib/outcomes.ts, app/outcomes; tests/outcomes.test.ts, tests/outcomes.e2e.ts |
 | FC-015 | Academic intervention | Coordinate support with authorized staff and measure resolution. | Tested | db/022, lib/cases.ts, app/cases; tests/cases.test.ts, tests/cases.e2e.ts |
 | FC-016 | Student mentorship | Agree mentoring goals and record appropriate follow-ups. | Tested | lib/mentoring.ts, app/mentoring; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
 | FC-017 | Project supervision | Review assigned milestones and evidence. | Tested | db/024, lib/teams.ts, app/courses/[id]; tests/allocation-teams.test.ts, tests/allocation-teams.e2e.ts |
@@ -164,8 +164,8 @@ HODs and explicitly delegated coordinators need department-scoped oversight. Sel
 | DH-009 | Attendance reporting | Aggregate verified attendance with scheme definitions. | Tested (latest-record rates and counts below the approved attendance policy; no scheme-specific rules) | No scheme eligibility definitions; tests/department.test.ts, lib/department.ts sectionCompliance, tests/work-closing.test.ts, tests/work-closing.e2e.ts |
 | DH-010 | Assessment and results reporting | Count published assignments, submissions and published results from records. | Tested | R |
 | DH-011 | Curriculum progress | Review course coverage with source evidence. | Tested | lib/course-delivery.ts, app/courses/[id], app/leadership/boards.tsx; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
-| DH-012 | CO/PO/PSO evidence | Map assessments to applicable approved outcome definitions. | Proposed | F |
-| DH-013 | Outcome-based education workflows | Review mappings, attainment measures and corrective actions. | Proposed | F |
+| DH-012 | CO/PO/PSO evidence | Map assessments to applicable approved outcome definitions. | Tested (office-defined programme outcomes; teacher-proposed, HOD-approved course outcomes with mapping levels; assessments tagged by their teachers) | db/034, lib/outcomes.ts, app/outcomes; tests/outcomes.test.ts, tests/outcomes.e2e.ts |
+| DH-013 | Outcome-based education workflows | Review mappings, attainment measures and corrective actions. | Tested (mapping review, course and programme outcome attainment under a stated rule; corrective actions use Improvement actions separately) | db/034, lib/outcomes.ts, app/outcomes; tests/outcomes.test.ts, tests/outcomes.e2e.ts |
 | DH-014 | Student support coordination | Assign and follow up appropriate academic support. | Tested | db/022, lib/cases.ts, app/cases; tests/cases.test.ts, tests/cases.e2e.ts |
 | DH-015 | Department notices | Publish and retrieve notices within department scope. | Tested | R; tests/notices.test.ts |
 | DH-016 | Faculty development | Coordinate training and evidence. | Tested (HOD verification of development records; no training coordination) | db/026, lib/faculty-records.ts, app/growth; tests/growth-operations.test.ts, tests/growth-operations.e2e.ts |
