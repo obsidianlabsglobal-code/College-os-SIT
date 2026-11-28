@@ -1,4 +1,4 @@
-// covers: LE-018, FC-027, SL-013, SL-016, ID-004, ID-006
+// covers: LE-018, FC-027, SL-013, CR-014, SL-016, ID-004, ID-006
 import "../scripts/environment";
 import assert from "node:assert/strict";
 import { test, before, after } from "node:test";

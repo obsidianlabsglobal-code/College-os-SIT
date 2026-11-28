@@ -1,4 +1,4 @@
-// covers: AD-018, AD-022, AD-024, ID-004, ID-006
+// covers: OP-012, OP-016, AD-018, AD-022, AD-024, ID-004, ID-006
 import "../scripts/environment";
 import assert from "node:assert/strict";
 import { test, before, after } from "node:test";

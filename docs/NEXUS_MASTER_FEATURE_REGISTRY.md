@@ -469,21 +469,21 @@ Resource custodians, library/lab staff, facilities teams, requesters and approve
 | ID | Capability | Functional workflow or acceptance outcome | Status | Evidence |
 | --- | --- | --- | --- | --- |
 | OP-001 | Classroom scheduling | Assign sections to rooms without overlapping confirmed use. | Proposed | F |
-| OP-002 | Laboratory booking | Select authorized lab slots and obtain clearance. | Proposed | F |
-| OP-003 | Equipment reservations | Request equipment, confirm custody, return and inspect condition. | Proposed | F |
-| OP-004 | Library services | Search approved holdings and request institution-permitted services. | Proposed | F |
-| OP-005 | Asset tracking | Record current location, custodian and equipment lifecycle. | Proposed | F |
-| OP-006 | Maintenance | Assign repairs and verify completion. | Proposed | F |
-| OP-007 | Facility issue reporting | Report a fault, attach evidence and track status. | Proposed | F |
+| OP-002 | Laboratory booking | Select authorized lab slots and obtain clearance. | Tested (office-approved room and lab slots; students name a supervising teacher) | db/033, lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
+| OP-003 | Equipment reservations | Request equipment, confirm custody, return and inspect condition. | Tested (office-issued custody with due date, return and condition) | db/033, lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
+| OP-004 | Library services | Search approved holdings and request institution-permitted services. | Tested (holdings search and office-issued loans; no holds or renewals) | db/033, lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
+| OP-005 | Asset tracking | Record current location, custodian and equipment lifecycle. | Tested (current custodian and loan history for equipment; no location changes) | db/033, lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
+| OP-006 | Maintenance | Assign repairs and verify completion. | Tested (repairs on the case engine: owner assignment and recorded outcome) | db/025, lib/cases.ts, app/cases (facility kind); tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |
+| OP-007 | Facility issue reporting | Report a fault, attach evidence and track status. | Tested (any member reports a repair and tracks its state; no file evidence) | db/025, lib/cases.ts, app/cases (facility kind); tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |
 | OP-008 | Event venues | Confirm a conflict-free event reservation with a traceable responsible party and decision. | Tested | B |
-| OP-009 | Resource allocation | Compare demand and assign available resources under policy. | Proposed | F |
+| OP-009 | Resource allocation | Compare demand and assign available resources under policy. | Tested (seven-day room use from classes and approved bookings; no automatic allocation) | db/033, lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
 | OP-010 | Operational notices | Publish scoped maintenance and closure notices. | Proposed | F |
 | OP-011 | Incident management | Escalate incidents through approved response policies. | Proposed | F |
-| OP-012 | Administrative workflows | Route campus requests to the responsible office. | Proposed | F |
-| OP-013 | Staff assignment | Assign tasks to currently authorized staff. | Proposed | F |
-| OP-014 | Approval management | Collect required approvals with reason and version. | Proposed | F |
-| OP-015 | Verified service completion | Record resolution evidence and allow confirmation or reopening. | Proposed | F |
-| OP-016 | Operational history | Inspect authorized events and decisions. | Proposed | F |
+| OP-012 | Administrative workflows | Route campus requests to the responsible office. | Tested (service requests routed to the office queue) | db/019, lib/connected.ts; tests/operations.test.ts, tests/operations.e2e.ts |
+| OP-013 | Staff assignment | Assign tasks to currently authorized staff. | Tested (office assigns repairs to current office staff) | db/025, lib/cases.ts, app/cases (facility kind); tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |
+| OP-014 | Approval management | Collect required approvals with reason and version. | Tested (single office approval with reason for bookings; no multi-step approvals) | db/033, lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
+| OP-015 | Verified service completion | Record resolution evidence and allow confirmation or reopening. | Tested (outcome recorded; the reporter can reopen within 14 days) | db/025, lib/cases.ts, app/cases (facility kind); tests/policies-cases.test.ts, tests/policies-cases.e2e.ts |
+| OP-016 | Operational history | Inspect authorized events and decisions. | Tested (audit viewer over event metadata) | lib/reporting.ts auditEvents, app/audit; tests/operations.test.ts, tests/operations.e2e.ts |
 | OP-017 | Sustainability reporting | Measure resource use with documented provenance. | Proposed | F |
 
 ## AURA · shared agent platform
