@@ -411,3 +411,21 @@ Observed:
 - A background run started on 91f6321 showed 133/135. The 2 opportunity failures were caused by editing `lib/opportunities.ts` for careers while that run was in progress (the new column was not yet migrated). The run was stopped and not recorded.
 - Fresh local PostgreSQL in CI order at 6ececc5: migrate ×2 + seed, lint, typecheck and build passed; 140/140 PostgreSQL and unit tests, 53/53 Chromium, 1/1 tutor.
 - Evidence: `docs/evidence/sports-2026-11-28/`, `docs/evidence/careers-2026-11-28/`.
+
+## 2026-11-28 — Batch 14 (Claude, Codex paused): campus operations
+
+Implemented (commit 8575dbe, `db/033`, `lib/operations.ts`, `app/facilities`):
+- **Room and lab bookings (OP-002, OP-014):** staff and students request a slot with a purpose; a student must name a current teacher as supervisor, who can also see the request. The office approves or declines with a reason. Approval refuses overlaps with approved bookings (exclusion constraint) and with published classes in the room. Requesters can cancel future bookings.
+- **Library and equipment custody (OP-003, OP-004, OP-005):** any member searches the holdings with live availability. The office issues a copy or a piece of equipment to a current member with a due date. One open loan per piece of equipment; no more loans than copies. Returns record a condition; members see only their own loans.
+- **Room use (OP-009 slice):** class and approved-booking hours per room for the next seven days, office only.
+- **Linked existing evidence:** repairs on the case engine cover OP-006, OP-007 (no file evidence), OP-013 and OP-015; request routing covers OP-012; the audit viewer covers OP-016. SP-018 and CR-014 are now linked to their tests.
+
+Fixes found while testing:
+- The draft migration 033 check refused cancelling an approved booking. It was corrected before the commit; the migration had not been committed or applied anywhere else.
+- The course-delivery browser test assumed three held classes. That count includes classes other browser tests leave behind and depends on time of day; one run saw one. The test now reads the count first (d220450).
+
+Observed, fresh local PostgreSQL in CI order at d220450:
+- migrate ×2 + seed, lint, typecheck, build: all passed.
+- 143/143 PostgreSQL and unit tests, 54/54 Chromium, 1/1 tutor.
+- An earlier run at 8575dbe showed 53/54 Chromium; the one failure was the course-delivery count above.
+- Evidence: `docs/evidence/facilities-2026-11-28/`.
