@@ -57,7 +57,9 @@ test("teacher publishes material and a plan, the department head approves it, an
     await board.getByLabel("Decision").selectOption("approve");
     await board.getByLabel("Reason").fill("Matches the scheme");
     await board.getByRole("button", { name: "Record plan decision" }).click();
-    await expect(board.getByRole("region", { name: "Course delivery" })).toContainText("0 of 3");
+    // Held counts every conducted class in the offering, including ones earlier tests left behind.
+    const { rows: [{ held }] } = await db.query("SELECT count(*)::int AS held FROM class_session WHERE institution_id=$1 AND offering_id=$2 AND state='conducted'", [f.institution, f.offering]);
+    await expect(board.getByRole("region", { name: "Course delivery" })).toContainText(`0 of ${held}`);
     await page.screenshot({ path: testInfo.outputPath("hod-plans-1280.png"), fullPage: true });
 
     await signIn(page, "faculty");
