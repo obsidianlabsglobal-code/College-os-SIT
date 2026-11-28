@@ -14,15 +14,17 @@ import type { Scope } from "./scope";
 //   representation — SL-016: an issue raised for students generally; every current student can read and support it.
 //   letter    — AD-020: a leave or permission letter a member submits to the office; only they and the office read it.
 //   transport_incident / lost_and_found — TR-025, TO-012, TR-024: reported by any member, coordinated by the transport office.
-export type CaseKind = "support" | "grievance" | "facility" | "integrity" | "department" | "representation" | "letter" | "transport_incident" | "lost_and_found";
+//   safety    — OP-011: a safety incident reported by any member, owned by the office; the principal reads them, and an
+//               unassigned open report is escalated after 24 hours.
+export type CaseKind = "support" | "grievance" | "facility" | "integrity" | "department" | "representation" | "letter" | "transport_incident" | "lost_and_found" | "safety";
 /** Kinds a role works with, in display order. */
 export const caseKinds: Record<Scope["role"], CaseKind[]> = {
-  student: ["grievance", "integrity", "department", "representation", "facility", "letter", "transport_incident", "lost_and_found"],
-  faculty: ["support", "department", "integrity", "facility", "letter", "transport_incident", "lost_and_found"],
-  hod: ["support", "department", "integrity", "facility", "letter"], admin: ["grievance", "representation", "facility", "letter"], principal: ["grievance"],
+  student: ["grievance", "integrity", "department", "representation", "facility", "safety", "letter", "transport_incident", "lost_and_found"],
+  faculty: ["support", "department", "integrity", "facility", "safety", "letter", "transport_incident", "lost_and_found"],
+  hod: ["support", "department", "integrity", "facility", "safety", "letter"], admin: ["grievance", "representation", "facility", "safety", "letter"], principal: ["grievance", "safety"],
   transport: ["transport_incident", "lost_and_found"], driver: ["transport_incident", "lost_and_found"],
 };
-export const officeKinds: CaseKind[] = ["grievance", "facility", "representation", "letter"];  // coordinated by admins
+export const officeKinds: CaseKind[] = ["grievance", "facility", "representation", "letter", "safety"];  // coordinated by admins
 export const transportKinds: CaseKind[] = ["transport_incident", "lost_and_found"];  // coordinated by the transport office
 /** The role that assigns owners for a kind: the office, the transport office, or the department HOD. */
 export const coordinatorRole = (kind: CaseKind): Scope["role"] => transportKinds.includes(kind) ? "transport" : officeKinds.includes(kind) ? "admin" : "hod";
@@ -45,6 +47,7 @@ const readable = `CASE k.kind
   WHEN 'representation' THEN ($3='student' AND ${member("student")}) OR ($3='admin' AND ${member("admin")})
   WHEN 'facility' THEN ${ownOrOffice}
   WHEN 'letter' THEN ${ownOrOffice}
+  WHEN 'safety' THEN ${ownOrOffice} OR ($3='principal' AND ${member("principal")})
   WHEN 'transport_incident' THEN ${ownOr("transport")}
   WHEN 'lost_and_found' THEN ${ownOr("transport")}
   ELSE ($3='student' AND k.subject_id=$2 AND ${member("student")}) OR ($3='hod' AND ${hodOf()})
@@ -62,7 +65,8 @@ export async function cases(scope: Scope, kind: CaseKind) {
       EXISTS (SELECT 1 FROM case_support cs WHERE (cs.institution_id,cs.case_id)=(k.institution_id,k.id) AND cs.account_id=$2) AS supported,
       (SELECT p.title||' v'||k.policy_version FROM policy p WHERE (p.institution_id,p.id)=(k.institution_id,k.policy_id)) AS policy,
       (SELECT a.title FROM assignment a WHERE (a.institution_id,a.id)=(k.institution_id,k.assignment_id)) AS assignment,
-      (k.kind='grievance' AND k.state IN ('open','in_progress') AND k.created_at < clock_timestamp()-interval '${ESCALATE_DAYS} days') AS escalated,
+      ((k.kind='grievance' AND k.state IN ('open','in_progress') AND k.created_at < clock_timestamp()-interval '${ESCALATE_DAYS} days')
+        OR (k.kind='safety' AND k.state='open' AND k.assigned_to IS NULL AND k.created_at < clock_timestamp()-interval '24 hours')) AS escalated,
       CASE WHEN $3 IN ('student','principal') THEN '[]'::json ELSE coalesce((SELECT json_agg(json_build_object('author',nu.name,'body',n.body,'created_at',n.created_at) ORDER BY n.created_at)
         FROM case_note n JOIN "user" nu ON nu.id=n.author_id WHERE (n.institution_id,n.case_id)=(k.institution_id,k.id)),'[]') END AS notes
     FROM case_record k JOIN "user" su ON su.id=k.subject_id JOIN "user" ou ON ou.id=k.opened_by
@@ -126,6 +130,7 @@ const openInput = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("support"), student: z.string().min(1).max(100), department: z.uuid(), title: text(160), body: text(4000) }),
   z.object({ kind: z.literal("grievance"), title: text(160), body: text(4000) }),
   z.object({ kind: z.literal("facility"), title: text(160), body: text(4000) }),
+  z.object({ kind: z.literal("safety"), title: text(160), body: text(4000) }),
   z.object({ kind: z.literal("representation"), title: text(160), body: text(4000) }),
   z.object({ kind: z.literal("letter"), title: text(160), body: text(4000) }),
   z.object({ kind: z.literal("transport_incident"), title: text(160), body: text(4000) }),
@@ -164,7 +169,7 @@ export function openCase(scope: Scope, raw: unknown) {
       // Any current member may report; the transport office owns the response.
     } else if (input.kind === "letter") {
       if (scope.role === "admin") throw unavailable();  // the office receives letters; it does not send them to itself
-    } else if (input.kind === "facility") {
+    } else if (input.kind === "facility" || input.kind === "safety") {
       // Any current member may report a repair; it is theirs to follow and, if needed, reopen.
     } else if (input.kind === "department") {
       if (scope.role !== "student") throw unavailable();

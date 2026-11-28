@@ -8,7 +8,7 @@ import { caseKinds, coordinatorRole, caseStaff, cases, caseSummary, integrityPol
 import { assessmentHistory } from "../../lib/assignments";
 
 const stateLabel = { open: "Open", in_progress: "In progress", resolved: "Resolved", declined: "Declined" };
-const kindLabel: Record<CaseKind, string> = { support: "Student support", grievance: "Grievances", facility: "Repairs", integrity: "Integrity appeals", department: "Department requests", representation: "Student representation", letter: "Letters", transport_incident: "Transport incidents", lost_and_found: "Lost and found" };
+const kindLabel: Record<CaseKind, string> = { support: "Student support", grievance: "Grievances", facility: "Repairs", integrity: "Integrity appeals", department: "Department requests", representation: "Student representation", letter: "Letters", transport_incident: "Transport incidents", lost_and_found: "Lost and found", safety: "Safety incidents" };
 const about: Record<CaseKind, string> = {
   support: "Academic support coordinated by the department head. Students do not see these cases.",
   grievance: "Confidential complaints to the administrative office. Grievances open for more than 7 days are visible to the principal by title only.",
@@ -19,6 +19,7 @@ const about: Record<CaseKind, string> = {
   letter: "Leave and permission letters submitted to the office. Only you and the office can read them; draft one from Letter drafts.",
   transport_incident: "Problems on a bus or at a stop, reported to the transport office. Only you and the transport office can read your report.",
   lost_and_found: "Items lost or found on college transport. Only you and the transport office can read your report.",
+  safety: "Injuries, hazards and near misses on campus, reported to the office. The principal can read them; reports nobody has taken up within 24 hours are flagged. In an emergency, call for help first.",
 };
 
 export default async function Cases({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
@@ -31,7 +32,7 @@ export default async function Cases({ searchParams }: { searchParams: Promise<Re
   const query = workspaceQuery(current);
   const when = new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kolkata" });
   const coordinator = current.role === coordinatorRole(kind);
-  const canOpen = kind === "letter" ? false : kind === "facility" || kind === "transport_incident" || kind === "lost_and_found" ? current.role !== "principal" : kind === "support" ? (current.role === "hod" || current.role === "faculty") && students.length > 0
+  const canOpen = kind === "letter" ? false : kind === "facility" || kind === "safety" || kind === "transport_incident" || kind === "lost_and_found" ? current.role !== "principal" : kind === "support" ? (current.role === "hod" || current.role === "faculty") && students.length > 0
     : current.role === "student" && (kind !== "integrity" || !!policy) && (kind !== "department" || departments.length > 0);
   return <Chrome user={user} current={current} section="/cases">
     <PageHeader title="Cases and requests" parent={{ href: `/?${query}`, label: "Workspace" }} context={about[kind]} />
@@ -45,9 +46,9 @@ export default async function Cases({ searchParams }: { searchParams: Promise<Re
       </dl>
     </section>}
     {canOpen && <section className="panel stack" aria-labelledby="open-title">
-      <h2 id="open-title">{{ support: "Open a support case", grievance: "Raise a grievance", facility: "Report a repair", integrity: "Appeal an integrity decision", department: "Request from a department", representation: "Raise an issue for students", letter: "", transport_incident: "Report a transport incident", lost_and_found: "Report a lost or found item" }[kind]}</h2>
+      <h2 id="open-title">{{ support: "Open a support case", grievance: "Raise a grievance", facility: "Report a repair", integrity: "Appeal an integrity decision", department: "Request from a department", representation: "Raise an issue for students", letter: "", transport_incident: "Report a transport incident", lost_and_found: "Report a lost or found item", safety: "Report a safety incident" }[kind]}</h2>
       {kind === "integrity" && policy && <p className="meta">Your appeal will cite {policy.title}, version {policy.version}.</p>}
-      <ActionForm action={caseAction} context={current} operation="open" label={{ support: "Open case", grievance: "Submit grievance", facility: "Report repair", integrity: "Submit appeal", department: "Send request", representation: "Raise issue", letter: "", transport_incident: "Send report", lost_and_found: "Send report" }[kind]}>
+      <ActionForm action={caseAction} context={current} operation="open" label={{ support: "Open case", grievance: "Submit grievance", facility: "Report repair", integrity: "Submit appeal", department: "Send request", representation: "Raise issue", letter: "", transport_incident: "Send report", lost_and_found: "Send report", safety: "Send report" }[kind]}>
         <input type="hidden" name="kind" value={kind} />
         {kind === "support" && <label>Student<select name="subject" required defaultValue=""><option value="" disabled>Choose a student</option>
           {students.map(s => <option key={`${s.id}|${s.department}`} value={`${s.id}|${s.department}`}>{s.name} · {s.department_name}</option>)}</select></label>}
