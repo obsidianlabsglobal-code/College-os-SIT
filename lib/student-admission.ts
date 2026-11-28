@@ -188,20 +188,8 @@ export function decideJoinRequests(scope: Scope, raw: unknown) {
       if (!r.open) throw new WorkflowError("This section's department is not switched on.");
       const { rowCount: usnTaken } = await client.query("SELECT 1 FROM person_detail WHERE institution_id=$1 AND usn=$2 AND account_id<>$3", [scope.institution, r.usn, r.account_id]);
       if (usnTaken) throw new WorkflowError(`USN ${r.usn} already belongs to another student.`);
-      const { rows: [admission] } = await client.query<{ id: string }>(`INSERT INTO student_admission (institution_id,email,section_id,term_id,approved_by)
-        VALUES ($1,$2,$3,$4,$5) ON CONFLICT (institution_id,email) WHERE revoked_at IS NULL DO NOTHING RETURNING id`,
-      [scope.institution, r.email, r.section_id, r.term_id, scope.account]);
-      if (!admission) throw new WorkflowError(`${r.email} already has an active admission.`);
-      await client.query(`INSERT INTO membership (institution_id,account_id,role) VALUES ($1,$2,'student')
-        ON CONFLICT (institution_id,account_id,role,department_id) DO UPDATE SET ended_at=NULL`, [scope.institution, r.account_id]);
-      await client.query(`INSERT INTO roster (institution_id,offering_id,account_id,role)
-        SELECT o.institution_id,o.id,$3,'student' FROM offering o JOIN course c ON (c.institution_id,c.id)=(o.institution_id,o.course_id)
-          JOIN department d ON (d.institution_id,d.id)=(c.institution_id,c.department_id) AND d.active
-        WHERE o.institution_id=$1 AND o.section_id=$2 AND o.term_id=$4
-        ON CONFLICT (institution_id,offering_id,account_id,role) DO UPDATE SET ended_at=NULL`, [scope.institution, r.section_id, r.account_id, r.term_id]);
-      await client.query(`INSERT INTO person_detail (institution_id,account_id,phone,usn,semester) VALUES ($1,$2,$3,$4,$5)
-        ON CONFLICT (institution_id,account_id) DO UPDATE SET phone=EXCLUDED.phone,usn=EXCLUDED.usn,semester=EXCLUDED.semester,updated_at=clock_timestamp()`,
-      [scope.institution, r.account_id, r.phone, r.usn, r.semester]);
+      const admission = await admitStudent(client, { institution: scope.institution, account: r.account_id, email: r.email, section: r.section_id, term: r.term_id,
+        approvedBy: scope.account, usn: r.usn, semester: r.semester, phone: r.phone });
       await client.query("UPDATE signup_request SET state='approved',decided_by=$3,decided_at=clock_timestamp(),admission_id=$4 WHERE institution_id=$1 AND id=$2",
         [scope.institution, requestId, scope.account, admission.id]);
       await audit(client, scope, requestId, "signup.approved", undefined, r.account_id);
@@ -215,4 +203,25 @@ export async function recentlyApproved(scope: Scope) {
   if (scope.role !== "student") return false;
   return !!(await db.query(`SELECT 1 FROM signup_request WHERE institution_id=$1 AND account_id=$2 AND state='approved'
     AND decided_at > clock_timestamp()-interval '14 days'`, [scope.institution, scope.account])).rowCount;
+}
+
+/** Grants a student access to a section and term: the admission record (the office can revoke it), the student membership,
+ * rosters for the section's switched-on offerings, and their details. Shared by teacher approval and the office import. */
+export async function admitStudent(client: import("pg").PoolClient, a: { institution: string; account: string; email: string; section: string; term: string;
+  approvedBy: string; usn: string; semester: number; phone: string | null }) {
+  const { rows: [admission] } = await client.query<{ id: string }>(`INSERT INTO student_admission (institution_id,email,section_id,term_id,approved_by)
+    VALUES ($1,$2,$3,$4,$5) ON CONFLICT (institution_id,email) WHERE revoked_at IS NULL DO NOTHING RETURNING id`,
+  [a.institution, a.email, a.section, a.term, a.approvedBy]);
+  if (!admission) throw new WorkflowError(`${a.email} already has an active admission.`);
+  await client.query(`INSERT INTO membership (institution_id,account_id,role) VALUES ($1,$2,'student')
+    ON CONFLICT (institution_id,account_id,role,department_id) DO UPDATE SET ended_at=NULL`, [a.institution, a.account]);
+  await client.query(`INSERT INTO roster (institution_id,offering_id,account_id,role)
+    SELECT o.institution_id,o.id,$3,'student' FROM offering o JOIN course c ON (c.institution_id,c.id)=(o.institution_id,o.course_id)
+      JOIN department d ON (d.institution_id,d.id)=(c.institution_id,c.department_id) AND d.active
+    WHERE o.institution_id=$1 AND o.section_id=$2 AND o.term_id=$4
+    ON CONFLICT (institution_id,offering_id,account_id,role) DO UPDATE SET ended_at=NULL`, [a.institution, a.section, a.account, a.term]);
+  await client.query(`INSERT INTO person_detail (institution_id,account_id,phone,usn,semester) VALUES ($1,$2,$3,$4,$5)
+    ON CONFLICT (institution_id,account_id) DO UPDATE SET phone=EXCLUDED.phone,usn=EXCLUDED.usn,semester=EXCLUDED.semester,updated_at=clock_timestamp()`,
+  [a.institution, a.account, a.phone, a.usn, a.semester]);
+  return admission;
 }

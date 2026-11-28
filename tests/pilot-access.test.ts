@@ -7,7 +7,7 @@ import { Pool } from "pg";
 import { db } from "../lib/db";
 import { auth } from "../lib/auth";
 import { WorkflowError } from "../lib/assignments";
-import { applyTeacherImport, previewTeacherImport, teacherImport } from "../lib/roster-import";
+import { applyStudentImport, applyTeacherImport, previewStudentImport, previewTeacherImport, teacherImport } from "../lib/roster-import";
 import { decideJoinRequests, joinOptions, myJoinRequests, recentlyApproved, requestToJoin, revokePreviewStudent, sectionRequests } from "../lib/student-admission";
 import { acceptNotice, consentNeeded, consentStatus, NOTICE, setConsentRequired } from "../lib/consent";
 import { fixtures, demoEmail, personas } from "../scripts/fixtures";
@@ -185,6 +185,40 @@ test("students ask to join a switched-on section; only that section's teachers d
       EXISTS (SELECT 1 FROM membership WHERE institution_id=$1 AND account_id=$2 AND role='student' AND ended_at IS NULL) AS member,
       EXISTS (SELECT 1 FROM roster WHERE institution_id=$1 AND account_id=$2 AND role='student' AND ended_at IS NULL) AS rostered`, [i, priya.id]);
   assert.deepEqual([revoked.member, revoked.rostered], [false, false], "the office's revoke ends access");
+});
+
+test("the office imports students as pending requests or admits them, with the same refusals as self sign-up", async () => {
+  const admin = as.get("admin")!;
+  const teacher = { institution: i, account: (await owner.query('SELECT id FROM "user" WHERE email=$1', [mail("t1")])).rows[0].id as string, role: "faculty" as const };
+  const sheet = (...rows: string[]) => ["name,email,usn,semester,section,phone", ...rows].join("\n");
+  await rejects(() => previewStudentImport(as.get("faculty")!, sheet(`A,${mail("x")},4SI${tag}90,3,Section B,`), "pending"));
+  await rejects(() => previewStudentImport(admin, sheet(`A,${mail("x")},4SI${tag}90,3,Section B,`), "maybe"));
+  const bad = await previewStudentImport(admin, sheet(
+    `Good One ${tag},${mail("imp1")},4si${tag}91,3,Section B,+91 98450 11111`,
+    `Same Usn ${tag},${mail("imp2")},4SI${tag}91,3,Section B,`,
+    `Taken Usn ${tag},${mail("imp3")},4SI${tag}01,3,Section B,`,
+    `Mech Only ${tag},${mail("imp4")},4SI${tag}94,3,Mech only ${tag},`,
+    `Existing ${tag},${demoEmail("student")},4SI${tag}95,3,Section A,`,
+    `Odd Term ${tag},${mail("imp6")},4SI${tag}96,12,Section B,`), "pending");
+  const errors = Object.fromEntries(bad.rows.map(r => [r.line, r.errors.join(" ")]));
+  assert.equal(errors[2], "");
+  assert.match(errors[3], /Same USN as line 2/);
+  assert.match(errors[4], /already belongs to another student/);
+  assert.match(errors[5], /no switched-on department/);
+  assert.match(errors[6], /already a student here/);
+  assert.match(errors[7], /Semester must be/);
+  await rejects(() => applyStudentImport(admin, bad.id), /no longer pass/);
+  assert.equal((await owner.query('SELECT 1 FROM "user" WHERE email=$1', [mail("imp1")])).rowCount, 0, "a preview writes no account");
+
+  const pending = await previewStudentImport(admin, sheet(`Good One ${tag},${mail("imp1")},4SI${tag}91,3,Section B,`), "pending");
+  assert.equal(await applyStudentImport(admin, pending.id), 1);
+  assert.ok((await sectionRequests(teacher)).some(r => r.usn === `4SI${tag}91`.toUpperCase() && r.state === "pending"), "pending rows go to the section's teachers");
+  const admitted = await previewStudentImport(admin, sheet(`Admitted ${tag},${mail("imp7")},4SI${tag}97,3,Section B,`), "approved");
+  assert.equal(await applyStudentImport(admin, admitted.id), 1);
+  const { rows: [access] } = await owner.query(`SELECT EXISTS (SELECT 1 FROM membership m JOIN "user" u ON u.id=m.account_id WHERE m.institution_id=$1 AND u.email=$2
+      AND m.role='student' AND m.ended_at IS NULL) AS member`, [i, mail("imp7")]);
+  assert.equal(access.member, true, "admitted rows get access at once");
+  await rejects(() => applyStudentImport(admin, admitted.id), /already applied/);
 });
 
 test("a college can require the privacy notice; members accept the current version and the office sees who has not", async () => {

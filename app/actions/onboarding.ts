@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { WorkflowError } from "../../lib/assignments";
-import { applyTeacherImport, previewTeacherImport } from "../../lib/roster-import";
+import { applyStudentImport, applyTeacherImport, previewStudentImport, previewTeacherImport } from "../../lib/roster-import";
 import { decideJoinRequests, requestToJoin } from "../../lib/student-admission";
 import { acceptNotice, setConsentRequired } from "../../lib/consent";
 import { account, scope, workspaceQuery } from "../../lib/scope";
@@ -70,4 +70,22 @@ export async function consentRequiredAction(_state: ActionState, form: FormData)
   try { await setConsentRequired(current, form.get("required") === "true"); } catch (error) { return fail(error); }
   revalidatePath("/", "layout");
   return { message: "Saved." };
+}
+
+export async function previewStudentImportAction(_state: ActionState, form: FormData): Promise<ActionState> {
+  const current = await scope(form.get("institution"), form.get("role"));
+  const file = form.get("file");
+  const text = file instanceof File && file.size ? await file.text() : String(form.get("csv") ?? "");
+  let id: string;
+  try { id = (await previewStudentImport(current, text, form.get("mode"))).id; } catch (error) { return fail(error, "The file could not be read as CSV."); }
+  redirect(`/admin/roster-import?${workspaceQuery(current)}&students=${id}`);
+}
+
+export async function applyStudentImportAction(_state: ActionState, form: FormData): Promise<ActionState> {
+  const current = await scope(form.get("institution"), form.get("role"));
+  try {
+    const added = await applyStudentImport(current, form.get("import"));
+    revalidatePath("/", "layout");
+    return { message: `${added} ${added === 1 ? "student" : "students"} added.` };
+  } catch (error) { return fail(error); }
 }

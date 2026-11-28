@@ -147,3 +147,100 @@ export function applyTeacherImport(scope: Scope, id: unknown) {
     return rows.length;
   });
 }
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Student import (office). Columns: name,email,usn,semester,section,phone. Mode "pending" creates sign-up requests that the
+// section's teachers check; mode "approved" admits the students directly on the office's authority. Same refusals as
+// self sign-up: duplicate USN or email, sections without a switched-on department, students already admitted here.
+// ---------------------------------------------------------------------------------------------------------------------
+export const STUDENT_COLUMNS = ["name", "email", "usn", "semester", "section", "phone"] as const;
+export type StudentRow = { line: number; name: string; email: string; usn: string; semester: number; section: string; phone: string | null; errors: string[];
+  section_id?: string; term_id?: string };
+
+async function checkStudents(client: PoolClient | typeof db, scope: Scope, rows: StudentRow[]) {
+  const { joinOptions } = await import("./student-admission");
+  const options = await joinOptions(scope.institution);
+  const emails = new Map<string, number>(), usns = new Map<string, number>();
+  for (const row of rows) {
+    row.errors = [];
+    if (row.name.length < 2 || row.name.length > 120) row.errors.push("Name must be 2–120 characters.");
+    if (!emailSchema.safeParse(row.email).success) row.errors.push("Email is not valid.");
+    else if (emails.has(row.email)) row.errors.push(`Same email as line ${emails.get(row.email)}.`);
+    else emails.set(row.email, row.line);
+    if (!/^[A-Z0-9]{6,16}$/.test(row.usn)) row.errors.push("USN must be 6–16 letters or digits.");
+    else if (usns.has(row.usn)) row.errors.push(`Same USN as line ${usns.get(row.usn)}.`);
+    else usns.set(row.usn, row.line);
+    if (!Number.isInteger(row.semester) || row.semester < 1 || row.semester > 10) row.errors.push("Semester must be 1–10.");
+    if (row.phone && !/^\+?[0-9 ]{7,16}$/.test(row.phone)) row.errors.push("Phone must be 7–16 digits, optionally starting with +.");
+    const open = options.filter(o => o.label.toLowerCase().startsWith(`${row.section.toLowerCase()} · `));
+    if (!open.length) row.errors.push(`Section "${row.section}" has no switched-on department.`);
+    else { row.section_id = open[0].section_id; row.term_id = open[0].term_id; }
+    const { rows: [taken] } = await client.query<{ usn: boolean; admitted: boolean; requested: boolean }>(`SELECT
+        EXISTS (SELECT 1 FROM person_detail p JOIN "user" u ON u.id=p.account_id WHERE p.institution_id=$1 AND p.usn=$2 AND lower(u.email)<>$3) AS usn,
+        EXISTS (SELECT 1 FROM student_admission a WHERE a.institution_id=$1 AND a.email=$3 AND a.revoked_at IS NULL)
+          OR EXISTS (SELECT 1 FROM membership m JOIN "user" u ON u.id=m.account_id WHERE m.institution_id=$1 AND lower(u.email)=$3 AND m.role='student' AND m.ended_at IS NULL) AS admitted,
+        EXISTS (SELECT 1 FROM signup_request r WHERE r.institution_id=$1 AND r.state IN ('pending','approved')
+          AND (r.usn=$2 OR r.account_id IN (SELECT id FROM "user" WHERE lower(email)=$3))) AS requested`, [scope.institution, row.usn, row.email]);
+    if (taken.usn) row.errors.push("This USN already belongs to another student.");
+    if (taken.admitted) row.errors.push("This email is already a student here.");
+    else if (taken.requested) row.errors.push("This student already has a sign-up request.");
+  }
+  return rows;
+}
+
+export async function previewStudentImport(scope: Scope, csv: unknown, mode: unknown) {
+  const text = z.string().max(400_000).parse(csv);
+  const chosen = z.enum(["pending", "approved"]).parse(mode);
+  await requireAdmin(db, scope);
+  const table = parseCsv(text.replace(/^﻿/, ""));
+  const header = (table.shift() ?? []).map(h => h.trim().toLowerCase());
+  if (STUDENT_COLUMNS.some((c, i) => header[i] !== c)) throw new WorkflowError(`The first line must be: ${STUDENT_COLUMNS.join(",")}`);
+  if (!table.length) throw new WorkflowError("The file has no student rows.");
+  if (table.length > MAX_ROWS) throw new WorkflowError(`Import at most ${MAX_ROWS} students at a time.`);
+  const rows: StudentRow[] = table.map((cells, index) => {
+    const [name = "", email = "", usn = "", semester = "", section = "", phone = ""] = cells.map(c => c.trim());
+    return { line: index + 2, name, email: email.toLowerCase(), usn: usn.toUpperCase(), semester: Number(semester), section, phone: phone || null, errors: [] };
+  });
+  await checkStudents(db, scope, rows);
+  const { rows: [saved] } = await db.query<{ id: string }>("INSERT INTO roster_import (institution_id,kind,mode,rows,created_by) VALUES ($1,'students',$2,$3,$4) RETURNING id",
+    [scope.institution, chosen, JSON.stringify(rows), scope.account]);
+  return { id: saved.id, rows };
+}
+
+export async function studentImport(scope: Scope, id: unknown) {
+  const importId = z.uuid().parse(id);
+  await requireAdmin(db, scope);
+  return (await db.query<{ id: string; state: string; mode: "pending" | "approved"; rows: StudentRow[] }>(
+    "SELECT id,state,mode,rows FROM roster_import WHERE institution_id=$1 AND id=$2 AND kind='students'", [scope.institution, importId])).rows[0] ?? null;
+}
+
+export function applyStudentImport(scope: Scope, id: unknown) {
+  const importId = z.uuid().parse(id);
+  return transaction(async client => {
+    await requireAdmin(client, scope, true);
+    const { rows: [saved] } = await client.query<{ state: string; mode: "pending" | "approved"; rows: StudentRow[] }>(
+      "SELECT state,mode,rows FROM roster_import WHERE institution_id=$1 AND id=$2 AND kind='students' FOR UPDATE", [scope.institution, importId]);
+    if (!saved || saved.state !== "previewed") throw new WorkflowError("This import is unavailable or was already applied.");
+    const rows = await checkStudents(client, scope, saved.rows.map(r => ({ ...r, errors: [] })));
+    if (rows.some(r => r.errors.length)) throw new WorkflowError("Some rows no longer pass the checks. Upload the file again to see why.");
+    const { admitStudent } = await import("./student-admission");
+    for (const row of rows) {
+      const { rows: [existing] } = await client.query<{ id: string }>('SELECT id FROM "user" WHERE lower(email)=$1', [row.email]);
+      const account = existing?.id ?? randomUUID();
+      if (!existing) await client.query(`INSERT INTO "user" (id,name,email,"emailVerified","createdAt","updatedAt") VALUES ($1,$2,$3,false,now(),now())`,
+        [account, row.name, row.email]);
+      if (saved.mode === "pending") {
+        const { rows: [request] } = await client.query<{ id: string }>(`INSERT INTO signup_request (institution_id,account_id,name,usn,semester,section_id,term_id,phone)
+          VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`, [scope.institution, account, row.name, row.usn, row.semester, row.section_id, row.term_id, row.phone]);
+        await audit(client, scope, request.id, "roster_import.student_requested", undefined, account);
+      } else {
+        const admission = await admitStudent(client, { institution: scope.institution, account, email: row.email, section: row.section_id!, term: row.term_id!,
+          approvedBy: scope.account, usn: row.usn, semester: row.semester, phone: row.phone });
+        await audit(client, scope, admission.id, "roster_import.student_admitted", undefined, account);
+      }
+    }
+    await client.query("UPDATE roster_import SET state='applied',applied_at=clock_timestamp() WHERE institution_id=$1 AND id=$2", [scope.institution, importId]);
+    await audit(client, scope, importId, "roster_import.applied");
+    return rows.length;
+  });
+}
