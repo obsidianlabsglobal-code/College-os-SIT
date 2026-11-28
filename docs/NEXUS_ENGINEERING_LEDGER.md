@@ -637,3 +637,11 @@ Observed at 888e84d, fresh local PostgreSQL in CI order:
 Observed at 11590e1, fresh local PostgreSQL in CI order:
 - migrate ×2 + seed, lint, typecheck and build passed.
 - 165/165 PostgreSQL and unit tests, 65/65 Chromium, 1/1 tutor.
+
+**Matrix work, continued (d1835ad, no migration):**
+- **Department heads (DH-018, DH-019, DH-021):** an HOD now sees room-use totals and equipment status (available, on loan or overdue; due date; last return condition) on Facilities, without who booked or borrows what. Students, faculty, the principal and other colleges see nothing. A sports test confirms the HOD sees their department's teams.
+
+Observed at d1835ad, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 166/166 PostgreSQL and unit tests, 65/65 Chromium, 1/1 tutor.
+- Matrix: 133 tested, 76 partial, 250 missing, 8 unverified, 13 blocked. The three new rows are Implemented with a scope note, so they count as partial; the counts don't move because other rows also changed category.
