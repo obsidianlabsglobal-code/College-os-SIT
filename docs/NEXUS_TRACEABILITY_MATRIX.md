@@ -15,16 +15,16 @@ No row is Hosted and verified, Visually accepted or User-validated.
 | Implemented but unverified | 8 |
 | Partially implemented | 87 |
 | Blocked by an actual dependency | 13 |
-| Missing | 237 |
+| Missing | 240 |
 | Hosted and verified | 0 |
 | User-validated | 0 |
-| **Total** | **480** |
+| **Total** | **483** |
 
 ## By domain
 
 | Domain | Functionally tested (local) | Tested claim without linked evidence | Implemented but unverified | Partially implemented | Blocked by an actual dependency | Missing |
 | --- | --- | --- | --- | --- | --- | --- |
-| Identity, delivery and trust | 6 | 0 | 0 | 4 | 1 | 2 |
+| Identity, delivery and trust | 6 | 0 | 0 | 4 | 1 | 5 |
 | Student Life · academics | 17 | 0 | 0 | 6 | 0 | 0 |
 | Student Life · personal learning | 0 | 0 | 0 | 0 | 0 | 16 |
 | Student Life · campus and growth | 5 | 0 | 0 | 8 | 0 | 4 |
@@ -66,6 +66,9 @@ No row is Hosted and verified, Visually accepted or User-validated.
 | ID-011 | Institution and campus configuration | Proposed | Missing | — | F |
 | ID-012 | Approved imports and exports | Tested (teacher and student CSV imports with a stored dry run and per-row errors; no exports) | Partially implemented | `tests/pilot-access.e2e.ts`, `tests/pilot-access.test.ts`, `tests/student-import.e2e.ts` | db/070, lib/roster-import.ts, lib/student-admission.ts, lib/auth.ts, lib/email, lib/consent.ts, app/admin/roster-import, app/join/student, app/approvals/students, app/login/code, app/consent; tests/pilot-access.test.ts, tests/pilot-access.e2e.ts |
 | ID-013 | Institution adoption and onboarding | Proposed | Missing | — | F |
+| ID-014 | Universal search | Planned | Missing | — | F |
+| ID-015 | Phone and laptop layouts | Planned | Missing | — | X |
+| ID-016 | App install | Planned | Missing | — | X |
 | SA-001 | Student dashboard | Tested | Functionally tested (local) | `tests/academic-day.e2e.ts`, `tests/atmosphere.e2e.ts`, `tests/release.e2e.ts` | R/X and [Student Today evidence](evidence/student-today/README.md) |
 | SA-002 | Course directory | Tested | Functionally tested (local) | `tests/learning-records.e2e.ts`, `tests/learning-records.test.ts`, `tests/work-closing.e2e.ts`, `tests/work-closing.test.ts` | lib/catalog.ts courseCatalog, app/catalog; tests/learning-records.test.ts, tests/learning-records.e2e.ts, tests/work-closing.test.ts, tests/work-closing.e2e.ts |
 | SA-003 | Enrolled course workspaces | Tested | Functionally tested (local) | `tests/release.e2e.ts`, `tests/workflow.test.ts` | W2 |

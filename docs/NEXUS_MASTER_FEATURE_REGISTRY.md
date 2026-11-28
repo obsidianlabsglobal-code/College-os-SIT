@@ -33,6 +33,9 @@ Domain: shared foundation. Users: all institutional participants and authorized 
 | ID-011 | Institution and campus configuration | Configure campuses, departments, branding, program, scheme, locale and academic year per tenant. | Proposed | F |
 | ID-012 | Approved imports and exports | Validate source authority, preview changes and reconcile batch outcomes across systems. | Tested (teacher and student CSV imports with a stored dry run and per-row errors; no exports) | db/070, lib/roster-import.ts, lib/student-admission.ts, lib/auth.ts, lib/email, lib/consent.ts, app/admin/roster-import, app/join/student, app/approvals/students, app/login/code, app/consent; tests/pilot-access.test.ts, tests/pilot-access.e2e.ts |
 | ID-013 | Institution adoption and onboarding | Assess replacement, integration and overlay options with institutional owners; train and support staff. | Proposed | F |
+| ID-014 | Universal search | One search bar on every page, with typo tolerance, an office-editable synonym list, intent shortcuts, grouped results, "Did you mean" and recent searches; every result re-checked by its access rule (founder ask via coordinator, 2026-11-28). | Planned | F |
+| ID-015 | Phone and laptop layouts | Mobile-first and laptop first-class: 390 px and 1366×768 (1920 for office and HOD dashboards) without overflow, cards on phones, tables, side navigation and visible focus on laptops, 44 px touch targets (founder rule via coordinator, 2026-11-28). | Planned | X |
+| ID-016 | App install | Android APK as a Trusted Web Activity (assetlinks from an env var), iPhone Add to Home Screen with web push, a Get-the-app page by device, and an install banner shown on each browser visit until installed; free tools only (founder ask via coordinator, 2026-11-28). | Planned | X |
 
 ## Student Life · academics
 

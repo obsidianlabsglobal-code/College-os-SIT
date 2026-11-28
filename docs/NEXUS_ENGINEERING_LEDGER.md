@@ -720,3 +720,12 @@ Observed at f0989b7, fresh local PostgreSQL in CI order:
 Observed at babbbaa, fresh local PostgreSQL in CI order:
 - migrate ×2 + seed, lint, typecheck and build passed.
 - 172/172 PostgreSQL and unit tests, 66/66 Chromium, 1/1 tutor.
+
+**Coordination (2026-11-28, 10:30 UTC):**
+- Request to Dot: in `tests/transport-boarding.e2e.ts` line 65, drop `await db.end();` (keep `owner.end()`). Every e2e file shares one Playwright worker and one `lib/db` pool, so a second `end()` fails with "Called end on pool more than once". This was the only failure in the dry-run merge. The test only runs with `NEXUS_TRANSPORT_LOCAL_TEST=1`, which the review run will set.
+- Request to Dot: please expose a read function for routes and stops the caller may see (for example `lib/transport` `searchableRoutes(scope)`), so universal search (ID-014) can include Transport. Until then, search covers transport by intent shortcut only.
+- Standing test rule from the founder, added to AGENTS.md: 390 px and 1366×768 (1920 for office and HOD dashboards), no overflow, cards on phones and tables on laptops, visible keyboard focus, 44 px targets, and screenshots at both sizes.
+- Claimed by cc: ID-014
+- Claimed by cc: ID-015
+- Claimed by cc: ID-016
+- Claimed by cc: FC-030 (bus-delay attendance context; built on a local branch, lands after the transport merge)
