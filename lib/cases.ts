@@ -13,13 +13,19 @@ import type { Scope } from "./scope";
 //   department — DH-023: a student's request to a department, routed by its HOD.
 //   representation — SL-016: an issue raised for students generally; every current student can read and support it.
 //   letter    — AD-020: a leave or permission letter a member submits to the office; only they and the office read it.
-export type CaseKind = "support" | "grievance" | "facility" | "integrity" | "department" | "representation" | "letter";
+//   transport_incident / lost_and_found — TR-025, TO-012, TR-024: reported by any member, coordinated by the transport office.
+export type CaseKind = "support" | "grievance" | "facility" | "integrity" | "department" | "representation" | "letter" | "transport_incident" | "lost_and_found";
 /** Kinds a role works with, in display order. */
 export const caseKinds: Record<Scope["role"], CaseKind[]> = {
-  student: ["grievance", "integrity", "department", "representation", "facility", "letter"], faculty: ["support", "department", "integrity", "facility", "letter"],
+  student: ["grievance", "integrity", "department", "representation", "facility", "letter", "transport_incident", "lost_and_found"],
+  faculty: ["support", "department", "integrity", "facility", "letter", "transport_incident", "lost_and_found"],
   hod: ["support", "department", "integrity", "facility", "letter"], admin: ["grievance", "representation", "facility", "letter"], principal: ["grievance"],
+  transport: ["transport_incident", "lost_and_found"], driver: ["transport_incident", "lost_and_found"],
 };
-export const officeKinds: CaseKind[] = ["grievance", "facility", "representation", "letter"];  // coordinated by admins; the rest by the department HOD
+export const officeKinds: CaseKind[] = ["grievance", "facility", "representation", "letter"];  // coordinated by admins
+export const transportKinds: CaseKind[] = ["transport_incident", "lost_and_found"];  // coordinated by the transport office
+/** The role that assigns owners for a kind: the office, the transport office, or the department HOD. */
+export const coordinatorRole = (kind: CaseKind): Scope["role"] => transportKinds.includes(kind) ? "transport" : officeKinds.includes(kind) ? "admin" : "hod";
 const REOPEN_DAYS = 14;
 const unavailable = () => new WorkflowError("This case is unavailable or has already changed.");
 const ESCALATE_DAYS = 7;
@@ -28,8 +34,9 @@ const member = (role: string, account = "$2") =>
   `EXISTS (SELECT 1 FROM membership x WHERE x.institution_id=k.institution_id AND x.account_id=${account} AND x.role='${role}' AND x.ended_at IS NULL)`;
 const hodOf = (account = "$2") =>
   `EXISTS (SELECT 1 FROM membership h WHERE h.institution_id=k.institution_id AND h.account_id=${account} AND h.role='hod' AND h.department_id=k.department_id AND h.ended_at IS NULL)`;
-const ownOrOffice = `(k.opened_by=$2 AND EXISTS (SELECT 1 FROM membership x WHERE x.institution_id=k.institution_id AND x.account_id=$2
-    AND x.role=$3 AND x.ended_at IS NULL)) OR ($3='admin' AND ${member("admin")})`;
+const ownOr = (role: string) => `(k.opened_by=$2 AND EXISTS (SELECT 1 FROM membership x WHERE x.institution_id=k.institution_id AND x.account_id=$2
+    AND x.role=$3 AND x.ended_at IS NULL)) OR ($3='${role}' AND ${member(role)})`;
+const ownOrOffice = ownOr("admin");
 // Who can read a case. Students never see support cases about them; grievance notes stay with staff (see `notes`).
 const readable = `CASE k.kind
   WHEN 'support' THEN ($3='hod' AND ${hodOf()}) OR ($3='faculty' AND ${member("faculty")} AND (k.assigned_to=$2 OR k.opened_by=$2))
@@ -38,6 +45,8 @@ const readable = `CASE k.kind
   WHEN 'representation' THEN ($3='student' AND ${member("student")}) OR ($3='admin' AND ${member("admin")})
   WHEN 'facility' THEN ${ownOrOffice}
   WHEN 'letter' THEN ${ownOrOffice}
+  WHEN 'transport_incident' THEN ${ownOr("transport")}
+  WHEN 'lost_and_found' THEN ${ownOr("transport")}
   ELSE ($3='student' AND k.subject_id=$2 AND ${member("student")}) OR ($3='hod' AND ${hodOf()})
     OR ($3='faculty' AND k.assigned_to=$2 AND ${member("faculty")})
 END`;
@@ -76,12 +85,13 @@ export async function caseSummary(scope: Scope, kind: CaseKind) {
 /** People a case can be assigned to: department teachers for support, office staff for grievances. */
 export async function caseStaff(scope: Scope, kind: CaseKind) {
   type Staff = { id: string; name: string; department: string };
-  if (officeKinds.includes(kind)) {
-    if (scope.role !== "admin") return [];
+  const coordinator = coordinatorRole(kind);
+  if (coordinator !== "hod") {
+    if (scope.role !== coordinator) return [];
     return (await db.query<Staff>(`SELECT DISTINCT u.id,u.name,'' AS department
-      FROM membership m JOIN "user" u ON u.id=m.account_id WHERE m.institution_id=$1 AND m.role='admin' AND m.ended_at IS NULL
-        AND EXISTS (SELECT 1 FROM membership me WHERE me.institution_id=$1 AND me.account_id=$2 AND me.role='admin' AND me.ended_at IS NULL)
-      ORDER BY u.name`, [scope.institution, scope.account])).rows;
+      FROM membership m JOIN "user" u ON u.id=m.account_id WHERE m.institution_id=$1 AND m.role=$3 AND m.ended_at IS NULL
+        AND EXISTS (SELECT 1 FROM membership me WHERE me.institution_id=$1 AND me.account_id=$2 AND me.role=$3 AND me.ended_at IS NULL)
+      ORDER BY u.name`, [scope.institution, scope.account, coordinator])).rows;
   }
   if (scope.role !== "hod") return [];
   // Department kinds: the department's current teachers; for appeals and department requests, also the HOD themself.
@@ -118,6 +128,8 @@ const openInput = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("facility"), title: text(160), body: text(4000) }),
   z.object({ kind: z.literal("representation"), title: text(160), body: text(4000) }),
   z.object({ kind: z.literal("letter"), title: text(160), body: text(4000) }),
+  z.object({ kind: z.literal("transport_incident"), title: text(160), body: text(4000) }),
+  z.object({ kind: z.literal("lost_and_found"), title: text(160), body: text(4000) }),
   z.object({ kind: z.literal("integrity"), assignment: z.uuid(), title: text(160), body: text(4000) }),
   z.object({ kind: z.literal("department"), department: z.uuid(), title: text(160), body: text(4000) }),
 ]);
@@ -148,6 +160,8 @@ export function openCase(scope: Scope, raw: unknown) {
     if (scope.role === "principal" || !(await locked(client, scope, scope.role))) throw unavailable();
     if (input.kind === "grievance" || input.kind === "representation") {
       if (scope.role !== "student") throw unavailable();
+    } else if (input.kind === "transport_incident" || input.kind === "lost_and_found") {
+      // Any current member may report; the transport office owns the response.
     } else if (input.kind === "letter") {
       if (scope.role === "admin") throw unavailable();  // the office receives letters; it does not send them to itself
     } else if (input.kind === "facility") {
@@ -200,9 +214,9 @@ export function assignCase(scope: Scope, raw: unknown) {
   const input = assignInput.parse(raw);
   return transaction(async client => {
     const row = await lockCase(client, scope, input.case);
-    const coordinator = officeKinds.includes(row.kind) ? scope.role === "admin" : scope.role === "hod";
+    const coordinator = scope.role === coordinatorRole(row.kind);
     if (!coordinator || !["open", "in_progress"].includes(row.state) || row.assigned_to === input.assignee) throw unavailable();
-    const staff = (await caseStaff(scope, row.kind)).filter(p => officeKinds.includes(row.kind) || p.department === row.department_id);
+    const staff = (await caseStaff(scope, row.kind)).filter(p => coordinatorRole(row.kind) !== "hod" || p.department === row.department_id);
     if (!staff.some(p => p.id === input.assignee)) throw new WorkflowError("Choose a current staff member who can take this case.");
     await client.query(`UPDATE case_record SET assigned_to=$3,assigned_at=clock_timestamp(),state='open',revision=revision+1
       WHERE institution_id=$1 AND id=$2`, [scope.institution, input.case, input.assignee]);

@@ -387,8 +387,8 @@ Eligible riders need trustworthy journey information. Open assigned trip → sel
 | TR-021 | Replacement vehicle notices | Identify a verified replacement and its capacity. | Designed | T |
 | TR-022 | Arrival reminders | Opt in to timely, scoped notifications. | Designed | T |
 | TR-023 | Alternative services | Show alternatives only when eligibility and availability are confirmed. | Proposed | F |
-| TR-024 | Lost and found | Submit, privately match and resolve an item report. | Proposed | F |
-| TR-025 | Transport incidents | Report an issue to an authorized responder. | Proposed | F |
+| TR-024 | Lost and found | Submit, privately match and resolve an item report. | Tested (private report resolved by the transport office; no item matching) | db/036, lib/cases.ts, app/cases; tests/pilot-foundation.test.ts, tests/pilot-foundation.e2e.ts |
+| TR-025 | Transport incidents | Report an issue to an authorized responder. | Tested | db/036, lib/cases.ts, app/cases; tests/pilot-foundation.test.ts, tests/pilot-foundation.e2e.ts |
 | TR-026 | Emergency information | Show institution-approved emergency procedures and channels. | Proposed | F |
 
 ## Smart Campus · transport operations
@@ -408,7 +408,7 @@ Dispatchers, transport managers, assigned conductors and stationary operators co
 | TO-009 | QR boarding verification | Reject duplicate, expired and revoked boarding proofs. | Proposed | F |
 | TO-010 | Authorized counts | Record count, source, correction and observation time. | Designed | T |
 | TO-011 | Disruption management | Publish scoped alerts with effective and expiry times. | Designed | T |
-| TO-012 | Incident response | Assign responders, record action and verify resolution. | Proposed | F |
+| TO-012 | Incident response | Assign responders, record action and verify resolution. | Tested (assign, record outcome; the reporter reads the outcome, no reporter confirmation step) | db/036, lib/cases.ts, app/cases; tests/pilot-foundation.test.ts, tests/pilot-foundation.e2e.ts |
 | TO-013 | Vehicle maintenance | Track faults, service dates and clearance before operation. | Proposed | F |
 | TO-014 | Operational analytics | Review freshness, service performance and ETA errors. | Designed | T |
 | TO-015 | Route optimization | Evaluate alternatives under cost, demand and privacy constraints. | Proposed | F |

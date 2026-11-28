@@ -14,6 +14,7 @@ import { planningAction } from "../actions/planning";
 import { catalogHistory } from "../../lib/academics";
 import { calendarEntries } from "../../lib/calendar";
 import { delegateOptions, delegations, dutyLabel } from "../../lib/delegation";
+import { departmentSwitches } from "../../lib/active-departments";
 
 type Option = { id: string; name: string };
 
@@ -27,9 +28,9 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   const current = await scope(selection.institution,selection.role);
   if (current.role !== "admin") notFound();
   const preview = onboardingPreviewEnabled();
-  const [data, setup, admissions, history, dates, lent, delegates] = await Promise.all([
+  const [data, setup, admissions, history, dates, lent, delegates, switches] = await Promise.all([
     adminCatalog(current), institutionCatalog(current), preview ? studentAdmissions(current) : [], catalogHistory(current), calendarEntries(current),
-    delegations(current), delegateOptions(current),
+    delegations(current), delegateOptions(current), departmentSwitches(current),
   ]);
   return <Chrome user={user} current={current} section="/admin">
     <PageHeader title="Academic setup" parent={{ href: `/?${workspaceQuery(current)}`, label: "Workspace" }} />
@@ -93,6 +94,14 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
             <input type="hidden" name="membership" value={grant.id} />
           </ActionForm>}
         </li>)}</ul>
+      </section>
+      <section className="panel stack" aria-labelledby="pilot-departments">
+        <h2 id="pilot-departments">Departments switched on</h2>
+        <p className="meta">Sign-up, roster imports and live buses are open only to members of departments that are switched on. Every change is recorded with your reason.</p>
+        <ul className="items">{switches.map(d => <li key={d.id}><div className="row spread"><span><strong>{d.name}</strong> · {d.active ? "On" : "Off"}</span>
+          <ActionForm action={planningAction} context={current} operation="department-switch" label={d.active ? "Switch off" : "Switch on"} secondary>
+            <input type="hidden" name="department" value={d.id} /><input type="hidden" name="active" value={String(!d.active)} />
+            <label>Reason<input name="reason" required maxLength={300} /></label></ActionForm></div></li>)}</ul>
       </section>
       <section className="panel stack" aria-labelledby="delegation-title">
         <h2 id="delegation-title">Delegated duties</h2>

@@ -17,7 +17,7 @@ export default async function Fees({searchParams}:{searchParams:Promise<Record<s
   if (process.env.NEXUS_FEES_PREVIEW !== "true") notFound();
   const [user,current] = await Promise.all([account(),scope(params.institution,params.role)]);
   const role = current.role;
-  if (role === "faculty" || !feesPreviewAvailable(current,user)) notFound();
+  if (role === "faculty" || role === "transport" || role === "driver" || !feesPreviewAvailable(current,user)) notFound();
   // Explicit synthetic operator grant for this rehearsal. A real operator directory does not exist yet.
   const rehearsal = role==="admin" && canReviewFees({role,account:user.id},
     {institution:current.institution,department:"demo-eee",id:"fictional-statement"}, {

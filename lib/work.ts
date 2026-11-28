@@ -1,5 +1,5 @@
 import { allocationProposals } from "./allocation";
-import { caseKinds, cases, officeKinds } from "./cases";
+import { caseKinds, cases, coordinatorRole } from "./cases";
 import { corrections } from "./corrections";
 import { departmentDelivery } from "./course-delivery";
 import { requests } from "./connected";
@@ -17,7 +17,7 @@ export async function myWork(scope: Scope, query: string): Promise<WorkItem[]> {
     for (const kind of caseKinds[scope.role]) {
       for (const c of await cases(scope, kind)) {
         if (c.state !== "open" && c.state !== "in_progress") continue;
-        const coordinator = officeKinds.includes(kind) ? scope.role === "admin" : scope.role === "hod";
+        const coordinator = scope.role === coordinatorRole(kind);
         if (c.assigned_to === scope.account || (coordinator && !c.assigned_to))
           items.push({ source: "Case", title: c.title, detail: c.assigned_to ? `Assigned to you · ${c.state === "open" ? "not started" : "in progress"}` : "Needs an owner",
             href: `/cases?${query}&kind=${kind}`, since: c.created_at });

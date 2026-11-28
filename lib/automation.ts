@@ -160,7 +160,9 @@ const handlers: Record<string, (client: PoolClient, job: Job) => Promise<Result>
        SELECT k.institution_id,k.opened_by,$3::bigint,'case',k.id,
          CASE k.kind WHEN 'grievance' THEN 'Your grievance has been ' WHEN 'facility' THEN 'Your repair report has been '
            WHEN 'integrity' THEN 'Your integrity appeal has been ' WHEN 'department' THEN 'Your department request has been '
-           WHEN 'representation' THEN 'Your representation issue has been ' ELSE 'Support case ' END || k.state
+           WHEN 'representation' THEN 'Your representation issue has been ' WHEN 'letter' THEN 'Your letter has been '
+           WHEN 'transport_incident' THEN 'Your transport report has been ' WHEN 'lost_and_found' THEN 'Your lost-and-found report has been '
+           ELSE 'Support case ' END || k.state
        FROM case_record k WHERE k.institution_id=$1 AND k.id=$2 AND k.state IN ('resolved','declined') AND k.opened_by<>
          (SELECT actor_id FROM audit_event WHERE id=$3) ON CONFLICT DO NOTHING`, [job.institution_id, job.entity_id, job.event_id]);
   },
@@ -255,7 +257,7 @@ export async function runJobs({ worker = "local", limit = 20, leaseSeconds = 60 
 
 export const roleKinds: Record<Scope["role"], string[]> = {
   student: ["assignment", "reminder", "result", "class", "correction", "case", "sport"], faculty: ["attendance", "correction", "case"],
-  admin: ["request", "followup", "case"], principal: ["escalation"], hod: ["case"],
+  admin: ["request", "followup", "case"], principal: ["escalation"], hod: ["case"], transport: ["case"], driver: ["case"],
 };
 
 /** Inbox read model. Access is re-checked at read time, so a revoked roster, grant or withdrawn record hides the item. */

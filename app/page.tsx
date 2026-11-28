@@ -28,7 +28,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ i
       context={current?.role === "faculty" ? "Manage assignments for the courses you teach." :
         current?.role === "hod" ? "Review academic activity for your departments." :
         current?.role === "principal" ? "Institution reporting from published academic records and service requests." :
-        current?.role === "admin" ? "Review service requests, configure courses and manage access." : undefined} />
+        current?.role === "admin" ? "Review service requests, configure courses and manage access." :
+        current?.role === "transport" ? "Run routes, buses and transport reports for the departments that are switched on." :
+        current?.role === "driver" ? "Your trips and transport reports." : undefined} />
     {!current && <p className="panel">Your account has no active institutional workspace.</p>}
     {current?.role === "principal" && <PrincipalBoard current={current} timezone={workspace?.timezone ?? "Asia/Kolkata"} />}
     {current?.role === "admin" && <AdminBoard current={current} timezone={workspace?.timezone ?? "Asia/Kolkata"} />}
