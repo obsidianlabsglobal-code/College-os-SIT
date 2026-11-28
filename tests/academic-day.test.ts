@@ -1,4 +1,4 @@
-// covers: ID-004, SA-005, SA-006, SA-008, SA-009, FC-004, FC-005
+// covers: OP-001, DH-008, ID-004, SA-005, SA-006, SA-008, SA-009, FC-004, FC-005
 import "../scripts/environment";
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
@@ -150,4 +150,20 @@ test("planning targets are versioned, tenant-scoped and withdrawable", async () 
   assert.equal(saved.percent,78);
   await savePlanningTarget(admin,{...input,revision:saved.revision,percent:null,source:"Withdrawn for review"});
   assert.equal((await planningOptions(admin)).find(row=>row.id===f.offering)?.percent,null);
+});
+
+test("OP-001: two sections cannot share a room at the same time; the clash is found before publication completes",async ()=>{
+  const admin = actor("admin","admin");
+  // A second teacher for Section B, only for this check.
+  await owner.query("INSERT INTO roster (institution_id,offering_id,account_id,role) VALUES ($1,$2,$3,'faculty') ON CONFLICT DO NOTHING",[f.institution,f.otherOffering,accounts.get("replacement")]);
+  try {
+    const day = wall(hours(24*5)).slice(0,10);
+    const first = await changeClass(admin,{...draft(day+"T14:00",day+"T15:00")});
+    const second = await changeClass(admin,{operation:"draft",room,offering:f.otherOffering,faculty:accounts.get("replacement"),start:day+"T14:30",end:day+"T15:30",weeks:1});
+    await changeClass(admin,{operation:"publish",session:first,revision:0});
+    await assert.rejects(changeClass(admin,{operation:"publish",session:second,revision:0}),/This room already has a class/);
+    assert.equal((await sessionDetail(admin,second))?.row.state,"draft","the clashing class stays a draft to be re-planned");
+  } finally {
+    await owner.query("DELETE FROM roster WHERE institution_id=$1 AND offering_id=$2 AND account_id=$3 AND role='faculty'",[f.institution,f.otherOffering,accounts.get("replacement")]);
+  }
 });

@@ -89,3 +89,13 @@ export async function applyStudentImportAction(_state: ActionState, form: FormDa
     return { message: `${added} ${added === 1 ? "student" : "students"} added.` };
   } catch (error) { return fail(error); }
 }
+
+export async function correctRecordAction(_state: ActionState, form: FormData): Promise<ActionState> {
+  const current = await scope(form.get("institution"), form.get("role"));
+  const { correctRecord } = await import("../../lib/student-records");
+  try {
+    await correctRecord(current, { account: form.get("account"), field: form.get("field"), value: String(form.get("value") ?? ""), reason: form.get("reason") });
+  } catch (error) { return fail(error, "Check the value: USN is 6–16 letters or digits, semester 1–10, phone 7–16 digits."); }
+  revalidatePath("/", "layout");
+  return { message: "Corrected. The previous value is kept in the history." };
+}

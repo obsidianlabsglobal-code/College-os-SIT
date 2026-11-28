@@ -160,7 +160,7 @@ HODs and explicitly delegated coordinators need department-scoped oversight. Sel
 | DH-005 | Course delivery | Compare delivered sessions against approved course plan. | Tested | lib/course-delivery.ts, app/courses/[id], app/leadership/boards.tsx; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
 | DH-006 | Teaching workload | Review teaching and evaluation allocations. | Tested | Shared workload definition with FC-019; tests/department.test.ts, tests/leadership.e2e.ts |
 | DH-007 | Faculty allocation | Propose or approve department teaching assignments. | Tested | db/024, lib/allocation.ts, app/leadership/boards.tsx; tests/allocation-teams.test.ts, tests/allocation-teams.e2e.ts |
-| DH-008 | Timetable planning | Resolve scheduling constraints before publication. | Proposed | F |
+| DH-008 | Timetable planning | Resolve scheduling constraints before publication. | Tested (office drafts checked for section, teacher and room clashes before publication; no HOD planning view) | lib/academic-day.ts; tests/academic-day.test.ts |
 | DH-009 | Attendance reporting | Aggregate verified attendance with scheme definitions. | Tested (latest-record rates and counts below the approved attendance policy; no scheme-specific rules) | No scheme eligibility definitions; tests/department.test.ts, lib/department.ts sectionCompliance, tests/work-closing.test.ts, tests/work-closing.e2e.ts |
 | DH-010 | Assessment and results reporting | Count published assignments, submissions and published results from records. | Tested | R |
 | DH-011 | Curriculum progress | Review course coverage with source evidence. | Tested | lib/course-delivery.ts, app/courses/[id], app/leadership/boards.tsx; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
@@ -237,7 +237,7 @@ Institution administrators, academic office and designated specialists manage ac
 | AD-002 | Account onboarding | Invite, verify, provision and recover accounts through authorized office. | Tested (office teacher import, email-code sign-in and recovery, student sign-up approved by section teachers; email goes to the console adapter until a provider is approved) | db/070, lib/roster-import.ts, lib/student-admission.ts, lib/auth.ts, lib/email, lib/consent.ts, app/admin/roster-import, app/join/student, app/approvals/students, app/login/code, app/consent; tests/pilot-access.test.ts, tests/pilot-access.e2e.ts |
 | AD-003 | Role grants | Grant and end permitted institutional roles to existing people. | Tested | R |
 | AD-004 | Membership lifecycle | Activate and end memberships; retain history and revoke live access. | Tested | R |
-| AD-005 | Student records | Govern student identity details, corrections and authorized record access. | Proposed | F |
+| AD-005 | Student records | Govern student identity details, corrections and authorized record access. | Tested (office search and USN, semester and phone corrections with reason and history; names stay with the sign-in account) | db/075, lib/student-records.ts, app/admin/students, app/profile; tests/student-records.test.ts, tests/student-records.e2e.ts |
 | AD-006 | Academic catalog | Create schemes, terms, courses, sections and offerings. | Tested | R |
 | AD-007 | Enrollments | Enroll or end student and faculty roster assignments. | Tested | R |
 | AD-008 | Course and section management | Maintain existing offerings, corrections, retirement and history beyond creation. | Tested (course and section name corrections with history; no retirement) | db/026, lib/academics.ts renameCatalog, app/admin; tests/growth-operations.test.ts, tests/growth-operations.e2e.ts |
@@ -468,7 +468,7 @@ Resource custodians, library/lab staff, facilities teams, requesters and approve
 
 | ID | Capability | Functional workflow or acceptance outcome | Status | Evidence |
 | --- | --- | --- | --- | --- |
-| OP-001 | Classroom scheduling | Assign sections to rooms without overlapping confirmed use. | Proposed | F |
+| OP-001 | Classroom scheduling | Assign sections to rooms without overlapping confirmed use. | Tested (room, teacher and section clashes refused at publication) | lib/academic-day.ts; tests/academic-day.test.ts |
 | OP-002 | Laboratory booking | Select authorized lab slots and obtain clearance. | Tested | db/033, lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
 | OP-003 | Equipment reservations | Request equipment, confirm custody, return and inspect condition. | Tested (office-issued custody with due date, return and condition) | db/033, lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
 | OP-004 | Library services | Search approved holdings and request institution-permitted services. | Tested (holdings search and office-issued loans; no holds or renewals) | db/033, lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
