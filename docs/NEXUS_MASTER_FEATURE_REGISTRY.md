@@ -149,7 +149,7 @@ Faculty need to organize teaching and evaluation by assigned offering. Select as
 | FC-027 | Meetings | Coordinate participants, schedules and follow-up actions. | Tested | db/029, lib/meetings.ts, app/meetings; tests/meetings-portfolio.test.ts, tests/meetings-portfolio.e2e.ts |
 | FC-028 | Faculty reports | Produce scoped teaching and workload reports from records. | Tested | lib/exports.ts facultyReport, app/records/export; tests/learning-records.test.ts, tests/learning-records.e2e.ts, tests/work-closing.test.ts, tests/work-closing.e2e.ts |
 | FC-029 | Faculty AURA assistants | Use approved preparation, communication and reporting tools; see agent catalog. | Proposed | F |
-| FC-030 | Bus-delay attendance context | Show a teacher which students' recorded boarding was on a delayed inbound college bus before their first class that day, as context only; marks and teacher decisions are unchanged (contract: dot/transport docs/TRANSPORT_DISRUPTIONS_5B.md, 2026-11-28). | Tested (computed note on the class's attendance view; no late status, no mentor view) | lib/bus-delay.ts, app/timetable; tests/bus-delay.test.ts |
+| FC-030 | Bus-delay attendance context | Show a teacher which students' recorded boarding was on a delayed inbound college bus before their first class that day, as context only; marks and teacher decisions are unchanged (contract: dot/transport docs/TRANSPORT_DISRUPTIONS_5B.md, 2026-11-28). | Tested (computed note on the class's attendance view; no late status, no mentor view) | lib/bus-delay.ts, app/timetable; tests/bus-delay.test.ts, tests/bus-delay.e2e.ts |
 
 ## Department OS
 
