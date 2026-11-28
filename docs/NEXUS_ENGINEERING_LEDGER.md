@@ -389,3 +389,25 @@ Observed, fresh local PostgreSQL in CI order at 014188c:
 
 Traceability: 114 functionally tested (local), 31 partial, 8 unverified, 13 blocked, 314 missing.
 Note: commit 014188c said the registry rows would be confirmed after the full run; they were already set in that commit, and this run confirms them.
+
+## 2026-11-28 — Batches 12–13 (Claude, Codex paused): sports and careers
+
+Codex reached its limit, so Claude took the sports and careers tracks from the parallel plan, using migrations 031–032 in its own range. Codex's reserved 045–054 stay unused.
+
+Implemented (commits 91f6321 and 6ececc5):
+- **Sports (`db/031`, `lib/sports.ts`, `app/sports`):**
+  - The office creates tournaments (intramural, interdepartmental, intercollege), department and open teams, and validated external opponents. It assigns coaches and match officials and enters teams by level.
+  - Coaches open trials, decide eligible students' requests with a reason, publish training at a free venue and post squad-only announcements.
+  - Fixtures refuse clashes for the venue, the teams and the selected players' published classes.
+  - Only the assigned official records a result after the start; a revision needs a reason and raises the revision number.
+  - Standings use completed fixtures only (3/1/0). Official-verified participation can go into the student's portfolio.
+- **Careers (`db/032`, `lib/careers.ts`, `app/careers`, `app/opportunities`):**
+  - Listings may be jobs, placement drives, hackathons, fellowships or research openings, optionally limited to one department's current students. Eligibility explains how to correct it.
+  - Students track, draft and record submission, and may withdraw before an outcome. The office records placement-drive outcomes in order.
+  - The department outcome summary counts office-recorded offers only. A plain-text résumé draft is built from the student's own chosen records.
+- **Layout fix:** a compact `.standings` table so phone widths no longer break words.
+
+Observed:
+- A background run started on 91f6321 showed 133/135. The 2 opportunity failures were caused by editing `lib/opportunities.ts` for careers while that run was in progress (the new column was not yet migrated). The run was stopped and not recorded.
+- Fresh local PostgreSQL in CI order at 6ececc5: migrate ×2 + seed, lint, typecheck and build passed; 140/140 PostgreSQL and unit tests, 53/53 Chromium, 1/1 tutor.
+- Evidence: `docs/evidence/sports-2026-11-28/`, `docs/evidence/careers-2026-11-28/`.

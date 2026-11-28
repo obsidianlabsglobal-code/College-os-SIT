@@ -1,7 +1,7 @@
 {
- "commit": "014188c67cd6858a77a61e7956de259a11b94db3",
+ "commit": "6ececc5d94a8771f6ff1c86cb9cd1896d2dbf09d",
  "uncommitted_source_changes": false,
- "recorded_at": "2026-11-28T05:13:49+00:00",
+ "recorded_at": "2026-11-28T05:52:32+00:00",
  "environment": "local fresh PostgreSQL, fictional data, headless Chromium",
  "files": {
   "tests/academic-assistant.test.ts": {
@@ -62,6 +62,14 @@
   },
   "tests/campus-change-brief.e2e.ts": {
    "passed": 1,
+   "failed": 0
+  },
+  "tests/careers.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/careers.test.ts": {
+   "passed": 5,
    "failed": 0
   },
   "tests/cases.e2e.ts": {
@@ -234,6 +242,14 @@
   },
   "tests/shared-controls.e2e.ts": {
    "passed": 1,
+   "failed": 0
+  },
+  "tests/sports.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/sports.test.ts": {
+   "passed": 4,
    "failed": 0
   },
   "tests/student-admission.e2e.ts": {
