@@ -1,7 +1,7 @@
 {
- "commit": "1661202044e61a7593e217857b558231f764ed04",
+ "commit": "21df2bce0008ef00a838658c2386421196157c35",
  "uncommitted_source_changes": false,
- "recorded_at": "2026-11-28T10:41:34+00:00",
+ "recorded_at": "2026-11-28T10:49:24+00:00",
  "environment": "local fresh PostgreSQL, fictional data, headless Chromium",
  "files": {
   "tests/academic-assistant.test.ts": {
@@ -193,6 +193,14 @@
    "failed": 0
   },
   "tests/history.test.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/install.e2e.ts": {
+   "passed": 2,
+   "failed": 0
+  },
+  "tests/install.test.ts": {
    "passed": 1,
    "failed": 0
   },

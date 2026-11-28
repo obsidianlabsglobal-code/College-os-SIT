@@ -744,3 +744,16 @@ Observed at 1661202, fresh local PostgreSQL in CI order:
 - migrate ×2 + seed, lint, typecheck and build passed.
 - 174/174 PostgreSQL and unit tests, 66/66 Chromium, 1/1 tutor.
 - Matrix: 135 tested, 89 partial, 238 missing (483 rows with ID-014 to ID-016), 8 unverified, 13 blocked.
+
+**App install (21df2bc), ID-016:**
+- **Assetlinks:** `/.well-known/assetlinks.json` is built from `NEXUS_ANDROID_PACKAGE` and `NEXUS_ANDROID_SHA256`. Fingerprints are validated, and the route returns 404 unless both are set. The APK build steps (PWABuilder or Bubblewrap, free) are in DEPLOYMENT.md.
+- **Get the app:** `/get-app` is public and orders Android, iPhone and laptop steps by user agent. The APK download appears once `NEXUS_ANDROID_APK_URL` (HTTPS) is set.
+- **Install banner:** in a browser tab every page shows an in-page install banner, not a fixed overlay, so it never covers controls. "Not now" hides it for the visit (sessionStorage). It never shows when the app runs standalone (display-mode or `navigator.standalone`).
+- **Not done:** no APK has been built; that needs the final domain and a signing key the college keeps.
+- **Blocker:** `playwright.webkit.config.ts` is ready but not run, because the sandbox has only Chromium and installing browsers here isn't allowed. Run it on a machine with Playwright's WebKit.
+- **Evidence:** `docs/evidence/install-2026-11-28/` has Android and iPhone at 390 px and laptop at 1366.
+
+Observed at 21df2bc, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 175/175 PostgreSQL and unit tests, 68/68 Chromium (the banner breaks no existing flow), 1/1 tutor.
+- Matrix: 135 tested, 90 partial, 237 missing, 8 unverified, 13 blocked.
