@@ -1,4 +1,4 @@
-// covers: CL-044, CL-046, CL-028
+// covers: CL-044, CL-046, CL-028, SL-003
 import "../scripts/environment";
 import { expect, test, type Page } from "@playwright/test";
 import { randomUUID } from "node:crypto";
@@ -28,12 +28,12 @@ test("a full event offers the waitlist, and a seat given up goes to the first pe
     const founder = { institution: f.institution, account: await user("faculty"), role: "faculty" as const };
     const admin = { institution: f.institution, account: await user("admin"), role: "admin" as const };
     const asha = { institution: f.institution, account: await user("student"), role: "student" as const };
-    const name = `Drone club ${randomUUID().slice(0, 6)}`;
+    const tag = randomUUID().slice(0, 6), name = `Drone club ${tag}`;
     const club = await changeClub(founder, { operation: "draft", name, purpose: "Fly.", rules: "Weekly.", category: "technical", joining: "open", audience: "campus" });
     for (const [revision, next, who] of [[0, "submitted", founder], [1, "under_review", admin], [2, "approved", admin]] as const)
       await changeClub(who, { operation: "proposal", id: club, revision, next });
-    const event = await changeClub(founder, { operation: "event-draft", club, title: "First flight", location: "Ground", requirements: "None",
-      audience: "eligible", capacity: 1, starts: stamp(86400000), ends: stamp(90000000) });
+    const event = await changeClub(founder, { operation: "event-draft", club, title: `First flight ${tag}`, location: "Ground", requirements: "None",
+      audience: "eligible", capacity: 1, starts: stamp(600000), ends: stamp(4200000) });
     for (const [revision, next, who] of [[0, "pending_approval", founder], [1, "approved", admin], [2, "published", founder], [3, "registration_open", founder]] as const)
       await changeClub(who, { operation: "event-state", club, id: event, revision, next });
     await changeClub(asha, { operation: "register", club, id: event });
@@ -41,7 +41,8 @@ test("a full event offers the waitlist, and a seat given up goes to the first pe
     await page.setExtraHTTPHeaders({ "x-forwarded-for": `198.18.${Math.floor(Math.random() * 250) + 1}.${Math.floor(Math.random() * 250) + 1}` });
     const url = (role: string) => `/clubverse/${club}?institution=${f.institution}&role=${role}`;
     await signIn(page, "outsider");
-    await page.goto(url("student"));
+    await page.goto(`/clubverse?institution=${f.institution}&role=student`);
+    await page.getByRole("region", { name: "Upcoming events" }).getByRole("link", { name: `First flight ${tag}` }).click();
     await expect(page.getByText("This event is full.")).toBeVisible();
     await page.getByRole("button", { name: "Join the waitlist" }).click();
     await expect(page.getByText("On the waitlist · place 1 of 1")).toBeVisible();

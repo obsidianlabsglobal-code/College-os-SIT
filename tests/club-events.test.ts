@@ -1,4 +1,4 @@
-// covers: CL-044, CL-046
+// covers: CL-044, CL-046, SL-003
 import "../scripts/environment";
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
@@ -6,6 +6,7 @@ import { randomUUID } from "node:crypto";
 import { Pool } from "pg";
 import { changeClub } from "../lib/clubverse";
 import { eventExtras, giveFeedback, joinWaitlist, withdraw } from "../lib/club-events";
+import { upcomingEvents } from "../lib/club-views";
 import { db } from "../lib/db";
 import type { Scope } from "../lib/scope";
 import { fixtures, demoEmail } from "../scripts/fixtures";
@@ -32,6 +33,8 @@ test("a full event keeps a waitlist; a withdrawal promotes the earliest; feedbac
   for (const [revision, next, who] of [[0, "pending_approval", founder], [1, "approved", admin], [2, "published", founder], [3, "registration_open", founder]] as const)
     await changeClub(who, { operation: "event-state", club, id: event, revision, next });
   const ref = { club, event };
+  assert.ok((await upcomingEvents(neel, 200)).some(e => e.id === event), "listed for an eligible student before they join anything");
+  assert.ok(!(await upcomingEvents(as("tenant", "student", fixtures.otherInstitution), 200)).some(e => e.id === event));
 
   await assert.rejects(joinWaitlist(asha, ref), /Register instead/);
   await changeClub(asha, { operation: "register", club, id: event });

@@ -121,3 +121,16 @@ export async function officerClubs(scope: Scope) {
      ORDER BY p.name,c.id LIMIT 20`,[scope.institution,scope.account,scope.role],
   )).rows;
 }
+
+// SL-003 (partial) and search: published club events the caller may see, soonest first (same visibility as the club page).
+export async function upcomingEvents(scope: Scope, limit = 20) {
+  return (await db.query<{ id: string; club_id: string; title: string; location: string; club: string; starts: string }>(`SELECT e.id,e.club_id,e.title,e.location,cp.name AS club,
+        to_char(e.starts_at AT TIME ZONE 'Asia/Kolkata','DD Mon YYYY, HH12:MI AM') AS starts FROM club_event e JOIN club c ON (c.institution_id,c.id)=(e.institution_id,e.club_id)
+        JOIN club_proposal cp ON (cp.institution_id,cp.id)=(c.institution_id,c.id)
+      WHERE e.institution_id=$1 AND c.state='active' AND e.published_at IS NOT NULL
+        AND e.state IN ('published','registration_open','registration_closed','in_progress') AND e.ends_at > clock_timestamp()
+        AND EXISTS (SELECT 1 FROM membership m WHERE m.institution_id=$1 AND m.account_id=$2 AND m.role=$3 AND m.ended_at IS NULL)
+        AND (e.audience='eligible' OR $3='admin' OR EXISTS (SELECT 1 FROM club_member cm WHERE (cm.institution_id,cm.club_id)=(e.institution_id,e.club_id)
+          AND cm.account_id=$2 AND cm.state='active'))
+      ORDER BY e.starts_at LIMIT $4`, [scope.institution, scope.account, scope.role, limit])).rows;
+}

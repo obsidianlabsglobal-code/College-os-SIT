@@ -95,7 +95,7 @@ Students need a single route from discovery to action. From a student workspace 
 | --- | --- | --- | --- | --- |
 | SL-001 | CLUBVERSE discovery | Discover recognized communities and review joining policy. | Tested | C |
 | SL-002 | Sports participation | Find eligible teams and trials; see sports specialization. | Tested (sports teams with the student's eligibility and trial requests) | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
-| SL-003 | Cultural events | Find productions, rehearsals and participation opportunities. | Proposed | F |
+| SL-003 | Cultural events | Find productions, rehearsals and participation opportunities. | Tested (upcoming club events on CLUBVERSE and in search; no separate cultural-production records) | lib/club-views.ts, app/clubverse; tests/club-events.test.ts, tests/club-events.e2e.ts |
 | SL-004 | Academic societies | Discover recognized subject communities and join. | Proposed | F |
 | SL-005 | Volunteering | Discover service activities and track verified contributions. | Proposed | F |
 | SL-006 | Campus transport | Find eligible bus, stop and service status. | Designed | T |
