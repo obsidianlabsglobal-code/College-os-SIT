@@ -1,4 +1,4 @@
-// covers: CL-044, CL-046, CL-028, SL-003, CL-047
+// covers: CL-044, CL-046, CL-028, SL-003, CL-047, DH-020
 import "../scripts/environment";
 import { expect, test, type Page } from "@playwright/test";
 import { randomUUID } from "node:crypto";
@@ -77,6 +77,16 @@ test("a full event offers the waitlist, and a seat given up goes to the first pe
     await expect(tasks).toContainText(`Charge spare batteries Riya Rao · due ${today}`);
     await tasks.getByRole("button", { name: "Mark done" }).click();
     await expect(tasks).toContainText(" · done");
+
+    // The office links the club to ECE; the ECE head sees it on their board.
+    await signIn(page, "admin");
+    await page.goto(url("admin"));
+    await page.getByRole("combobox", { name: "Department", exact: true }).selectOption({ label: "Electronics and Communication Engineering" });
+    await page.getByRole("button", { name: "Save department link" }).click();
+    await expect(page.getByText("Departmental association · Electronics and Communication Engineering")).toBeVisible();
+    await signIn(page, "hod");
+    await page.goto(`/?institution=${f.institution}&role=hod`);
+    await expect(page.getByRole("region", { name: "Department clubs" })).toContainText(name);
     await signIn(page, "outsider");
     await page.goto(url("student"));
     await expect(page.getByRole("region", { name: "Notices" })).toContainText("Flights start at 9 sharp.");

@@ -10,6 +10,8 @@ import { clubView } from "../../../lib/club-views";
 import { eventExtras } from "../../../lib/club-events";
 import { clubNotices } from "../../../lib/club-notices";
 import { clubTasks } from "../../../lib/club-tasks";
+import { clubDepartment } from "../../../lib/club-departments";
+import { departmentSwitches } from "../../../lib/active-departments";
 import { ActionForm } from "../../forms";
 import { clubEventAction } from "../../actions/club-events";
 import { ClubForm, EventFields, stateText } from "../controls";
@@ -41,7 +43,8 @@ export default async function ClubHome({ params,searchParams }: {
   const active = club.club_state === "active";
   const date = new Intl.DateTimeFormat("en-IN",{ dateStyle:"medium",timeStyle:"short",timeZone:club.timezone });
   const query = workspaceQuery(current);
-  const [extras,notices,tasks] = await Promise.all([eventExtras(current,id,events.map(event => event.id),officer),clubNotices(current,id),clubTasks(current,id)]);
+  const [extras,notices,tasks,linked,departments] = await Promise.all([eventExtras(current,id,events.map(event => event.id),officer),clubNotices(current,id),clubTasks(current,id),
+    clubDepartment(current,id),admin ? departmentSwitches(current) : Promise.resolve([])]);
   return <Chrome user={user} current={current} section="/clubverse">
     <ExperienceHeading title={club.name} context={club.category} parent={{ href:`/clubverse?${query}`,label:"CLUBVERSE" }} />
     <div className="grid">
@@ -55,6 +58,12 @@ export default async function ClubHome({ params,searchParams }: {
           {!admin && active && !member && club.member_state !== "requested" && (club.joining !== "invitation" || club.member_state === "invited") &&
             <ClubForm current={current} operation="join" label={club.member_state === "invited" ? "Accept invitation" : club.joining === "open" ? "Join club" : "Request membership"} values={key} />}
           {member && !lead && <ClubForm current={current} operation="membership" label="Leave club" values={{ ...key,person:current.account,next:"ended" }} />}
+          {linked && <p className="meta">Departmental association · {linked.name}</p>}
+          {admin && <ActionForm action={clubEventAction} context={current} operation="department" label="Save department link" secondary>
+            <input type="hidden" name="club" value={id} />
+            <label>Department<select name="department" defaultValue={linked?.id ?? ""}><option value="">Not a departmental club</option>
+              {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}</select></label>
+          </ActionForm>}
           {admin && club.club_state !== "archived" && <ClubForm current={current} operation="club-state" label="Update club status" values={key}>
             <label>Club status<select name="next"><option value={active ? "suspended" : "active"}>{active ? "Suspend" : "Reactivate"}</option><option value="archived">Archive permanently</option></select></label>
           </ClubForm>}

@@ -5,6 +5,7 @@ import { notifications } from "../../lib/automation";
 import { coursePlan, departmentDelivery } from "../../lib/course-delivery";
 import { allocationOptions, allocationProposals, departmentSchemes } from "../../lib/allocation";
 import { cases } from "../../lib/cases";
+import { departmentClubs } from "../../lib/club-departments";
 import { planningAction } from "../actions/planning";
 import { ActionForm } from "../forms";
 import { courseAction } from "../actions/courses";
@@ -38,8 +39,8 @@ function WeeklyDigest({ digest, timezone }: { digest: Digest | null; timezone: s
 export async function HodBoard({ current }: { current: Scope }) {
   const [summary, faculty, sections, delivery] = await Promise.all([departmentSummary(current), departmentFaculty(current), departmentSections(current),
     departmentDelivery(current)]);
-  const [proposals, allocation, schemes, compliance] = await Promise.all([allocationProposals(current), allocationOptions(current), departmentSchemes(current),
-    sectionCompliance(current)]);
+  const [proposals, allocation, schemes, compliance, clubs] = await Promise.all([allocationProposals(current), allocationOptions(current), departmentSchemes(current),
+    sectionCompliance(current), departmentClubs(current)]);
   const awaitingPlans = await Promise.all(delivery.filter(row => row.plan === "submitted").map(async row => ({ row, plan: await coursePlan(current, row.offering) })));
   const pending = faculty.reduce((n, row) => n + row.pending, 0), awaiting = faculty.reduce((n, row) => n + row.awaiting, 0);
   const unrecorded = faculty.reduce((n, row) => n + row.unrecorded, 0);
@@ -68,6 +69,13 @@ export async function HodBoard({ current }: { current: Scope }) {
           rest="awaiting results" parts={[{ label: "published", value: row.results, tone: 1 }]} /></td></tr>)}</tbody>
       </table></div> : <p>No departments are assigned to this workspace.</p>}
     </section>
+
+    {clubs.length > 0 && <section className="panel" aria-labelledby="department-clubs">
+      <h2 id="department-clubs">Department clubs</h2>
+      <p className="meta">Clubs the office has linked to your department. Members and upcoming published events only.</p>
+      <ul className="items">{clubs.map(club => <li key={club.id}><strong>{club.name}</strong>
+        <span className="meta"> · {club.department} · {club.state} · {club.members} active members · {club.upcoming} upcoming events</span></li>)}</ul>
+    </section>}
 
     <section className="panel" aria-labelledby="delivery-title">
       <h2 id="delivery-title">Course plans and delivery</h2>

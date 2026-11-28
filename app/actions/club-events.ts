@@ -5,6 +5,7 @@ import { WorkflowError } from "../../lib/assignments";
 import { giveFeedback, joinWaitlist, withdraw } from "../../lib/club-events";
 import { postClubNotice, withdrawClubNotice } from "../../lib/club-notices";
 import { addClubTask, completeClubTask } from "../../lib/club-tasks";
+import { linkClubDepartment } from "../../lib/club-departments";
 import { scope } from "../../lib/scope";
 import type { ActionState } from "./workflow";
 
@@ -19,6 +20,7 @@ export async function clubEventAction(_state: ActionState, form: FormData): Prom
     else if (input.operation === "notice-withdraw") await withdrawClubNotice(actor, input);
     else if (input.operation === "task") await addClubTask(actor, input);
     else if (input.operation === "task-done") await completeClubTask(actor, input);
+    else if (input.operation === "department") await linkClubDepartment(actor, input);
     else return { error: "This action is unavailable." };
   } catch (error) {
     if (error instanceof WorkflowError) return { error: error.message };
