@@ -28,7 +28,7 @@ export function respondToAccident(s:Scope,raw:unknown){
       [s.institution,i.incident,s.account,i.response]);
     if(r.rowCount&&i.response==="need_help"){
       await c.query(`INSERT INTO push_message(institution_id,account_id,title,body,url)
-        SELECT DISTINCT $1,m.account_id,'Rider needs assistance',$2,'/transport?institution='||$1::text||'&role=transport'
+        SELECT DISTINCT m.institution_id,m.account_id,'Rider needs assistance',$2,'/transport?institution='||m.institution_id::text||'&role=transport'
         FROM membership m WHERE m.institution_id=$1 AND m.role='transport' AND m.ended_at IS NULL`,
         [s.institution,friendly(`${d.mode==="simulated"?"SIMULATED. ":""}${d.bus} near ${d.stop}: a checked-in rider requested help. Open Transport for the incident.`)]);
     }

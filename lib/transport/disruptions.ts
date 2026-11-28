@@ -142,7 +142,7 @@ export function changeDisruption(s:Scope,raw:unknown,boardKey?:string){
     await audit(c,s,id,`transport.disruption_${stage}`,seq);
     if(stage==="initial" && s.role==="driver"){
       await c.query(`INSERT INTO push_message(institution_id,account_id,title,body,url)
-        SELECT DISTINCT $1,m.account_id,'Driver report',$2,'/transport?institution='||$1::text||'&role=transport'
+        SELECT DISTINCT m.institution_id,m.account_id,'Driver report',$2,'/transport?institution='||m.institution_id::text||'&role=transport'
         FROM membership m WHERE m.institution_id=$1 AND m.role='transport' AND m.ended_at IS NULL`,
         [tenant,`${mode==="simulated"?"SIMULATED. ":""}${vehicle}: ${kind.replaceAll("_"," ")} near ${location}. Open Transport to review.`.slice(0,300)]);
     }
