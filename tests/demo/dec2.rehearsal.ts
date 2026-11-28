@@ -19,6 +19,27 @@ test("the 2 December demo script runs end to end", async ({ page, browser }, tes
   await page.setExtraHTTPHeaders({ "x-forwarded-for": "198.19.240.10" });
   const shot = (name: string) => page.screenshot({ path: testInfo.outputPath(`${name}.png`), fullPage: true });
 
+  // 0. The bus (headline). Transport office starts the simulated Cedar line trip and publishes one fictional position;
+  // Asha sees her bus, its distance to Fern Square and the estimate, clearly labelled as simulated.
+  await signIn(page, "replacement");
+  await page.goto(at("transport", "/transport"));
+  const trip = page.locator("li").filter({ hasText: "Fictional Cedar line" }).filter({ hasText: "2026-12-02" }).first();
+  await trip.getByRole("button", { name: "Start trip" }).click();
+  const active = page.locator("li").filter({ hasText: "Fictional Cedar line" }).filter({ hasText: "active" }).first();
+  await active.getByText("Publish fictional position").click();
+  await active.getByLabel("Fixture latitude").fill("12.25");
+  await active.getByLabel("Fixture longitude").fill("76.62");
+  await active.getByLabel(/speed/).fill("28");
+  await active.getByRole("button", { name: "Publish simulated location" }).click();
+  await expect(page.getByText("Simulation report: accepted.")).toBeVisible();
+  await shot("00-transport-office");
+  await signIn(page, "student");
+  await page.goto(at("student", "/transport"));
+  await expect(page.getByRole("heading", { name: "My bus", level: 1 })).toBeVisible();
+  await expect(page.getByText("Fictional trip, not real bus tracking.")).toBeVisible();
+  await expect(page.getByText(/estimated about \d+ minutes? away/)).toBeVisible();
+  await shot("00-student-my-bus");
+
   // 1. Student morning
   await signIn(page, "student");
   await page.goto(at("student", "/"));

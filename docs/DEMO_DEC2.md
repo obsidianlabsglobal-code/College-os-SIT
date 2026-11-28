@@ -2,10 +2,11 @@
 
 One fictional college day across five roles, about 20 minutes. Everything runs locally on fictional data: Northfield Institute · Fictional demo. Nothing here is hosted, connected to SIT records, or validated with real users.
 
-## Demo set (14 capabilities)
+## Demo set (17 capabilities; transport leads)
 
 | # | Capability | Registry | Status | Shown in step |
 | --- | --- | --- | --- | --- |
+| 0 | **The bus:** transport office starts a simulated trip; the student sees their bus, distance to their stop and the estimate, clearly labelled simulated | TR-001, TR-003, TR-010 (dot/transport) | Tested locally (simulated only; no live phone tracking) | 0 |
 | 1 | Student Today: next class, open work, attendance | SA-001 | Tested | 1 |
 | 2 | Submit an assignment | SA-012 | Tested | 2 |
 | 3 | Attendance correction request and teacher decision | SA-021 | Tested | 3, 6 |
@@ -21,7 +22,7 @@ One fictional college day across five roles, about 20 minutes. Everything runs l
 | 13 | Decision simulation (attendance minimum) | LE-018 | **Partial**: only the attendance-minimum scenario is modelled; that is the part shown | 13 |
 | 14 | Institutional isolation: another college sees nothing | ID-004 | Tested | 14 |
 | 15 | Ask AURA: plain questions answered only from what that person may see, with sources (local, no AI model) | AI-011, AI-017 | Tested | 1b |
-| 16 | One search across notices, college dates, opportunities, policies and support services | ID-004 (isolation); no dedicated registry row | Tested | 1c |
+| 16 | One search bar on every page: typos, related words, shortcuts, grouped results | ID-014, ID-004 | Tested | 1c |
 
 ### Changes made today for the demo set
 - **SP-004:** completed. A coach's trial decision now reaches the student's inbox through the automation outbox (`db/035`, `lib/automation.ts`). Students can mute it in Settings. Tested in `tests/sports.test.ts`.
@@ -47,8 +48,16 @@ In a second terminal, with `.env` pointing at port 55433 and `NEXUS_DEMO_SEED=1`
 npm run db:migrate && npm run db:seed && npm run db:seed-demo
 ```
 
+Then load the fictional EEE buses, routes and stops (simulated only):
+
 ```bash
-npm run build && npm run start
+NEXUS_TRANSPORT_DEMO_SEED=1 npx tsx lib/transport/seed-demo.ts
+```
+
+Start the app with simulation on (never set this for the real pilot):
+
+```bash
+npm run build && NEXUS_TRANSPORT_SIMULATION_ENABLED=true npm run start
 ```
 
 In a third terminal, start the automation worker so inbox notices arrive (result published, correction decided, team selection):
@@ -67,7 +76,8 @@ Sign in at http://localhost:3000/login. Accounts use `<alias>@nexus.example.inva
 
 | Alias | Person | Role |
 | --- | --- | --- |
-| `student` | Asha Sen | Student, ECE, Section A |
+| `student` | Asha Sen | Student, ECE, Section A; rides the Cedar line from Fern Square |
+| `replacement` | Rohan Roy | Transport office (also a teacher) |
 | `faculty` | Riya Rao | Teacher of Introduction to Programming, ECE XI football coach |
 | `hod` | Dev Iyer | ECE department head |
 | `admin` | Mira Bose | Institution office |
@@ -77,6 +87,12 @@ Sign in at http://localhost:3000/login. Accounts use `<alias>@nexus.example.inva
 Open a second browser profile or private window for the public verification page in step 10.
 
 ## Click-by-click
+
+**0. The bus (transport office, then student) — open with this**
+- Sign in as `replacement` and choose the **Transport office** workspace (Transport). Under dated trips, find **Fictional Cedar line · 2026-12-02 07:20 · Simulated** and press **Start trip**.
+- Open **Publish fictional position** on that trip: latitude `12.25`, longitude `76.62`, speed `28`, then **Publish simulated location**. It answers "Simulation report: accepted."
+- Sign in as `student` and open **Transport** (second in the bottom bar). **My bus** shows Fictional Bus 1, "Simulated · Fictional trip, not real bus tracking", the distance to Fern Square, "Your bus is estimated about 5 minutes away" and the expected time at each stop.
+- Point out: the real pilot uses the driver's phone (NEXUS Driver) instead of this button; it stays off until SIT approves live tracking. If a class teacher views Asha's first class on a morning the bus was delayed and she boarded, they see a "Bus delayed this morning" note — context only, the mark is theirs.
 
 **1. Student morning (student)**
 - Sign in as `student`. Today shows the next class in Room 101, "Lab 3 · Signals and sampling", attendance and the at-a-glance counts.
@@ -151,7 +167,8 @@ Open a second browser profile or private window for the public verification page
 - Sign in as `tenant` (Westhaven College). Show that none of Northfield's students, outcomes, sports or applications appear.
 
 ## What to say about status
-- The whole script was rehearsed automatically on a clean demo database (`tests/demo/dec2.rehearsal.ts`, passed on 28 Nov). Everything shown is also functionally tested on a fresh local PostgreSQL database. The latest run is recorded in `docs/NEXUS_ENGINEERING_LEDGER.md` and `docs/evidence/test-run.json`.
+- The whole script, transport opening included, was rehearsed automatically on a clean demo database (`tests/demo/dec2.rehearsal.ts`, passed on 28 Nov at 11:35 UTC).
+- Transport is simulated: no phone has reported a real bus position, and live tracking, push alerts and map tiles are off until approved. Everything shown is also functionally tested on a fresh local PostgreSQL database. The latest run is recorded in `docs/NEXUS_ENGINEERING_LEDGER.md` and `docs/evidence/test-run.json`.
 - It is not hosted, not connected to SIT systems, and not validated with SIT staff or students.
 - AURA answers from records; no live AI model is connected until a key with a spending cap is approved.
 - Notifications are in-app only.

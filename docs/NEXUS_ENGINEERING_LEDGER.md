@@ -812,3 +812,8 @@ Observed at 5014253, fresh local PostgreSQL in CI order, with the transport test
 - migrate ×2 + seed, lint, typecheck and build passed.
 - 197/197 PostgreSQL and unit tests, 76/76 Chromium, 1/1 tutor.
 - Matrix: 135 tested, 91 partial, 237 missing, 8 unverified, 13 blocked.
+
+**Dec 2 demo, transport first:**
+- DEMO_DEC2.md opens with the bus. The transport office (Rohan Roy) starts the simulated Cedar line trip and publishes one fictional position. Asha's "My bus" then shows "Simulated · Fictional trip, not real bus tracking", the distance to Fern Square, "about 5 minutes away" and the time at each stop.
+- Setup now loads Dot's transport demo seed (`NEXUS_TRANSPORT_DEMO_SEED=1`) and starts the app with `NEXUS_TRANSPORT_SIMULATION_ENABLED=true`, for the demo only.
+- `tests/demo/dec2.rehearsal.ts` has step 0 for this. The full rehearsal passed on a fresh demo database at 11:35 UTC (1/1).
