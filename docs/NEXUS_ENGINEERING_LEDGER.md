@@ -729,3 +729,18 @@ Observed at babbbaa, fresh local PostgreSQL in CI order:
 - Claimed by cc: ID-015
 - Claimed by cc: ID-016
 - Claimed by cc: FC-030 (bus-delay attendance context; built on a local branch, lands after the transport merge)
+
+**Universal search (1661202, `db/082`), ID-014:**
+- **Header bar:** a search bar sits in every workspace header, and "/" focuses it when you aren't typing. Ctrl/Cmd+K stays with the existing page palette, which already used it, so it isn't taken over. On phones the bar is a full-width row; on laptops it shares one header row and the workspace label truncates.
+- **Sources:** each kind of result is still read through its own access-checked reader. Search now also covers courses, assignments, people and cases. People follow rosters: a teacher sees their current students, a student their current teachers, the office every member. Transport routes and stops wait for a read function from Dot (Request to Dot, above).
+- **Matching:** every typed word, or a related word, must start a word in the text. Words of five letters or more also match close typos through pg_trgm `strict_word_similarity` ≥ 0.4, so "circulr" finds "circular" and "atendence" finds attendance.
+  - Related words: a built-in list of English and common Kannada transliterations, plus the office's own groups (admin-only, audited).
+  - Short words don't fuzzy-match: "bus" scored 0.75 against "Business".
+- **Decision:** the pg_trgm extension is added, but no GIN indexes. Search scores only rows the reader already allowed (a few hundred per kind, in one `unnest` query) and never scans a table unscoped, so an index wouldn't be used.
+- **Results:** intent shortcuts go to pages the role can open; "Go to" results rank first. Results are grouped by type, best first. On a miss, "Did you mean" suggests the closest word (`similarity` ≥ 0.25, because transposed letters score low) from what the person may see. The last eight searches are kept per person and workspace.
+- **Evidence:** screenshots at 390 px and 1366×768 in `docs/evidence/search-2026-11-28/`.
+
+Observed at 1661202, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 174/174 PostgreSQL and unit tests, 66/66 Chromium, 1/1 tutor.
+- Matrix: 135 tested, 89 partial, 238 missing (483 rows with ID-014 to ID-016), 8 unverified, 13 blocked.

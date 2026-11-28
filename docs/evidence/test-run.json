@@ -1,7 +1,7 @@
 {
- "commit": "babbbaa614de0af2a69b59fab9af01e418ec1e5b",
+ "commit": "1661202044e61a7593e217857b558231f764ed04",
  "uncommitted_source_changes": false,
- "recorded_at": "2026-11-28T10:22:25+00:00",
+ "recorded_at": "2026-11-28T10:41:34+00:00",
  "environment": "local fresh PostgreSQL, fictional data, headless Chromium",
  "files": {
   "tests/academic-assistant.test.ts": {
@@ -325,7 +325,7 @@
    "failed": 0
   },
   "tests/search.test.ts": {
-   "passed": 1,
+   "passed": 3,
    "failed": 0
   },
   "tests/segments.test.ts": {
