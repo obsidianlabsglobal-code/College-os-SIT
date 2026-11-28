@@ -497,3 +497,30 @@ The founder's plan ("College OS build plan to Dec 2") replaces the module split 
 **Observed:**
 - Fresh local PostgreSQL in CI order at 3794d44: migrate ×2 + seed, lint, typecheck and build passed; 148/148 PostgreSQL and unit tests, 56/56 Chromium, 1/1 tutor.
 - Evidence: `docs/evidence/pilot-foundation-2026-11-28/`.
+
+## 2026-11-28 — Integration steps 2–4: app shell, pilot runbook, phone-notification plumbing
+
+Implemented:
+- **App shell (4ddb317):**
+  - Web app manifest and icons, an "Install app" button where the browser offers it, and a static offline page.
+  - The service worker caches only `/offline.html` and one icon and never stores app responses. The browser test checks the cache contents.
+  - The main Playwright config now blocks service workers, because they hide navigations from `page.route`; `tests/app-shell.e2e.ts` allows them.
+  - Every role's home, including the new transport office and driver, fits 390 px.
+- **Pilot runbook (3f882bd):**
+  - `docs/DEPLOYMENT.md` → "SIT EEE pilot runbook": deployment shape, secrets, first-time order with a backup and restore test before any real sign-in, binding a driver's phone with Traccar Client, rollback, and daily checks.
+  - `scripts/bootstrap-institution.ts` creates a real institution, its departments (only the listed ones on) and the first office account. It is a dry run by default and refuses to overwrite.
+  - Tested locally with fictional values: dry run, apply, refusal on rerun, and rejected input.
+  - No resources created; no spend.
+- **Phone notifications (542e0e1, `db/037`):**
+  - `lib/push.ts` sends empty VAPID-signed pushes (Node crypto, no new dependency) and removes subscriptions the push service reports gone.
+  - Messages wait in a per-member queue that the service worker fetches with the member's session from `/api/push`; without a session it returns 401.
+  - Settings has a per-phone switch when keys are configured. `scripts/push-keys.ts` generates a key pair.
+  - Real delivery through a browser push service is untested here: it needs network access to the push services and a real phone.
+
+Observed, fresh local PostgreSQL in CI order at 542e0e1:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 151/151 PostgreSQL and unit tests, 57/57 Chromium, 1/1 tutor.
+
+Request to codex/transport:
+- Send the 5-minute and delay alerts with `sendPush` to riders of that route in switched-on departments (`accountInActiveDepartmentSql`), from the position or notice request, not the worker.
+- Create `app/transport/page.tsx` so the Transport menu entry appears.

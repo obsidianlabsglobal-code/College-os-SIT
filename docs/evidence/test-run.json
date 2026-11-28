@@ -1,7 +1,7 @@
 {
- "commit": "3794d448af7504a09dcd2fb39e5a12842139be05",
+ "commit": "542e0e1a00e136349248386ed5db3191c5b2dca3",
  "uncommitted_source_changes": false,
- "recorded_at": "2026-11-28T07:19:29+00:00",
+ "recorded_at": "2026-11-28T07:30:28+00:00",
  "environment": "local fresh PostgreSQL, fictional data, headless Chromium",
  "files": {
   "tests/academic-assistant.test.ts": {
@@ -22,6 +22,10 @@
   },
   "tests/allocation-teams.test.ts": {
    "passed": 4,
+   "failed": 0
+  },
+  "tests/app-shell.e2e.ts": {
+   "passed": 1,
    "failed": 0
   },
   "tests/atmosphere.e2e.ts": {
@@ -238,6 +242,10 @@
   },
   "tests/prepared-messages.e2e.ts": {
    "passed": 1,
+   "failed": 0
+  },
+  "tests/push.test.ts": {
+   "passed": 3,
    "failed": 0
   },
   "tests/release-revision.test.ts": {
