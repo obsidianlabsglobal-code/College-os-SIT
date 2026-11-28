@@ -15,6 +15,9 @@ import { catalogHistory } from "../../lib/academics";
 import { calendarEntries } from "../../lib/calendar";
 import { delegateOptions, delegations, dutyLabel } from "../../lib/delegation";
 import { departmentSwitches } from "../../lib/active-departments";
+import { consentStatus } from "../../lib/consent";
+import { consentRequiredAction } from "../actions/onboarding";
+import Link from "next/link";
 
 type Option = { id: string; name: string };
 
@@ -28,9 +31,9 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
   const current = await scope(selection.institution,selection.role);
   if (current.role !== "admin") notFound();
   const preview = onboardingPreviewEnabled();
-  const [data, setup, admissions, history, dates, lent, delegates, switches] = await Promise.all([
+  const [data, setup, admissions, history, dates, lent, delegates, switches, consent] = await Promise.all([
     adminCatalog(current), institutionCatalog(current), preview ? studentAdmissions(current) : [], catalogHistory(current), calendarEntries(current),
-    delegations(current), delegateOptions(current), departmentSwitches(current),
+    delegations(current), delegateOptions(current), departmentSwitches(current), consentStatus(current),
   ]);
   return <Chrome user={user} current={current} section="/admin">
     <PageHeader title="Academic setup" parent={{ href: `/?${workspaceQuery(current)}`, label: "Workspace" }} />
@@ -95,6 +98,20 @@ export default async function Admin({ searchParams }: { searchParams: Promise<{ 
           </ActionForm>}
         </li>)}</ul>
       </section>
+      <section className="panel stack" aria-labelledby="pilot-onboarding">
+        <h2 id="pilot-onboarding">People</h2>
+        <p className="meta">Add teachers from the college’s sheet; they then sign in with an email code. Students ask to join through the college’s join link and their section’s teachers approve them.</p>
+        <p className="row"><Link className="button secondary" href={`/admin/roster-import?${workspaceQuery(current)}`}>Import teachers</Link>
+          <span className="meta">Student join link: <code>/join/student?institution={current.institution}</code></span></p>
+      </section>
+      {consent && <section className="panel stack" aria-labelledby="privacy-notice">
+        <h2 id="privacy-notice">Privacy notice</h2>
+        <p className="meta">{consent.required ? `Required: members must accept version ${consent.version} before using NEXUS.` : "Not required yet. Switch it on once the college has approved the wording."}</p>
+        <ActionForm action={consentRequiredAction} context={current} label={consent.required ? "Stop requiring" : "Require the notice"} secondary>
+          <input type="hidden" name="required" value={String(!consent.required)} /></ActionForm>
+        {consent.required && <><p><strong>{consent.missing.length}</strong> current {consent.missing.length === 1 ? "member has" : "members have"} not accepted yet.</p>
+          {consent.missing.length > 0 && <details><summary>Show who</summary><ul className="items">{consent.missing.map(m => <li key={m.email}>{m.name} · {m.email} · {m.roles}</li>)}</ul></details>}</>}
+      </section>}
       <section className="panel stack" aria-labelledby="pilot-departments">
         <h2 id="pilot-departments">Departments switched on</h2>
         <p className="meta">Sign-up, roster imports and live buses are open only to members of departments that are switched on. Every change is recorded with your reason.</p>

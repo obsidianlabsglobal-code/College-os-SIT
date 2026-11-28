@@ -6,6 +6,7 @@ import { ExperienceHeading } from "./experience/heading";
 import { StudentHome, StudentHomeLoading } from "./student/home";
 import { cookies } from "next/headers";
 import { Chrome, roleLabels } from "./chrome";
+import { myJoinRequests } from "../lib/student-admission";
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ institution?: string; role?: string }> }) {
   const user = await account();
@@ -23,6 +24,16 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ i
     </Chrome>;
   }
 
+  if (!current) {
+    const requests = await myJoinRequests(user);
+    return <Chrome user={user} current={null}>
+      <section className="panel stack" aria-labelledby="no-workspace">
+        <h1 id="no-workspace">No workspace yet</h1>
+        {requests.length ? <ul className="items">{requests.map(r => <li key={r.id}>{r.institution} · {r.section} · {r.state === "pending" ? "Waiting for your teacher's approval" : r.state === "approved" ? "Approved" : `Not approved: ${r.reason}`}</li>)}</ul>
+          : <p>Your account is not part of a college workspace yet. Students: open the join link your college shared. Teachers: ask the office to add you.</p>}
+      </section>
+    </Chrome>;
+  }
   return <Chrome user={user} current={current}>
     <ExperienceHeading title={current ? roleLabels[current.role] : "Your workspace"}
       context={current?.role === "faculty" ? "Manage assignments for the courses you teach." :

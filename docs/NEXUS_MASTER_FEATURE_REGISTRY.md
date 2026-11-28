@@ -28,10 +28,10 @@ Domain: shared foundation. Users: all institutional participants and authorized 
 | ID-006 | Transactional audit | Record consequential changes and roll back writes on audit failure. | Tested | R/C/A |
 | ID-007 | Hosted staging acceptance | Exercise five roles, redeploy, verify previous work and recover from backup on authorized hosts. | Blocked | DEPLOYMENT.md; provider access missing |
 | ID-008 | Scoped specialist posts | Delegate class coordinator, academic mentor, specialist office and resource custodian duties for a defined scope. | Tested (specialist office duties via delegation; mentors via FC-016; no class coordinator or custodian posts) | lib/delegation.ts; tests/delegation-certificates.test.ts, tests/delegation-certificates.e2e.ts |
-| ID-009 | Account lifecycle | Provision, suspend and offboard accounts with traceable effects on grants. | Tested (offboarding within one institution; no provisioning or suspension) | lib/allocation.ts offboard, app/admin; tests/allocation-teams.test.ts, tests/allocation-teams.e2e.ts |
-| ID-010 | Privacy and retention | Define access, deletion, backups and retention per record class and institution. | Proposed | F |
+| ID-009 | Account lifecycle | Provision, suspend and offboard accounts with traceable effects on grants. | Tested (import, approval, office revoke that ends rosters and membership; no scheduled expiry) | db/070, lib/roster-import.ts, lib/student-admission.ts, lib/auth.ts, lib/email, lib/consent.ts, app/admin/roster-import, app/join/student, app/approvals/students, app/login/code, app/consent; tests/pilot-access.test.ts, tests/pilot-access.e2e.ts |
+| ID-010 | Privacy and retention | Define access, deletion, backups and retention per record class and institution. | Tested (versioned privacy notice an institution can require, with acceptance records; no retention jobs) | db/070, lib/roster-import.ts, lib/student-admission.ts, lib/auth.ts, lib/email, lib/consent.ts, app/admin/roster-import, app/join/student, app/approvals/students, app/login/code, app/consent; tests/pilot-access.test.ts, tests/pilot-access.e2e.ts |
 | ID-011 | Institution and campus configuration | Configure campuses, departments, branding, program, scheme, locale and academic year per tenant. | Proposed | F |
-| ID-012 | Approved imports and exports | Validate source authority, preview changes and reconcile batch outcomes across systems. | Proposed | F |
+| ID-012 | Approved imports and exports | Validate source authority, preview changes and reconcile batch outcomes across systems. | Tested (teacher CSV import with a stored dry run and per-row errors; no student import or exports) | db/070, lib/roster-import.ts, lib/student-admission.ts, lib/auth.ts, lib/email, lib/consent.ts, app/admin/roster-import, app/join/student, app/approvals/students, app/login/code, app/consent; tests/pilot-access.test.ts, tests/pilot-access.e2e.ts |
 | ID-013 | Institution adoption and onboarding | Assess replacement, integration and overlay options with institutional owners; train and support staff. | Proposed | F |
 
 ## Student Life · academics
@@ -234,7 +234,7 @@ Institution administrators, academic office and designated specialists manage ac
 | ID | Capability | Functional workflow or acceptance outcome | Status | Evidence |
 | --- | --- | --- | --- | --- |
 | AD-001 | Institutional setup | Set up core departments, schemes and terms for an existing institution. | Tested | R |
-| AD-002 | Account onboarding | Invite, verify, provision and recover accounts through authorized office. | Proposed | F |
+| AD-002 | Account onboarding | Invite, verify, provision and recover accounts through authorized office. | Tested (office teacher import, email-code sign-in and recovery, student sign-up approved by section teachers; email goes to the console adapter until a provider is approved) | db/070, lib/roster-import.ts, lib/student-admission.ts, lib/auth.ts, lib/email, lib/consent.ts, app/admin/roster-import, app/join/student, app/approvals/students, app/login/code, app/consent; tests/pilot-access.test.ts, tests/pilot-access.e2e.ts |
 | AD-003 | Role grants | Grant and end permitted institutional roles to existing people. | Tested | R |
 | AD-004 | Membership lifecycle | Activate and end memberships; retain history and revoke live access. | Tested | R |
 | AD-005 | Student records | Govern student identity details, corrections and authorized record access. | Proposed | F |
