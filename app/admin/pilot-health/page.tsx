@@ -36,7 +36,7 @@ export default async function PilotHealth({ searchParams }: { searchParams: Prom
     </section>
     <section className="panel stack" aria-labelledby="failures-title">
       <h2 id="failures-title">Trouble signing in · last 24 hours</h2>
-      <p className="meta">Emails of this college's members and applicants with failed sign-ins. Repeated failures usually mean a mistyped email or an expired code.</p>
+      <p className="meta">Emails of this college’s members and applicants with failed sign-ins. Repeated failures usually mean a mistyped email or an expired code.</p>
       {health.failures.length ? <ul className="items">{health.failures.map(f => <li key={f.email}>{f.email} · {f.failures} {f.failures === 1 ? "failure" : "failures"} · last {when.format(f.last)}</li>)}</ul>
         : <p>No failed sign-ins.</p>}
     </section>

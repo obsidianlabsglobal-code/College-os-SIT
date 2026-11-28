@@ -11,7 +11,6 @@ import type { Scope } from "../lib/scope";
 
 const owner = new Pool({ connectionString: process.env.MIGRATION_DATABASE_URL });
 const as = new Map<string, Scope>();
-const i = fixtures.institution;
 const stranger = `stranger-${randomUUID().slice(0, 6)}@nexus.example.invalid`;
 
 before(async () => {
