@@ -629,3 +629,11 @@ Observed at 7163419, fresh local PostgreSQL in CI order:
 Observed at 888e84d, fresh local PostgreSQL in CI order:
 - migrate ×2 + seed, lint, typecheck and build passed.
 - 163/163 PostgreSQL and unit tests, 64/64 Chromium, 1/1 tutor.
+
+**Matrix work, continued (11590e1, `db/075`):**
+- **Student records (AD-005):** the office finds students by name, email or USN and corrects USN, semester or phone with a reason. Every change keeps its old and new value. A student reads their own record on My profile, and nobody else's. Names stay with the sign-in account, which is shared across colleges.
+- **Classroom scheduling (OP-001):** a new timetable test shows two sections cannot hold a class in one room at the same time; the clashing class stays a draft. It also covers part of DH-008 timetable planning (no HOD planning view).
+
+Observed at 11590e1, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 165/165 PostgreSQL and unit tests, 65/65 Chromium, 1/1 tutor.

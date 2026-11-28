@@ -1,7 +1,7 @@
 {
- "commit": "888e84d0457a48656cd87634853ce6b022b746d4",
+ "commit": "11590e1eb7cbde5c8ff82eacef67a749a9f0359a",
  "uncommitted_source_changes": false,
- "recorded_at": "2026-11-28T08:57:55+00:00",
+ "recorded_at": "2026-11-28T09:05:03+00:00",
  "environment": "local fresh PostgreSQL, fictional data, headless Chromium",
  "files": {
   "tests/academic-assistant.test.ts": {
@@ -13,7 +13,7 @@
    "failed": 0
   },
   "tests/academic-day.test.ts": {
-   "passed": 4,
+   "passed": 5,
    "failed": 0
   },
   "tests/allocation-teams.e2e.ts": {
@@ -333,6 +333,14 @@
    "failed": 0
   },
   "tests/student-import.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/student-records.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/student-records.test.ts": {
    "passed": 1,
    "failed": 0
   },
