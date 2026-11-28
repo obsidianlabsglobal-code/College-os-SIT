@@ -1,7 +1,7 @@
 {
- "commit": "7bfc278752673a6e76ae96e20c42b03c4a0810d4",
+ "commit": "3794d448af7504a09dcd2fb39e5a12842139be05",
  "uncommitted_source_changes": false,
- "recorded_at": "2026-11-28T06:29:18+00:00",
+ "recorded_at": "2026-11-28T07:19:29+00:00",
  "environment": "local fresh PostgreSQL, fictional data, headless Chromium",
  "files": {
   "tests/academic-assistant.test.ts": {
@@ -218,6 +218,14 @@
   },
   "tests/outcomes.test.ts": {
    "passed": 3,
+   "failed": 0
+  },
+  "tests/pilot-foundation.e2e.ts": {
+   "passed": 1,
+   "failed": 0
+  },
+  "tests/pilot-foundation.test.ts": {
+   "passed": 2,
    "failed": 0
   },
   "tests/policies-cases.e2e.ts": {

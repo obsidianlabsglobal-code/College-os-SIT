@@ -474,3 +474,26 @@ Observed:
 - Demo rehearsal on a clean demo database: 1/1 passed.
 - One manual worker drain delivered the three inbox notices to the student: result, correction and team selection.
 - Fresh local PostgreSQL in CI order at 7bfc278: migrate ×2 + seed, lint, typecheck and build passed; 146/146 PostgreSQL and unit tests, 55/55 Chromium, 1/1 tutor.
+
+## 2026-11-28 — New plan from the founder; integration step 1: pilot foundation (migration 036)
+
+The founder's plan ("College OS build plan to Dec 2") replaces the module split in `docs/PARALLEL_PLAN.md`.
+- **Coders:** three.
+  - This session (CC-A): integration on `audit/nexus-engineering-audit`, migrations 036–039.
+  - CC-B on `cc/pilot-access`: sign-in, consent and search, migrations 070–089.
+  - Codex on `codex/transport` from 15:00 IST, migrations 055–069.
+  - Migrations 040–054 and 060–064 stay unused.
+- **Goals:** Dec 2 demo with transport as the headline, then an EEE-only pilot after the college's written permission.
+- **Freeze:** Dec 1, 12:00 IST; rehearsal at 18:00 IST.
+
+**Migration 036 landed in commit 3794d44.** Other sessions branch from it.
+- **New roles:** `transport` (transport office) and `driver`. Drivers' phones will report with per-vehicle tokens, so a driver login is optional.
+- **New case kinds:** `transport_incident` and `lost_and_found`. Only the reporter and the transport office read them; the transport office coordinates them. Case-closed notices name both kinds.
+- **Coordinator helper:** `coordinatorRole(kind)` in `lib/cases.ts` replaces the admin-or-HOD checks in the cases page and My work.
+- **Department switch:** `department.active`, changed by the office with an audited reason (Academic setup → Departments switched on). It defaults to on.
+- **Shared rule:** `lib/active-departments.ts` exports `departmentActiveSql` and `accountInActiveDepartmentSql`. Sign-up, imports and live buses must use them.
+- **Navigation:** the Transport entry appears once `app/transport/page.tsx` exists (codex/transport), so no build links to a 404. The transport office and drivers get a short menu.
+
+**Observed:**
+- Fresh local PostgreSQL in CI order at 3794d44: migrate ×2 + seed, lint, typecheck and build passed; 148/148 PostgreSQL and unit tests, 56/56 Chromium, 1/1 tutor.
+- Evidence: `docs/evidence/pilot-foundation-2026-11-28/`.
