@@ -11,6 +11,7 @@ import { roomChangeMessage } from "../../lib/prepared-message";
 import { PreparedMessage } from "../experience/prepared-message";
 import { AttendanceGroupCopy } from "./attendance-group-copy";
 import { AttendanceForm } from "./attendance-form";
+import { busDelayNotes } from "../../lib/bus-delay";
 import { planningOptions } from "../../lib/attendance-planning";
 import { AttendanceForecast } from "./forecast";
 import { timetableAction } from "./actions";
@@ -38,7 +39,8 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
     attendanceSummary(current),timetableOptions(current),selectedID.success ? sessionDetail(current,selectedID.data) : null,planningOptions(current),
     corrections(current),
   ]);
-  const eligibility = await attendanceEligibility(current);
+  const [eligibility,busDelays] = await Promise.all([attendanceEligibility(current),
+    detail && current.role==="faculty" ? busDelayNotes(current,detail.row.id) : Promise.resolve([])]);
   if (selectedID.success && !detail) notFound();
   const [alternatives,changes] = detail ? await Promise.all([campusChangeAlternatives(current,detail.row.id),upcomingRoomChanges(current,detail.row.id)]) : [[],[]];
   const query = workspaceQuery(current);
@@ -222,6 +224,12 @@ export default async function Timetable({searchParams}:{searchParams:Promise<Rec
             <label>Why should this mark change?<textarea name="reason" maxLength={500} required /></label>
           </ActionForm>
         </details>}
+        {busDelays.length>0 && <section aria-label="Bus delays" className="stack">
+          <p><strong>Bus delayed this morning</strong> · boarding recorded on a delayed college bus before this, their first class today.</p>
+          <ul className="items">{busDelays.map(note=><li key={note.student_id}>{detail.learners.find(l=>l.student===note.student_id)?.name ?? "A student"}
+            <span className="meta"> · delay reported {new Intl.DateTimeFormat("en-IN",{timeStyle:"short",timeZone:timezone}).format(note.reported_at)}</span></li>)}</ul>
+          <p className="meta">Context only. Your attendance mark stands as you record it.</p>
+        </section>}
         {current.role==="faculty" && (detail.row.state==="published" || detail.row.state==="conducted") && detail.row.finish<=new Date() && detail.learners.length>0 &&
           <AttendanceForm key={`${detail.row.id}:${detail.row.revision}`} current={{institution:current.institution,role:current.role}} session={detail.row.id}
             revision={detail.row.revision} learners={detail.learners} correction={detail.row.state==="conducted"} />}
