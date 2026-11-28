@@ -450,3 +450,27 @@ Observed, fresh local PostgreSQL in CI order at 0a0f185:
 - migrate ×2 + seed, lint, typecheck, build: all passed.
 - 146/146 PostgreSQL and unit tests, 55/55 Chromium, 1/1 tutor.
 - Evidence: `docs/evidence/outcomes-2026-11-28/`.
+
+## 2026-11-28 — Demo preparation for 2 December (priority change from the founder)
+
+The founder moved today's goal from full coverage to a 2 December demo.
+
+Demo set: 14 capabilities across student, teacher, HOD, office and principal journeys, listed with status in `docs/DEMO_DEC2.md`:
+- 13 are Tested.
+- LE-018 stays partial: only attendance-minimum scenarios are modelled.
+
+Done (commit 7bfc278):
+- **SP-004 completed:** a trial decision reaches the student's inbox through the outbox (`db/035`, rules `sport-selected-notify` and `sport-declined-notify`). Students can mute it in Settings.
+- **DH-012, CR-002, OP-002:** bracketed notes removed after review. They described what was built, not a missing part of the requirement.
+- **`scripts/seed-demo.ts` (`npm run db:seed-demo`):** fictional demo data for a dedicated local database only. Integration tests keep the plain seed.
+- **`tests/demo/dec2.rehearsal.ts` with `playwright.demo.config.ts`:** walks the whole demo script on a clean demo database. It is not part of CI because it changes the demo data.
+
+Problems the rehearsal caught, and how each was fixed:
+- The script said one submission awaited evaluation. Asha's Lab 3 submission makes it two; the script was corrected.
+- Decided correction requests leave the teacher's queue. The step and its check were corrected.
+- The demo data published a grade before its submission time, which showed −72 h turnaround on the principal board. The submission is now dated before the grade.
+
+Observed:
+- Demo rehearsal on a clean demo database: 1/1 passed.
+- One manual worker drain delivered the three inbox notices to the student: result, correction and team selection.
+- Fresh local PostgreSQL in CI order at 7bfc278: migrate ×2 + seed, lint, typecheck and build passed; 146/146 PostgreSQL and unit tests, 55/55 Chromium, 1/1 tutor.
