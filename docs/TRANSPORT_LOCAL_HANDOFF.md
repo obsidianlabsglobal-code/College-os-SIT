@@ -27,6 +27,10 @@ Transport office configures routes, stops, vehicles, service schedules, dated tr
 - Optional external public raster tiles must meet the [OSMF policy](https://operations.osmfoundation.org/policies/tiles/), including visible attribution and normal caches. The app selects tiles only on the visible live map explicitly opened by a rider, with origin-only referrer; simulated and unconfigured views use a schematic.
 - QR renderer is vendored from [Project Nayuki](https://github.com/nayuki/QR-Code-generator/tree/9a217d443937f60cc56c1458c39a211d7f2d3af5/typescript-javascript) under the retained MIT notice. No provider receives QR payloads. Browser camera use is explicit, local, and optional when native QR detection exists. Paste is the fallback.
 
+## Fictional EEE loader
+
+After migrating and applying the baseline fictional seed in an isolated loopback database, run `NEXUS_TRANSPORT_DEMO_SEED=1 node --import tsx lib/transport/seed-demo.ts`. It stages four simulated service routes, twenty ordered timed stops, four vehicles, three non-login driver records and ten rider choices. The baseline fictional student can sign in and uses the first selected stop. This is not part of normal test seeding or any real SIT catalog.
+
 ## Flag boundaries
 
 Keep live, push, tiles, rider backup and speed approval off until separately authorized. The relevant flags are `NEXUS_TRANSPORT_LIVE_ENABLED`, `NEXUS_TRANSPORT_PUSH_ENABLED`, `NEXUS_TRANSPORT_TILES_ENABLED`, `NEXUS_TRANSPORT_RIDER_BACKUP_ENABLED` and `NEXUS_TRANSPORT_OVERSPEED_APPROVED`. `NEXUS_TRANSPORT_BOARDING_SECRET` is server-only and kept out of Git. `NEXUS_TRANSPORT_LOCAL_TEST=1` is loopback-only; enable it and `NEXUS_TRANSPORT_SIMULATION_ENABLED=true` only in a fictional local test environment. Do not use the synthetic fleet or test secrets in a real pilot.
