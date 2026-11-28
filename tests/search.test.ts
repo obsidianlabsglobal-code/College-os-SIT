@@ -1,11 +1,11 @@
-// covers: ID-004, ID-006
+// covers: ID-004, ID-006, ID-014
 import "../scripts/environment";
 import assert from "node:assert/strict";
 import { test, before, after } from "node:test";
 import { randomUUID } from "node:crypto";
 import { Pool } from "pg";
 import { db } from "../lib/db";
-import { search } from "../lib/search";
+import { addRelatedWords, recentSearches, relatedWords, rememberSearch, removeRelatedWords, search } from "../lib/search";
 import { fixtures, demoEmail, personas } from "../scripts/fixtures";
 import type { Scope } from "../lib/scope";
 
@@ -15,7 +15,7 @@ const i = fixtures.institution;
 const tag = `zq${randomUUID().slice(0, 6)}`;
 const club = randomUUID(), events = { members: randomUUID(), open: randomUUID() };
 const ids = { sectionNotice: randomUUID(), collegeNotice: randomUUID(), draftNotice: randomUUID(), staffPolicy: randomUUID(), listing: randomUUID(), date: randomUUID() };
-const titles = async (alias: string, q = tag) => (await search(as.get(alias)!, q)).map(h => `${h.kind}: ${h.title}`).sort();
+const titles = async (alias: string, q = tag) => (await search(as.get(alias)!, q)).hits.filter(h => h.kind !== "Go to").map(h => `${h.kind}: ${h.title}`).sort();
 
 before(async () => {
   for (const url of [process.env.MIGRATION_DATABASE_URL, process.env.DATABASE_URL]) assert.ok(url && ["127.0.0.1", "localhost"].includes(new URL(url).hostname));
@@ -68,6 +68,43 @@ test("one search returns only what each reader may open on the kind's own page",
     "staff see the staff policy; drafts and opportunities do not appear");
   assert.deepEqual(await titles("tenant"), [], "another college sees nothing");
   assert.deepEqual(await titles("student", `record ${tag}`), [`Notice: Section A lab ${tag}`], "every word must match");
-  assert.deepEqual(await search({ ...as.get("student")!, role: "admin" }, tag), [], "a role without membership sees nothing");
+  assert.deepEqual((await search({ ...as.get("student")!, role: "admin" }, tag)).hits, [], "a role without membership sees nothing");
   await assert.rejects(() => search(as.get("student")!, "x"), { name: "ZodError" });
+});
+
+test("typos, related words and intent shortcuts still find things, and a miss suggests a near word", async () => {
+  assert.deepEqual(await titles("student", `circulr ${tag}`), [`Notice: Exam circular ${tag}`], "typo in a longer word");
+  assert.deepEqual(await titles("student", `announcement ${tag}`), [`Notice: Exam circular ${tag}`], "built-in related word");
+  assert.ok((await titles("student", `practical ${tag}`)).includes(`Notice: Section A lab ${tag}`), "lab and practical");
+  const widened = await titles("outsider", `practical ${tag}`);
+  assert.ok(!widened.includes(`Notice: Section A lab ${tag}`) && !widened.includes(`Club event: Members build night ${tag}`), "a related word never widens access");
+  const go = async (alias: string, q: string) => (await search(as.get(alias)!, q)).hits.filter(h => h.kind === "Go to").map(h => h.path);
+  assert.equal((await go("student", "atendence"))[0], "/timetable#attendance", "a typo of an intent word still jumps there");
+  assert.equal((await go("faculty", "attendance"))[0], "/timetable");
+  assert.ok((await go("student", "submit assignment")).includes("/assignments"));
+  assert.ok(!(await go("principal", "my attendance")).length, "no shortcut to a page the role cannot open");
+  const miss = await search(as.get("student")!, "hackthon");
+  assert.ok(miss.hits.some(h => h.title === `Hackathon ${tag}`) || miss.didYouMean === "hackathon", "close enough to match or to suggest");
+  const none = await search(as.get("student")!, "robt");
+  assert.deepEqual([none.hits.length, typeof none.didYouMean], [0, "string"], "a short near miss suggests a word that exists");
+});
+
+test("the office adds its own related words; people search follows rosters; recent searches are per person", async () => {
+  await assert.rejects(addRelatedWords(as.get("faculty")!, "showcase, demo"), /unavailable/);
+  await addRelatedWords(as.get("admin")!, "Showcase, demo");
+  const group = (await relatedWords(as.get("admin")!)).find(g => g.words.join() === "showcase,demo")!;
+  assert.deepEqual(await titles("outsider", `showcase ${tag}`), [`Club event: Open demo day ${tag}`]);
+  await removeRelatedWords(as.get("admin")!, group.id);
+  assert.deepEqual(await titles("outsider", `showcase ${tag}`), []);
+
+  const people = async (alias: string, q: string) => (await search(as.get(alias)!, q)).hits.filter(h => h.kind === "Person").map(h => h.title);
+  assert.ok((await people("faculty", "Asha")).includes("Asha Sen"), "a teacher finds their student");
+  assert.ok((await people("student", "Riya")).includes("Riya Rao"), "a student finds their teacher");
+  assert.deepEqual(await people("student", "Neel"), [], "not a student of another section");
+  assert.deepEqual(await people("tenant", "Asha"), [], "not across colleges");
+  assert.ok((await people("admin", "Neel")).includes("Neel Das"), "the office finds any member");
+
+  await rememberSearch(as.get("student")!, `circulr ${tag}`);
+  assert.equal((await recentSearches(as.get("student")!))[0], `circulr ${tag}`);
+  assert.ok(!(await recentSearches(as.get("outsider")!)).includes(`circulr ${tag}`));
 });

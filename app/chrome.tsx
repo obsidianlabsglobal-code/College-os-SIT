@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { Brand } from "./experience/brand";
 import { ThemePicker } from "./experience/theme";
 import { InstallApp } from "./experience/app-shell";
+import { GlobalSearch } from "./experience/global-search";
 import { themePreference } from "./experience/theme-preference";
 import type { Icon } from "./experience/workspace-icon";
 import type { ComponentProps } from "react";
@@ -140,6 +141,7 @@ export async function Chrome({ user, current, section = "/", children, skipConse
       <Link href={home} className="brand"><Brand /></Link>
       {selected && <span className="institution-label"><span className="workspace-crumb">Campus workspace / {labels[section]}</span>
         {selected.name} <span className="institution-role">· {roleLabels[selected.role]}</span></span>}
+      {current && <GlobalSearch institution={current.institution} role={current.role} />}
       <div className="account-tools">
         {options.length > 1 && <form action={chooseWorkspace} className="workspace-form">
           <label><span className="sr-only">Workspace</span>
