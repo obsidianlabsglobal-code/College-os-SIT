@@ -443,7 +443,6 @@ test("AURA event planning confirms a private persisted draft", async ({ page }) 
   const { Client } = await import("pg");
   const { fixtures } = await import("../scripts/fixtures");
   const { changeClub } = await import("../lib/clubverse");
-  const { db:runtime } = await import("../lib/db");
   const connection = new Client({ connectionString:migrationUrl });
   await connection.connect();
   const name = `AURA planning club ${randomUUID().slice(0,8)}`;
@@ -485,7 +484,7 @@ test("AURA event planning confirms a private persisted draft", async ({ page }) 
     await expect(event.locator(".tag")).toHaveText("draft");
     await expect(event.getByText(/Capacity 80/)).toBeVisible();
   } finally {
-    await Promise.all([connection.end(),runtime.end()]);
+    await connection.end(); // the app pool (runtime) is shared by every test in this worker; leave it open
   }
 });
 
