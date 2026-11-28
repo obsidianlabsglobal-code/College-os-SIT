@@ -1,7 +1,7 @@
 {
- "commit": "7ff19503c4252664df8bef1d91868905c05f202c",
+ "commit": "adf35507aabdac5a19b72a20af9a458431bb4ec2",
  "uncommitted_source_changes": false,
- "recorded_at": "2026-11-28T09:32:56+00:00",
+ "recorded_at": "2026-11-28T09:39:58+00:00",
  "environment": "local fresh PostgreSQL, fictional data, headless Chromium",
  "files": {
   "tests/academic-assistant.test.ts": {

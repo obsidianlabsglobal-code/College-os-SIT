@@ -664,3 +664,12 @@ Observed at 7ff1950, fresh local PostgreSQL in CI order:
 - migrate ×2 + seed, lint, typecheck and build passed.
 - 168/168 PostgreSQL and unit tests, 66/66 Chromium, 1/1 tutor.
 - Matrix: 135 tested, 81 partial, 243 missing, 8 unverified, 13 blocked.
+
+**Room availability and staff dock (aac7477–adf3550, no migration):**
+- **Room availability (SP-012, partial):** on Facilities, any current member can check a room and date and see when it's taken by classes or approved bookings. They see times only, never who booked it, why, or which class. Other colleges see nothing. Requested and cancelled bookings don't count as taken.
+- **Staff dock:** Dot's handoff (dot/transport `docs/TRANSPORT_LOCAL_HANDOFF.md`) noted that Transport displaced Evaluation queue in the faculty mobile dock. Transport now leads only the student dock; staff find it under More. This can only be checked once `app/transport/page.tsx` is merged, so it's on the 18:00 review checklist.
+
+Observed at adf3550, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 168/168 PostgreSQL and unit tests, 66/66 Chromium, 1/1 tutor.
+- Matrix: 135 tested, 82 partial, 242 missing, 8 unverified, 13 blocked.
