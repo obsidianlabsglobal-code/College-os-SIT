@@ -7,7 +7,7 @@ import { preferences } from "../../lib/preferences";
 import { roleKinds } from "../../lib/automation";
 
 const kindLabel: Record<string, string> = { assignment: "New assignments", reminder: "Due-date reminders", result: "Published results", class: "Class changes",
-  correction: "Attendance corrections", case: "Cases and requests", attendance: "Attendance to record", request: "Service requests", followup: "Request follow-ups", escalation: "Escalations" };
+  correction: "Attendance corrections", case: "Cases and requests", attendance: "Attendance to record", request: "Service requests", followup: "Request follow-ups", escalation: "Escalations", sport: "Team selection decisions" };
 
 export default async function Settings({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const [params, user] = await Promise.all([searchParams, account()]);

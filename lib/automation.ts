@@ -29,6 +29,15 @@ async function classChange(client: PoolClient, job: Job, state: string, title: s
      WHERE s.institution_id=$1 AND s.id=$2 ON CONFLICT DO NOTHING`, [job.institution_id, job.entity_id, job.event_id]);
 }
 
+/** SP-004: the event's subject is the student; the decision must still stand when the job runs. */
+async function sportDecision(client: PoolClient, job: Job, state: string, title: string): Promise<Result> {
+  return notify(client,
+    `INSERT INTO notification (institution_id,recipient_id,event_id,kind,entity_id,title)
+     SELECT t.institution_id,p.student_id,$3,'sport',t.id,left($4||t.name,300)
+     FROM audit_event e JOIN sport_team t ON t.institution_id=e.institution_id AND t.id=e.entity_id
+     JOIN team_player p ON (p.institution_id,p.team_id)=(t.institution_id,t.id) AND p.student_id=e.subject_id AND p.state=$5
+     WHERE e.id=$3 AND t.institution_id=$1 AND t.id=$2 ON CONFLICT DO NOTHING`, [job.institution_id, job.entity_id, job.event_id, title, state]);
+}
 const handlers: Record<string, (client: PoolClient, job: Job) => Promise<Result>> = {
   async "assignment-published-notify"(client, job) {
     const live = await client.query("SELECT 1 FROM assignment WHERE institution_id=$1 AND id=$2 AND published_at IS NOT NULL", [job.institution_id, job.entity_id]);
@@ -142,6 +151,8 @@ const handlers: Record<string, (client: PoolClient, job: Job) => Promise<Result>
          ELSE 'Student support case assigned to you' END
        FROM case_record k WHERE k.institution_id=$1 AND k.id=$2 ON CONFLICT DO NOTHING`, [job.institution_id, job.entity_id, job.event_id]);
   },
+  async "sport-selected-notify"(client, job) { return sportDecision(client, job, "selected", "You were selected for "); },
+  async "sport-declined-notify"(client, job) { return sportDecision(client, job, "declined", "Trial decision: not selected for "); },
   async "case-closed-notify"(client, job) {
     // Titles carry no case contents; the reader opens the case under its own access rules.
     return notify(client,
@@ -243,7 +254,7 @@ export async function runJobs({ worker = "local", limit = 20, leaseSeconds = 60 
 }
 
 export const roleKinds: Record<Scope["role"], string[]> = {
-  student: ["assignment", "reminder", "result", "class", "correction", "case"], faculty: ["attendance", "correction", "case"],
+  student: ["assignment", "reminder", "result", "class", "correction", "case", "sport"], faculty: ["attendance", "correction", "case"],
   admin: ["request", "followup", "case"], principal: ["escalation"], hod: ["case"],
 };
 
@@ -272,6 +283,8 @@ export async function notifications(current: Scope) {
            JOIN roster r ON r.institution_id=s.institution_id AND r.offering_id=s.offering_id AND r.account_id=n.recipient_id AND r.ended_at IS NULL
            WHERE k.institution_id=n.institution_id AND k.id=n.entity_id
              AND ((r.role='student' AND k.student_id=n.recipient_id) OR (r.role='faculty' AND s.faculty_id=n.recipient_id)))
+         WHEN n.kind='sport' THEN EXISTS (
+           SELECT 1 FROM team_player p WHERE p.institution_id=n.institution_id AND p.team_id=n.entity_id AND p.student_id=n.recipient_id AND p.state<>'requested')
          WHEN n.kind='case' THEN EXISTS (
            SELECT 1 FROM case_record k WHERE k.institution_id=n.institution_id AND k.id=n.entity_id
              AND (k.assigned_to=n.recipient_id OR k.opened_by=n.recipient_id))

@@ -9,6 +9,7 @@ import { WorkflowError } from "../lib/assignments";
 import { addTraining, announce, assignCoach, createTeam, createTournament, decideTrial, enterTeam, recordResult, requestTrial, scheduleFixture, setTrials,
   sportsOverview, verifyParticipation } from "../lib/sports";
 import { portfolioCandidates, setPortfolioItem } from "../lib/student-life";
+import { notifications, runJobs } from "../lib/automation";
 import { fixtures, demoEmail, personas } from "../scripts/fixtures";
 import type { Scope } from "../lib/scope";
 
@@ -40,6 +41,8 @@ before(async () => {
 });
 after(async () => {
   const teamIds = (await owner.query("SELECT id FROM sport_team WHERE institution_id=$1 AND sport=$2", [i, sport])).rows.map(r => r.id);
+  await owner.query("DELETE FROM notification WHERE institution_id=$1 AND entity_id=ANY($2)", [i, teamIds]);
+  await owner.query("DELETE FROM job WHERE institution_id=$1 AND event_id IN (SELECT id FROM audit_event WHERE institution_id=$1 AND entity_id=ANY($2))", [i, teamIds]);
   const fixtureIds = (await owner.query("SELECT id FROM sport_fixture WHERE institution_id=$1 AND home_team_id=ANY($2)", [i, teamIds])).rows.map(r => r.id);
   await owner.query("DELETE FROM portfolio_item WHERE institution_id=$1 AND source='participation' AND source_id=ANY($2)", [i, fixtureIds]);
   await owner.query("DELETE FROM fixture_participant WHERE institution_id=$1 AND fixture_id=ANY($2)", [i, fixtureIds]);
@@ -106,6 +109,11 @@ test("a coach runs trials for an eligible student, then training and announcemen
   assert.ok(read.announcements.some(a => a.body.includes(tag)));
   const outsider = (await sportsOverview(as.get("outsider")!)).teams.find(t => t.id === team.ece)!;
   assert.deepEqual([outsider.training, outsider.announcements], [[], []], "non-members of the squad read neither");
+  // SP-004: the selection reaches the student's inbox through the automation outbox.
+  for (let n = 0; n < 50 && Object.values(await runJobs({ worker: "sports-test" })).some(Boolean); n++);
+  const inbox = (await notifications(student)).filter(x => x.kind === "sport");
+  assert.ok(inbox.some(x => x.entity_id === team.ece && x.title === `You were selected for ECE ${tag}`));
+  assert.ok(!(await notifications(as.get("outsider")!)).some(x => x.entity_id === team.ece));
 });
 
 test("fixtures check entries, venue, team and class clashes; only the official records and revises results", async () => {

@@ -4,7 +4,7 @@ import { db, transaction } from "./db";
 import type { Scope } from "./scope";
 
 // SL-010 / SL-011: a member's own display, discovery and in-app notification choices for one institution.
-export const notificationKinds = ["assignment", "reminder", "result", "class", "correction", "case", "attendance", "request", "followup", "escalation"] as const;
+export const notificationKinds = ["assignment", "reminder", "result", "class", "correction", "case", "attendance", "request", "followup", "escalation", "sport"] as const;
 export type Preferences = { large_text: boolean; reduced_motion: boolean; discoverable: boolean; muted_kinds: string[] };
 const defaults: Preferences = { large_text: false, reduced_motion: false, discoverable: true, muted_kinds: [] };
 

@@ -164,7 +164,7 @@ HODs and explicitly delegated coordinators need department-scoped oversight. Sel
 | DH-009 | Attendance reporting | Aggregate verified attendance with scheme definitions. | Tested (latest-record rates and counts below the approved attendance policy; no scheme-specific rules) | No scheme eligibility definitions; tests/department.test.ts, lib/department.ts sectionCompliance, tests/work-closing.test.ts, tests/work-closing.e2e.ts |
 | DH-010 | Assessment and results reporting | Count published assignments, submissions and published results from records. | Tested | R |
 | DH-011 | Curriculum progress | Review course coverage with source evidence. | Tested | lib/course-delivery.ts, app/courses/[id], app/leadership/boards.tsx; tests/course-delivery.test.ts, tests/course-delivery.e2e.ts |
-| DH-012 | CO/PO/PSO evidence | Map assessments to applicable approved outcome definitions. | Tested (office-defined programme outcomes; teacher-proposed, HOD-approved course outcomes with mapping levels; assessments tagged by their teachers) | db/034, lib/outcomes.ts, app/outcomes; tests/outcomes.test.ts, tests/outcomes.e2e.ts |
+| DH-012 | CO/PO/PSO evidence | Map assessments to applicable approved outcome definitions. | Tested | db/034, lib/outcomes.ts, app/outcomes; tests/outcomes.test.ts, tests/outcomes.e2e.ts |
 | DH-013 | Outcome-based education workflows | Review mappings, attainment measures and corrective actions. | Tested (mapping review, course and programme outcome attainment under a stated rule; corrective actions use Improvement actions separately) | db/034, lib/outcomes.ts, app/outcomes; tests/outcomes.test.ts, tests/outcomes.e2e.ts |
 | DH-014 | Student support coordination | Assign and follow up appropriate academic support. | Tested | db/022, lib/cases.ts, app/cases; tests/cases.test.ts, tests/cases.e2e.ts |
 | DH-015 | Department notices | Publish and retrieve notices within department scope. | Tested | R; tests/notices.test.ts |
@@ -336,7 +336,7 @@ Players, coaches, officials, sports coordinators and venue custodians need relia
 | SP-001 | Sports discovery | Find sports and currently eligible teams. | Tested (teams with trial status and the student's eligibility) | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
 | SP-002 | Player profiles | Share approved sporting information under player controls. | Proposed | F |
 | SP-003 | Teams | Form season rosters from verified members. | Tested | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
-| SP-004 | Selection and trials | Request a tryout, record an authorized selection and notify the player. | Tested (the decision shows on the Sports page; no inbox notification) | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
+| SP-004 | Selection and trials | Request a tryout, record an authorized selection and notify the player. | Tested | db/031, db/035, lib/sports.ts, lib/automation.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
 | SP-005 | Coaches | Assign a coach for a team and term. | Tested | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
 | SP-006 | Training schedules | Publish confirmed training sessions to eligible members. | Tested | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
 | SP-007 | Fixtures | Assign opponents, time and venue per match. | Tested | db/031, lib/sports.ts, app/sports; tests/sports.test.ts, tests/sports.e2e.ts |
@@ -425,7 +425,7 @@ Students, placement and research offices, opted-in mentors, approved alumni and 
 | ID | Capability | Functional workflow or acceptance outcome | Status | Evidence |
 | --- | --- | --- | --- | --- |
 | CR-001 | Internship search | Discover active verified internships. | Tested | Staff-reviewed directory, lib/opportunities.ts and tests/opportunities.*. Eligibility is displayed for manual review. |
-| CR-002 | Jobs and placement opportunities | Search roles and approved placement drives. | Tested (verified job and placement-drive listings) | db/032, lib/careers.ts, lib/opportunities.ts, app/careers, app/opportunities; tests/careers.test.ts, tests/careers.e2e.ts |
+| CR-002 | Jobs and placement opportunities | Search roles and approved placement drives. | Tested | db/032, lib/careers.ts, lib/opportunities.ts, app/careers, app/opportunities; tests/careers.test.ts, tests/careers.e2e.ts |
 | CR-003 | Course discovery | Compare relevant courses with prerequisites and source links. | Proposed | F |
 | CR-004 | NPTEL and SWAYAM discovery | Discover verified listings through permitted interfaces. | Proposed | F |
 | CR-005 | Scholarships | Find applicable funding and application deadlines. | Tested | Staff-reviewed directory, lib/opportunities.ts and tests/opportunities.*. Eligibility is displayed for manual review. |
@@ -469,7 +469,7 @@ Resource custodians, library/lab staff, facilities teams, requesters and approve
 | ID | Capability | Functional workflow or acceptance outcome | Status | Evidence |
 | --- | --- | --- | --- | --- |
 | OP-001 | Classroom scheduling | Assign sections to rooms without overlapping confirmed use. | Proposed | F |
-| OP-002 | Laboratory booking | Select authorized lab slots and obtain clearance. | Tested (office-approved room and lab slots; students name a supervising teacher) | db/033, lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
+| OP-002 | Laboratory booking | Select authorized lab slots and obtain clearance. | Tested | db/033, lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
 | OP-003 | Equipment reservations | Request equipment, confirm custody, return and inspect condition. | Tested (office-issued custody with due date, return and condition) | db/033, lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
 | OP-004 | Library services | Search approved holdings and request institution-permitted services. | Tested (holdings search and office-issued loans; no holds or renewals) | db/033, lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
 | OP-005 | Asset tracking | Record current location, custodian and equipment lifecycle. | Tested (current custodian and loan history for equipment; no location changes) | db/033, lib/operations.ts, app/facilities; tests/campus-operations.test.ts, tests/campus-operations.e2e.ts |
