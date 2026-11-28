@@ -708,3 +708,15 @@ Observed at f0989b7, fresh local PostgreSQL in CI order:
 - migrate ×2 + seed, lint, typecheck and build passed.
 - 172/172 PostgreSQL and unit tests, 66/66 Chromium, 1/1 tutor.
 - Matrix: 135 tested, 87 partial, 237 missing, 8 unverified, 13 blocked.
+
+**Merge dry run with dot/transport (5885a54–babbbaa):**
+- I merged audit/nexus-engineering-audit + cc/pilot-access + dot/transport@32b630f into a local branch that was never pushed and ran CI on a fresh database.
+  - Only the ledger conflicted (append-only).
+  - 192/192 PostgreSQL tests passed.
+  - First run: 66/67 Chromium. pilot-access e2e still expected "Pick your bus stop (coming soon)", but with the transport page present home shows "Pick my route and stop". Fixed in 5885a54: the test checks for `app/transport/page.tsx`, as the shell does.
+  - Second run, with `NEXUS_TRANSPORT_LOCAL_TEST=1` so Dot's boarding e2e runs: 67/68 Chromium. The boarding test failed with "Called end on pool more than once"; it and `release.e2e.ts` both close the shared app pool in one Playwright worker.
+  - Fixed the release side in babbbaa. Asked Dot, through the coordinator, to drop `db.end()` from `tests/transport-boarding.e2e.ts`.
+
+Observed at babbbaa, fresh local PostgreSQL in CI order:
+- migrate ×2 + seed, lint, typecheck and build passed.
+- 172/172 PostgreSQL and unit tests, 66/66 Chromium, 1/1 tutor.
